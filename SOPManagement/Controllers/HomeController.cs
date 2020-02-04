@@ -16,11 +16,17 @@ using ListItem = Microsoft.SharePoint.Client.ListItem;
 using Break = DocumentFormat.OpenXml.Wordprocessing.Break;
 using System.Xml.Linq;
 using System.Globalization;
+using System.Collections;
 
 namespace SOPManagement.Controllers
 {
     public class HomeController : Controller
     {
+        // string siteurl;
+
+        string siteurl = "https://radiantdelivers.sharepoint.com/sites/watercooler";
+
+
         public ActionResult Index()
         {
             return View();
@@ -60,127 +66,109 @@ namespace SOPManagement.Controllers
 
 
             string savePath = Server.MapPath("~/Content/docfiles/SOPFile.docx");
-            string templatePath = Server.MapPath("~/Content/DocFiles/SOPTmplt.docx");
+            string templatePath = Server.MapPath("~/Content/DocFiles/SOPTemplate.docx");
 
 
             //Merge file
 
-             string originaldoc = Server.MapPath("~/Content/docfiles/SOPFile.docx"); ;
+            // string originaldoc = Server.MapPath("~/Content/docfiles/SOPFile.docx"); ;
 
-            string outputfilepath;
-            string[] filestomerge = new string[2];
-            System.IO.File.Copy(Server.MapPath("~/Content/docfiles/SOPCoverTmplt.docx"), Server.MapPath("~/Content/docfiles/SOPFile.docx"),true);
+            //string outputfilepath;
+            //string[] filestomerge = new string[2];
+            //System.IO.File.Copy(Server.MapPath("~/Content/docfiles/SOPCoverTmplt.docx"), Server.MapPath("~/Content/docfiles/SOPFile.docx"),true);
 
-            filestomerge[0]= Server.MapPath("~/Content/docfiles/SOPFile.docx");
-            filestomerge[1]= Server.MapPath("~/Content/docfiles/SOPBodyTmplt.docx");
-            outputfilepath= Server.MapPath("~/Content/docfiles/MergedFile.docx");
+            //filestomerge[0]= Server.MapPath("~/Content/docfiles/SOPFile.docx");
+            //filestomerge[1]= Server.MapPath("~/Content/docfiles/SOPBodyTmplt.docx");
+            //outputfilepath= Server.MapPath("~/Content/docfiles/MergedFile.docx");
 
-               MergeDoc(filestomerge[0], filestomerge[1], outputfilepath);
+            //string iChunkId = "AltChunkId" + DateTime.Now.Ticks.ToString();
+
+            //   MergeDocumentWithPagebreak(filestomerge[0], filestomerge[1], iChunkId);
+            //  MergeDoc(filestomerge[0], filestomerge[1], outputfilepath);
 
 
             //MergeWordFiles(filestomerge);
 
+
+            string permissionlabel = "Contribute";  // this will come from query string
+            string useremail = "tshaikh@radiantdelivers.com"; //this come from windows logged name
+
             //1.create requested word document from tempate with cover page
 
-            //CreateDocFromTemplate(Title, SOPNO);
+
+
+
+            CreateDocFromTemplate(Title, SOPNO);
 
 
             //2.uploading the processed doc file to sharepoint
 
-            string siteurl = "https://radiantdelivers.sharepoint.com/sites/watercooler";
             string documentlistname = "SOP";
             string documentlistUrl = "SOP/Warehouse Operations/";
-            string documentname = "SOPTfffeeee.docx";      // Title;
+            string documentname = Title;   //"SOPFile";      // Title;
 
-            //byte[] stream = System.IO.File.ReadAllBytes(savePath);
 
-          //  UploadDocument(siteurl, documentlistname, documentlistUrl, documentname, stream,SOPNO);
+   
+              byte[] stream = System.IO.File.ReadAllBytes(savePath);
+
+             UploadDocument(siteurl, documentlistname, documentlistUrl, documentname, stream,SOPNO);
+
+            ArrayList arrvers;
+            string filerpath = "/sites/watercooler/SOP/Warehouse Operations/" + Title + ".docx";
+            arrvers = getFileVersions(siteurl, filerpath);
+
 
             //3. insert permision in sql server
 
             //4.assign file permission
-         //   AssignFilePermission(siteurl, documentlistname, documentlistUrl, documentname,"add");
+           //  AssignFilePermission(siteurl, documentlistname, documentlistUrl, documentname,"add",permissionlabel, useremail);
 
+
+            //     GetFileVersions(siteurl, documentlistname, documentlistUrl, documentname);
 
             Response.Write("Success");
         }
 
 
 
-
-        public virtual Byte[] MergeWordFiles(string[] sourceFiles)
+        /// <summary>
+        /// Merge word document with page break in-between
+        /// </summary>
+        /// <param name=”sourceFile”></param>
+        /// <param name=”destinationFile”></param>
+        /// <param name=”AltChunkID”></param>
+        private void MergeDocumentWithPagebreak(string sourceFile, string destinationFile, string AltChunkID)
         {
-            int f = 0;
-            // If only one Word document then skip merge.
-            if (sourceFiles.Count() == 1)
+            using (WordprocessingDocument myDoc =
+            WordprocessingDocument.Open(sourceFile, true))
             {
-                return System.IO.File.ReadAllBytes(sourceFiles[0]);
-            }
-            else
-            {
-                MemoryStream destinationFile = new MemoryStream();
 
-                // Add first file
-                var firstFile = sourceFiles[0];
+                string altChunkId = AltChunkID;
+                MainDocumentPart mainPart = myDoc.MainDocumentPart;
 
-                destinationFile.Write(System.IO.File.ReadAllBytes(firstFile), 0, firstFile.Length);
-                destinationFile.Position = 0;
+                //Append page break
+                DocumentFormat.OpenXml.Wordprocessing.Paragraph para = new DocumentFormat.OpenXml.Wordprocessing.Paragraph(new Run((new Break() { Type = BreakValues.Page })));
+                mainPart.Document.Body.InsertAfter(para, mainPart.Document.Body.LastChild);
 
-                int pointer = 1;
-                byte[] ret;
+                //Append file
+                AlternativeFormatImportPart chunk = mainPart.AddAlternativeFormatImportPart(
+                 AlternativeFormatImportPartType.WordprocessingML, altChunkId);
+                using (FileStream fileStream = System.IO.File.Open(destinationFile, FileMode.Open))
+                    chunk.FeedData(fileStream);
+                AltChunk altChunk = new AltChunk();
+                altChunk.Id = altChunkId;
+                mainPart.Document
+                .Body
+                .InsertAfter(altChunk, mainPart.Document.Body.Elements<DocumentFormat.OpenXml.Wordprocessing.Paragraph>().Last());
+                mainPart.Document.Save();
 
-                // Add the rest of the files
-                try
-                {
-                    using (WordprocessingDocument mainDocument = WordprocessingDocument.Open(new MemoryStream(System.IO.File.ReadAllBytes(firstFile)), true))
-                    {
-                        System.Xml.Linq.XElement newBody = XElement.Parse(mainDocument.MainDocumentPart.Document.Body.OuterXml);
-
-                        for (pointer = 1; pointer < sourceFiles.Count(); pointer++)
-                        {
-
-                            var sFile = sourceFiles[pointer];
-                            WordprocessingDocument tempDocument = WordprocessingDocument.Open(new MemoryStream(System.IO.File.ReadAllBytes(sFile)), true);
-                            XElement tempBody = XElement.Parse(tempDocument.MainDocumentPart.Document.Body.OuterXml);
-                            newBody.Add(XElement.Parse(new DocumentFormat.OpenXml.Wordprocessing.Paragraph(new Run(new Break { Type = BreakValues.Page })).OuterXml));
-                            newBody.Add(tempBody);
-
-                            mainDocument.MainDocumentPart.Document.Body = new Body(newBody.ToString());
-                            mainDocument.MainDocumentPart.Document.Save();
-                            mainDocument.Package.Flush();
-                        }
-                    }
-                }
-                catch (OpenXmlPackageException oxmle)
-                {
-                    throw new Exception(string.Format(CultureInfo.CurrentCulture, "Error while merging files. Document index {0}", pointer), oxmle);
-                }
-                catch (Exception e)
-                {
-                    throw new Exception(string.Format(CultureInfo.CurrentCulture, "Error while merging files. Document index {0}", pointer), e);
-                }
-                finally
-                {
-                    ret = destinationFile.ToArray();
-                    destinationFile.Close();
-                    destinationFile.Dispose();
-                }
-
-                return ret;
             }
         }
 
 
+
         private void MergeDoc(string coverdoc, string bodydoc, string stroutdoc)
         {
-
-
-            //byte[] word1 = System.IO.File.ReadAllBytes(coverdoc);
-            //byte[] word2 = System.IO.File.ReadAllBytes(bodydoc);
-
-            //byte[] result = Merge(word1, word2);
-
-            //System.IO.File.WriteAllBytes(stroutdoc, result);
 
 
             using (WordprocessingDocument myDoc =
@@ -188,6 +176,14 @@ namespace SOPManagement.Controllers
             {
                 string altChunkId = "AltChunkId" + DateTime.Now.Ticks.ToString();
                 MainDocumentPart mainPart = myDoc.MainDocumentPart;
+
+
+                //Append page break
+                DocumentFormat.OpenXml.Wordprocessing.Paragraph para = new DocumentFormat.OpenXml.Wordprocessing.Paragraph(new Run((new Break() { Type = BreakValues.Page })));
+                mainPart.Document.Body.InsertAfter(para, mainPart.Document.Body.LastChild);
+
+                //append file
+
                 AlternativeFormatImportPart chunk = mainPart.AddAlternativeFormatImportPart(
                     AlternativeFormatImportPartType.WordprocessingML, altChunkId);
 
@@ -197,125 +193,132 @@ namespace SOPManagement.Controllers
                 altChunk.Id = altChunkId;
                 mainPart.Document
                     .Body
-                    .InsertAfter(altChunk, mainPart.Document.Body.Elements<DocumentFormat.OpenXml.Wordprocessing.Paragraph>().Last());
+                   .InsertAfter(altChunk, mainPart.Document.Body.Elements<DocumentFormat.OpenXml.Wordprocessing.Paragraph>().Last());
                 mainPart.Document.Save();
             }
 
 
 
-//            Using myDoc = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open("D:\\Test.docx", True)
-//        Dim altChunkId = "AltChunkId" + DateTime.Now.Ticks.ToString().Substring(0, 2)
-//        Dim mainPart = myDoc.MainDocumentPart
-//        Dim chunk = mainPart.AddAlternativeFormatImportPart(
-//            DocumentFormat.OpenXml.Packaging.AlternativeFormatImportPartType.WordprocessingML, altChunkId)
-//        Using fileStream As IO.FileStream = IO.File.Open("D:\\Test1.docx", IO.FileMode.Open)
-//            chunk.FeedData(fileStream)
-//        End Using
-//        Dim altChunk = New DocumentFormat.OpenXml.Wordprocessing.AltChunk()
-//        altChunk.Id = altChunkId
-//        mainPart.Document.Body.InsertAfter(altChunk, mainPart.Document.Body.Elements(Of DocumentFormat.OpenXml.Wordprocessing.Paragraph).Last())
-//        mainPart.Document.Save()
-//End Using
-
-
         }
 
 
-        private static byte[] Merge(byte[] dest, byte[] src)
-        {
-            string altChunkId = "AltChunkId" + DateTime.Now.Ticks.ToString();
+        //private void DownlodFile(string url,string listTitle)
+        //{
+        //    using (var clientContext = new ClientContext(url))
+        //    {
 
-            var memoryStreamDest = new MemoryStream();
-            memoryStreamDest.Write(dest, 0, dest.Length);
-            memoryStreamDest.Seek(0, SeekOrigin.Begin);
-            var memoryStreamSrc = new MemoryStream(src);
+        //        var list = clientContext.Web.Lists.GetByTitle(listTitle);
+        //        //var listItem = list.GetItemById(listItemId);
+        //        clientContext.Load(list);
+        //       // clientContext.Load(listItem, i => i.File);
+        //        clientContext.ExecuteQuery();
 
-            using (WordprocessingDocument doc = WordprocessingDocument.Open(memoryStreamDest, true))
-            {
-                MainDocumentPart mainPart = doc.MainDocumentPart;
-                AlternativeFormatImportPart altPart =
-                    mainPart.AddAlternativeFormatImportPart(AlternativeFormatImportPartType.WordprocessingML, altChunkId);
-                altPart.FeedData(memoryStreamSrc);
-                var altChunk = new AltChunk();
-                altChunk.Id = altChunkId;
-                DocumentFormat.OpenXml.OpenXmlElement lastElem = mainPart.Document.Body.Elements<AltChunk>().LastOrDefault();
-                if (lastElem == null)
-                {
-                    lastElem = mainPart.Document.Body.Elements<DocumentFormat.OpenXml.Wordprocessing.Paragraph>().Last();
-                }
+        //        //var fileRef = listItem.File.ServerRelativeUrl;
+        //        var fileInfo = Microsoft.SharePoint.Client.File.OpenBinaryDirect(clientContext, fileRef);
+        //        //var fileName = Path.Combine(filePath, (string)listItem.File.Name);
+        //        using (var fileStream = System.IO.File.Create(fileName)) ;
+        //        //{
+        //        //    fileInfo.Stream.CopyTo(fileStream);
+        //        //}
+        //    }
 
+        //}
 
-                //Page Brake einfügen
-                DocumentFormat.OpenXml.Wordprocessing.Paragraph pageBreakP = new DocumentFormat.OpenXml.Wordprocessing.Paragraph();
-                Run pageBreakR = new Run();
-                Break pageBreakBr = new Break() { Type = BreakValues.Page };
-
-                pageBreakP.Append(pageBreakR);
-                pageBreakR.Append(pageBreakBr);
-
-                return memoryStreamDest.ToArray();
-            }
-
-
-
-
-        }
-
-
-
+ 
             private void CreateDocFromTemplate(string filetitle,string sopno)
         {
 
 
+            //     System.IO.File.Copy(Server.MapPath("~/Content/docfiles/SOPTemplate.docx"), Server.MapPath("~/Content/docfiles/SOPFile.docx"), true);
+
+            //    System.IO.File.Copy(Server.MapPath("~/Content/docfiles/SOPFile.docx"), Server.MapPath("~/Content/docfiles/SOPTemp.docx"), true);
+
+            //     string savePath = Server.MapPath("~/Content/docfiles/SOPFile.docx");
+            //    string templatePath = Server.MapPath("~/Content/DocFiles/SOPTemp.docx");
+
+
+            //  Microsoft.Office.Interop.Word.Application wapp = new Microsoft.Office.Interop.Word.Application();
+            //Microsoft.Office.Interop.Word.Document doc = new Microsoft.Office.Interop.Word.Document();
+
+            //doc = wapp.Documents.Open(templatePath);   //open template and update it
+            //doc.Activate();
+            //// doc.Tables[1].Rows.Add();
+
+
+            ////doc.Tables[1].Rows.Add(
+            ////doc.Tables[1].Rows[4]);
+
+            ////get value from sql database
+
+            //if (doc.Bookmarks.Exists("filetitle"))
+            //{
+
+            //    //var start = doc.Bookmarks["filetitle"].Start;
+            //    //var end = doc.Bookmarks["filetitle"].End;
+
+            //    //Microsoft.Office.Interop.Word.Range range = doc.Range(start, end);
+
+            //    doc.Bookmarks["filetitle"].Range.Text = filetitle;
+
+
+            //    //object missO = System.Reflection.Missing.Value;
+
+            //    //Microsoft.Office.Interop.Word.Range range = wapp.ActiveDocument.Content;
+
+            //    //Microsoft.Office.Interop.Word.Find find = range.Find;
+            //    //find.Text = filetitle;
+            //    //find.ClearFormatting();
+            //    //find.Execute(ref missO, ref missO, ref missO, ref missO, ref missO,
+            //    //    ref missO, ref missO, ref missO, ref missO, ref missO,
+            //    //    ref missO, ref missO, ref missO, ref missO, ref missO);
+
+
+
+            //   // Microsoft.Office.Interop.Word.Range range = doc.Range(start, end);
+
+            //    //doc.Bookmarks.Add("filetitle", range);
+
+
+            //}
+
+            //if (doc.Bookmarks.Exists("filetitleh"))
+            //{
+            //    doc.Bookmarks["filetitleh"].Range.Text = filetitle;
+            //}
+
+
+            //if (doc.Bookmarks.Exists("sopno"))
+            //{
+            //    doc.Bookmarks["sopno"].Range.Text = sopno;  //sopno + " ";
+            //}
+
+            //if (doc.Bookmarks.Exists("sopnoh"))
+            //{
+            //    doc.Bookmarks["sopnoh"].Range.Text = sopno;
+            //}
+
+            //if (doc.Bookmarks.Exists("revno"))
+            //{
+            //    // doc.Bookmarks["Time"].Range.Text = DateTime.Now.ToString("yyyy-MM-dd");
+            //    doc.Bookmarks["revno"].Range.Text = "1.0";
+            //}
+
+
+            ////this.Application.ActiveDocument.Tables[1].Rows[1]);
+
+
+
+            //doc.SaveAs2(savePath);
+            //wapp.Application.Quit();
+
+
+
+
+            System.IO.File.Copy(Server.MapPath("~/Content/docfiles/SOPTemplate.docx"), Server.MapPath("~/Content/docfiles/SOPFile.docx"), true);
+
+            //    System.IO.File.Copy(Server.MapPath("~/Content/docfiles/SOPFile.docx"), Server.MapPath("~/Content/docfiles/SOPTemp.docx"), true);
+
             string savePath = Server.MapPath("~/Content/docfiles/SOPFile.docx");
-            string templatePath = Server.MapPath("~/Content/DocFiles/SOPTmplt.docx");
-
-            Microsoft.Office.Interop.Word.Application wapp = new Microsoft.Office.Interop.Word.Application();
-            Microsoft.Office.Interop.Word.Document doc = new Microsoft.Office.Interop.Word.Document();
-            doc = wapp.Documents.Open(templatePath);
-            doc.Activate();
-            // doc.Tables[1].Rows.Add();
-
-
-            //doc.Tables[1].Rows.Add(
-            //doc.Tables[1].Rows[4]);
-
-            //get value from sql database
-
-            if (doc.Bookmarks.Exists("filetitle"))
-            {
-                doc.Bookmarks["filetitle"].Range.Text = filetitle;
-            }
-
-            if (doc.Bookmarks.Exists("filetitleh"))
-            {
-                doc.Bookmarks["filetitleh"].Range.Text = filetitle;
-            }
-
-
-            if (doc.Bookmarks.Exists("sopno"))
-            {
-                doc.Bookmarks["sopno"].Range.Text = sopno;  //sopno + " ";
-            }
-
-            if (doc.Bookmarks.Exists("sopnoh"))
-            {
-                doc.Bookmarks["sopnoh"].Range.Text = sopno;
-            }
-
-            if (doc.Bookmarks.Exists("revno"))
-            {
-                // doc.Bookmarks["Time"].Range.Text = DateTime.Now.ToString("yyyy-MM-dd");
-                doc.Bookmarks["revno"].Range.Text = "1.0";
-            }
-
-
-            //this.Application.ActiveDocument.Tables[1].Rows[1]);
-
-
-
-            doc.SaveAs2(savePath);
-            wapp.Application.Quit();
 
 
             //  add row in table and data in cell
@@ -325,47 +328,321 @@ namespace SOPManagement.Controllers
             Microsoft.Office.Interop.Word.Application app = new Microsoft.Office.Interop.Word.Application();
             Microsoft.Office.Interop.Word.Document wdoc = app.Documents.Open(ref path, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj);
 
-            // Select the last table.
-            // For this demo, the table has size of 3*4 (row * column).
+            
+            
             int totalTables = wdoc.Tables.Count;
-            // Microsoft.Office.Interop.Word.Table tab = wdoc.Tables[totalTables];
-            Microsoft.Office.Interop.Word.Table tab = wdoc.Tables[totalTables];
-            Microsoft.Office.Interop.Word.Range range = tab.Range;
-
-            // Select the last row as source row.
-            int selectedRow = tab.Rows.Count;
-
-            // Select and copy content of the source row.
-            range.Start = tab.Rows[selectedRow].Cells[1].Range.Start;
-            range.End = tab.Rows[selectedRow].Cells[tab.Rows[selectedRow].Cells.Count].Range.End;
-            range.Copy();
-
-            // Insert a new row after the last row if it is not first row to add data
-
-            if (selectedRow > 2)
-                tab.Rows.Add(ref missObj);
-
-            // Moves the cursor to the first cell of target row.
-            range.Start = tab.Rows[tab.Rows.Count].Cells[1].Range.Start;
-            range.End = range.Start;
-
-            // Paste values to target row.
-            range.Paste();
-
-            // Write new vaules to each cell.
-            tab.Rows[tab.Rows.Count].Cells[1].Range.Text = "new row";
-            tab.Rows[tab.Rows.Count].Cells[2].Range.Text = "cell 2";
-            tab.Rows[tab.Rows.Count].Cells[2].Range.Text = "cell 3";
+            bool donotaddrow = false;
 
 
-            wdoc.SaveAs2(savePath);
+            //Add data into reviewer table  - 2nd table in the cover page
+
+            if (totalTables>0 )
+            {
+
+
+                //update first table in  cover page
+
+                Microsoft.Office.Interop.Word.Table tab1 = wdoc.Tables[1];
+                Microsoft.Office.Interop.Word.Range range1 = tab1.Range;
+
+                // Select the last row as source row.
+                int selectedRow1 = tab1.Rows.Count;
+
+                // Write new vaules to each cell.
+                tab1.Rows[1].Cells[2].Range.Text = filetitle;
+                tab1.Rows[2].Cells[2].Range.Text = sopno;
+                tab1.Rows[2].Cells[4].Range.Text = "1.0";
+                //  tab1.Rows[tab1.Rows.Count].Cells[3].Range.Text = "cell 3";
+
+
+                //update 2nd table in  cover page for updating reviewers
+
+                Microsoft.Office.Interop.Word.Table tab2 = wdoc.Tables[2];          
+                Microsoft.Office.Interop.Word.Range range2 = tab2.Range;
+
+                // Select the last row as source row.
+                int selectedRow2 = tab2.Rows.Count;
+
+                // Select and copy content of the source row.
+                range2.Start = tab2.Rows[selectedRow2].Cells[1].Range.Start;
+                range2.End = tab2.Rows[selectedRow2].Cells[tab2.Rows[selectedRow2].Cells.Count].Range.End;
+                range2.Copy();
+
+                // Insert a new row after the last row if it is not first row to add data
+
+                if (selectedRow2 >= 3)
+                {
+                    if (tab2.Rows[tab2.Rows.Count].Cells[1].Range.Text == "" || tab2.Rows[tab2.Rows.Count].Cells[1].Range.Text == "\r\a")
+                        donotaddrow = true;
+
+                    if (!donotaddrow)
+                        tab2.Rows.Add(ref missObj);
+
+                }
+
+                // Moves the cursor to the first cell of target row.
+                range2.Start = tab2.Rows[tab2.Rows.Count].Cells[1].Range.Start;
+                range2.End = range2.Start;
+
+                // Paste values to target row.
+                range2.Paste();
+
+                // Write new vaules to each cell.
+                tab2.Rows[tab2.Rows.Count].Cells[1].Range.Text = "new row";
+                tab2.Rows[tab2.Rows.Count].Cells[2].Range.Text = "cell 2";
+                tab2.Rows[tab2.Rows.Count].Cells[3].Range.Text = "cell 3";
+
+
+
+                //Add data into Revison history table - last table in last page
+
+                Microsoft.Office.Interop.Word.Table tab = wdoc.Tables[totalTables];
+                Microsoft.Office.Interop.Word.Range range = tab.Range;
+
+                // Select the last row as source row.
+                int selectedRow = tab.Rows.Count;
+
+                // Select and copy content of the source row.
+                range.Start = tab.Rows[selectedRow].Cells[1].Range.Start;
+                range.End = tab.Rows[selectedRow].Cells[tab.Rows[selectedRow].Cells.Count].Range.End;
+                range.Copy();
+
+                // Insert a new row after the last row if it is not first row to add data
+
+                //if (selectedRow >= 4)
+                //    tab.Rows.Add(ref missObj);
+
+                donotaddrow = false;
+
+                if (selectedRow >= 2)
+                {
+                    if (tab.Rows[tab.Rows.Count].Cells[1].Range.Text == "" || tab.Rows[tab.Rows.Count].Cells[1].Range.Text == "\r\a")
+                        donotaddrow = true;
+
+                    if (!donotaddrow)
+                        tab.Rows.Add(ref missObj);
+
+                }
+
+
+                // Moves the cursor to the first cell of target row.
+                range.Start = tab.Rows[tab.Rows.Count].Cells[1].Range.Start;
+                range.End = range.Start;
+
+                // Paste values to target row.
+                range.Paste();
+
+
+                
+                ArrayList vers=new ArrayList(new string[] { "1.0" });
+
+                
+                string filerpath = "SOP/Warehouse Operations/" + filetitle +".docx";
+                //  vers = getFileVersions(siteurl, filerpath);
+
+                //vers.Add(arr);
+
+                foreach (string s in vers)
+                {
+
+                    // Write new vaules to each cell.
+                    tab.Rows[tab.Rows.Count].Cells[1].Range.Text = s;
+                    //tab.Rows[tab.Rows.Count].Cells[2].Range.Text = "cell 2";
+                    //tab.Rows[tab.Rows.Count].Cells[3].Range.Text = "cell 3";
+
+                }
+
+                //// Write new vaules to each cell.
+                //tab.Rows[tab.Rows.Count].Cells[1].Range.Text = "new row";
+                //tab.Rows[tab.Rows.Count].Cells[2].Range.Text = "cell 2";
+                //tab.Rows[tab.Rows.Count].Cells[3].Range.Text = "cell 3";
+
+
+
+                //object replaceAll = Microsoft.Office.Interop.Word.WdReplace.wdReplaceAll;
+                //foreach (Microsoft.Office.Interop.Word.Section section in wdoc.Sections)
+                //{
+                //    Microsoft.Office.Interop.Word.Range footerRange = section.Footers[Microsoft.Office.Interop.Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].Range;
+                //    footerRange.Find.Text = "<Title>";
+                //    footerRange.Find.Replacement.Text = filetitle;
+                //    footerRange.Find.Execute(ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref replaceAll, ref missObj, ref missObj, ref missObj, ref missObj);
+                //}
+
+
+            }
+
+
+            //update footer
+
+            ////Add the footers into the document
+            //foreach (Microsoft.Office.Interop.Word.Section wordSection in wdoc.Sections)
+            //{
+            //    //Get the footer range and add the footer details.
+            //    Microsoft.Office.Interop.Word.Range footerRange = wordSection.Footers[Microsoft.Office.Interop.Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].Range;
+            //    //  footerRange.Font.ColorIndex = Microsoft.Office.Interop.Word.WdColorIndex.wdDarkRed;
+            //    //  footerRange.Font.Size = 10;
+
+            //    footerRange.Collapse(Microsoft.Office.Interop.Word.WdCollapseDirection.wdCollapseEnd);
+
+
+
+
+            //    footerRange.ParagraphFormat.Alignment = Microsoft.Office.Interop.Word.WdParagraphAlignment.wdAlignParagraphLeft;
+            //    footerRange.Text = filetitle +" "+sopno;
+
+            //    //footerRange.Fields.Add(footerRange)
+
+
+
+
+
+            //}
+
+
+            //foreach (Microsoft.Office.Interop.Word.Section sec in wdoc.Sections)
+
+            //{
+
+            //  //  Microsoft.Office.Interop.Word.WdSeekView.wdSeekPrimaryFooter
+
+            //    Microsoft.Office.Interop.Word.Range rng = sec.Footers[Microsoft.Office.Interop.Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].Range;
+            //    //  rng.Font.Name = "Arial";
+            //    //  rng.Font.Size = 8;
+            //    rng.ParagraphFormat.Alignment = Microsoft.Office.Interop.Word.WdParagraphAlignment.wdAlignParagraphRight;
+            //    rng.Fields.Add(rng, Type: Microsoft.Office.Interop.Word.WdFieldType.wdFieldPage);
+            //}
+
+
+
+            // Set footers
+            foreach (Microsoft.Office.Interop.Word.Section wordSection in wdoc.Sections)
+            {
+                Microsoft.Office.Interop.Word.Range footerRange = wordSection.Footers[Microsoft.Office.Interop.Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].Range;
+
+
+
+
+                // wdoc.Tables.Add(footerRange, 1, 2);
+                Object oMissing = System.Reflection.Missing.Value;
+
+                Object TotalPages = Microsoft.Office.Interop.Word.WdFieldType.wdFieldNumPages;
+
+                Object CurrentPage = Microsoft.Office.Interop.Word.WdFieldType.wdFieldPage;
+
+                footerRange.Tables[1].Cell(1, 1).Range.Text = sopno +" "+ filetitle;
+
+
+
+                //  footerRange.Tables[1].Cell(1, 2).Range.Fields.Add(footerRange, ref CurrentPage, ref oMissing, ref oMissing);
+
+
+
+
+                //footerRange.Collapse(Microsoft.Office.Interop.Word.WdCollapseDirection.wdCollapseEnd);
+                //footerRange.Paragraphs.TabStops.Add(app.InchesToPoints(3.25F), Microsoft.Office.Interop.Word.WdTabAlignment.wdAlignTabCenter);
+                //footerRange.Paragraphs.TabStops.Add(app.InchesToPoints(6.5F), Microsoft.Office.Interop.Word.WdTabAlignment.wdAlignTabRight);
+
+                //footerRange.Fields.Add(footerRange, Microsoft.Office.Interop.Word.WdFieldType.wdFieldPage, "\t", true);
+
+
+
+                ////footerRange.Font.ColorIndex = Microsoft.Office.Interop.Word.WdColorIndex.wdDarkRed;
+                ////footerRange.Font.Size = 20;
+                //footerRange.Text = "    \t";
+                ////footerRange.InsertBefore("01-DEC-18");
+
+
+
+                //footerRange.InsertBefore(filetitle);
+
+
+            }
+
+
+
+            wdoc.SaveAs2(savePath);   //save in actual file from tempalte
             app.Application.Quit();
 
 
 
         }
 
-        private void AssignFilePermission(string siteURL, string documentListName, string documentListURL, string documentName, string operation)
+
+        private ArrayList getFileVersions(string siteurl,string filerelpath)
+        {
+
+            ArrayList fversions = new ArrayList();
+
+            //SOP / Warehouse Operations /
+
+
+            using (ClientContext clientContext = new ClientContext(siteurl))
+            {
+
+                string userName = "tshaikh@radiantdelivers.com";
+                string password = "bagerhat79&";
+
+
+                SecureString SecurePassword = GetSecureString(password);
+                clientContext.Credentials = new SharePointOnlineCredentials(userName, SecurePassword);
+
+                Web site = clientContext.Web;
+                clientContext.Load(site);
+                // File file = site.GetFileByServerRelativeUrl("/Shared Documents/mydocument.doc");
+
+
+                //FileVersionCollection versions;
+                Microsoft.SharePoint.Client.File file = site.GetFileByServerRelativeUrl(filerelpath);
+
+                clientContext.Load(file);
+
+                clientContext.ExecuteQuery();
+
+      
+
+                FileVersionCollection versions = file.Versions;
+
+                clientContext.Load(versions);
+
+                
+                clientContext.ExecuteQuery();
+
+                var lv = file.MajorVersion.ToString();
+
+
+                if (versions != null)
+                {
+                    foreach (FileVersion version in versions)
+                    {
+                        Console.WriteLine("Version : {0}", version.VersionLabel);
+
+                        clientContext.Load(version);
+                        clientContext.ExecuteQuery();
+
+
+                        if ((Convert.ToDouble(version.VersionLabel) % 1) == 0)
+                        {
+                            //You can get all major versions here.
+
+                            
+                            fversions.Add(version.VersionLabel);
+
+                        }
+
+
+                    }
+                }
+
+
+            }
+
+
+           
+
+            return fversions;
+        }
+
+        private void AssignFilePermission(string siteURL, string documentListName, string documentListURL, string documentName, string operation, string plabel,string useremail)
         {
 
             var clientContext = new ClientContext(siteURL);
@@ -435,7 +712,7 @@ namespace SOPManagement.Controllers
             clientContext.ExecuteQuery();
 
 
-            string loginname = "student05@radiantdelivers.com";
+            string loginname = useremail;
 
             foreach (ListItem item in listItems)
             {
@@ -454,7 +731,7 @@ namespace SOPManagement.Controllers
                     //    item.BreakRoleInheritance(false, false);
                     //}
 
-                    rd.Add(clientContext.Web.RoleDefinitions.GetByName("Contribute"));
+                    rd.Add(clientContext.Web.RoleDefinitions.GetByName(plabel));
                     Principal user = clientContext.Web.EnsureUser(loginname);
                     item.BreakRoleInheritance(false, false);
 
@@ -501,6 +778,117 @@ namespace SOPManagement.Controllers
 
 
         }
+
+        private void GetFileVersions(string siteURL, string documentListName, string documentListURL, string documentName)
+        {
+
+            var clientContext = new ClientContext(siteURL);
+
+            string userName = "tshaikh@radiantdelivers.com";
+            string password = "bagerhat79&";
+
+            SecureString SecurePassword = GetSecureString(password);
+            clientContext.Credentials = new SharePointOnlineCredentials(userName, SecurePassword);
+
+
+            Web web = clientContext.Web;
+            clientContext.Load(web);
+            clientContext.Load(web.Lists);
+            clientContext.Load(web, wb => wb.ServerRelativeUrl);
+            clientContext.ExecuteQuery();
+
+            Microsoft.SharePoint.Client.List list = web.Lists.GetByTitle(documentListName);
+            clientContext.Load(list);
+            clientContext.ExecuteQuery();
+
+            Folder folder = web.GetFolderByServerRelativeUrl(web.ServerRelativeUrl + documentListURL);
+            clientContext.Load(folder);
+            clientContext.ExecuteQuery();
+
+            CamlQuery camlQuery = new CamlQuery();
+
+  
+            //TO GET ONLY FILE ITEM
+            camlQuery.ViewXml = "<View Scope='Recursive'> " +
+                                   "  <Query> " +
+
+                                  " + <Where> " +
+                                       "  <Contains>" +
+                                            " <FieldRef Name='FileLeafRef'/> " +
+                                                " <Value Type='File'>" + documentName + "</Value>" +
+                                           " </Contains> " +
+                                       " </Where> " +
+
+                                    " </Query> " +
+                                " </View>";
+
+  
+            camlQuery.FolderServerRelativeUrl = folder.ServerRelativeUrl;
+            ListItemCollection listItems = list.GetItems(camlQuery);
+            clientContext.Load(listItems);
+            clientContext.ExecuteQuery();
+
+
+
+
+            foreach (ListItem item in listItems)
+            {
+                //item.FileSystemObjectType;
+
+                if (item.FileSystemObjectType == FileSystemObjectType.File)
+                {
+                    // This is the File
+
+                    Microsoft.SharePoint.Client.File file = item.File;
+
+                    FileVersionCollection versions = file.Versions;
+                    clientContext.Load(file);
+                    clientContext.Load(versions);
+                    clientContext.ExecuteQuery();
+
+
+                    //$file = $item.File
+                    //versions = $file.Versions
+                    //$ctx.Load($file)
+                    //$ctx.Load($versions)
+                    //$ctx.ExecuteQuery()
+
+
+                    foreach(FileVersion v in versions)
+                    {
+
+                        clientContext.Load(v);
+                        clientContext.ExecuteQuery();
+
+                        var modifiedBy = v.CreatedBy;
+                        clientContext.Load(modifiedBy);
+
+                        clientContext.ExecuteQuery();
+
+                        var loginnm=modifiedBy.LoginName;
+                        var title = modifiedBy.Title;
+
+
+                    }
+
+
+
+
+                }
+                else if (item.FileSystemObjectType == FileSystemObjectType.Folder)
+                {
+                    // This is a  Folder
+                }
+
+
+
+
+            }
+
+
+
+        }
+
 
 
         private void UploadDocument(string siteURL, string documentListName, string documentListURL, string documentName, byte[] documentStream,string pSOPNO)
