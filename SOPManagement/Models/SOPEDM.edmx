@@ -1,0 +1,785 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="RadiantYYZModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2008" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'RadiantYYZ.sop.codesapprovalstatus' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="codesapprovalstatus">
+          <Key>
+            <PropertyRef Name="statuscode" />
+          </Key>
+          <Property Name="statuscode" Type="smallint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="StatusName" Type="varchar" MaxLength="50" />
+        </EntityType>
+        <EntityType Name="codesdepartments">
+          <Key>
+            <PropertyRef Name="departmentcode" />
+          </Key>
+          <Property Name="departmentcode" Type="smallint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="departmentname" Type="nvarchar" MaxLength="100" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6013: The table/view 'RadiantYYZ.sop.codesfilepriority' does not have a primary key defined and no valid primary key could be inferred. This table/view has been excluded. To use the entity, you will need to review your schema, add the correct keys, and uncomment it.
+        <EntityType Name="codesfilepriority">
+          <Property Name="prioritycode" Type="smallint" />
+          <Property Name="PriorityName" Type="varchar" MaxLength="100" />
+        </EntityType>-->
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'RadiantYYZ.sop.codesfilestatus' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="codesfilestatus">
+          <Key>
+            <PropertyRef Name="statuscode" />
+          </Key>
+          <Property Name="statuscode" Type="smallint" Nullable="false" />
+          <Property Name="StatusName" Type="varchar" MaxLength="100" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'RadiantYYZ.sop.codesuserstatus' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="codesuserstatus">
+          <Key>
+            <PropertyRef Name="statuscode" />
+          </Key>
+          <Property Name="statuscode" Type="smallint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="StatusName" Type="varchar" MaxLength="50" />
+        </EntityType>
+        <EntityType Name="deptsopfiles">
+          <Key>
+            <PropertyRef Name="FileID" />
+          </Key>
+          <Property Name="FileID" Type="int" Nullable="false" />
+          <Property Name="DeptFileName" Type="varchar" MaxLength="255" />
+          <Property Name="SOPNo" Type="varchar" MaxLength="50" />
+          <Property Name="SPFileLink" Type="varchar" MaxLength="455" />
+          <Property Name="CreateDate" Type="datetime" />
+          <Property Name="CreatedBy" Type="varchar" MaxLength="65" />
+          <Property Name="LastModifiedDate" Type="datetime" />
+          <Property Name="ModifiedBy" Type="varchar" MaxLength="65" />
+          <Property Name="VersionNo" Type="nvarchar" MaxLength="10" />
+          <Property Name="ApprovalStatus" Type="varchar" MaxLength="15" />
+          <Property Name="Approvedby" Type="varchar" MaxLength="65" />
+          <Property Name="DeptFileOwner" Type="varchar" MaxLength="65" />
+          <Property Name="SPFilePath" Type="varchar" MaxLength="350" />
+          <Property Name="prioritycode" Type="smallint" />
+          <Property Name="filestatuscode" Type="smallint" />
+        </EntityType>
+        <EntityType Name="fileapprovers">
+          <Key>
+            <PropertyRef Name="approveid" />
+          </Key>
+          <Property Name="approveid" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="approverid" Type="int" Nullable="false" />
+          <Property Name="fileid" Type="int" Nullable="false" />
+          <Property Name="approverstatuscode" Type="smallint" />
+        </EntityType>
+        <EntityType Name="fileapproversactivities">
+          <Key>
+            <PropertyRef Name="approveractivityid" />
+          </Key>
+          <Property Name="approveractivityid" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="changerequestid" Type="int" />
+          <Property Name="approveid" Type="int" />
+          <Property Name="approvalstatuscode" Type="smallint" />
+          <Property Name="statusdatetime" Type="datetime" />
+        </EntityType>
+        <EntityType Name="filechangerequestactivities">
+          <Key>
+            <PropertyRef Name="changerequestid" />
+          </Key>
+          <Property Name="changerequestid" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="requesterid" Type="int" />
+          <Property Name="approvalstatuscode" Type="smallint" />
+          <Property Name="statusdatetime" Type="datetime" />
+        </EntityType>
+        <EntityType Name="fileowners">
+          <Key>
+            <PropertyRef Name="ownershipid" />
+          </Key>
+          <Property Name="ownershipid" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ownerid" Type="int" Nullable="false" />
+          <Property Name="fileid" Type="int" Nullable="false" />
+          <Property Name="ownerstatuscode" Type="smallint" />
+        </EntityType>
+        <EntityType Name="fileownersactivities">
+          <Key>
+            <PropertyRef Name="owneractivityid" />
+          </Key>
+          <Property Name="owneractivityid" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="changerequestid" Type="int" />
+          <Property Name="ownershipid" Type="int" />
+          <Property Name="approvalstatuscode" Type="smallint" />
+          <Property Name="statusdatetime" Type="datetime" />
+        </EntityType>
+        <EntityType Name="filepublishers">
+          <Key>
+            <PropertyRef Name="publishid" />
+          </Key>
+          <Property Name="publishid" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="publisherid" Type="int" Nullable="false" />
+          <Property Name="fileid" Type="int" Nullable="false" />
+          <Property Name="publisherstatuscode" Type="smallint" />
+        </EntityType>
+        <EntityType Name="filepublishersactivities">
+          <Key>
+            <PropertyRef Name="publisheractivityid" />
+          </Key>
+          <Property Name="publisheractivityid" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="changerequestid" Type="int" />
+          <Property Name="publishid" Type="int" />
+          <Property Name="approvalstatuscode" Type="smallint" />
+          <Property Name="statusdatetime" Type="datetime" />
+        </EntityType>
+        <EntityType Name="filereviewers">
+          <Key>
+            <PropertyRef Name="reviewid" />
+          </Key>
+          <Property Name="reviewid" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="reviewerid" Type="int" Nullable="false" />
+          <Property Name="fileid" Type="int" Nullable="false" />
+          <Property Name="reviewerstatuscode" Type="smallint" />
+        </EntityType>
+        <EntityType Name="filereviewersactivities">
+          <Key>
+            <PropertyRef Name="revieweractivityid" />
+          </Key>
+          <Property Name="revieweractivityid" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="changerequestid" Type="int" />
+          <Property Name="reviewid" Type="int" />
+          <Property Name="approvalstatuscode" Type="smallint" />
+          <Property Name="statusdatetime" Type="datetime" />
+        </EntityType>
+        <EntityType Name="fileupdateschedule">
+          <Key>
+            <PropertyRef Name="scheduleid" />
+          </Key>
+          <Property Name="scheduleid" Type="smallint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="fileid" Type="int" Nullable="false" />
+          <Property Name="scheduledatetime" Type="datetime" Nullable="false" />
+          <Property Name="updatecompleted" Type="bit" />
+          <Property Name="actualupdatedatetime" Type="datetime" />
+          <Property Name="frequencyofrevision" Type="smallint" />
+          <Property Name="unitoffrequency" Type="nvarchar" MaxLength="50" />
+          <Property Name="lastrevisionno" Type="nvarchar" MaxLength="50" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'RadiantYYZ.sop.users' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="users">
+          <Key>
+            <PropertyRef Name="userid" />
+            <PropertyRef Name="userfirstname" />
+            <PropertyRef Name="userlastname" />
+          </Key>
+          <Property Name="userid" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="windowsusername" Type="varchar" MaxLength="60" />
+          <Property Name="departmentcode" Type="smallint" />
+          <Property Name="userfirstname" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="usermiddlename" Type="nvarchar" MaxLength="50" />
+          <Property Name="userlastname" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="useremailaddress" Type="nvarchar" MaxLength="50" />
+          <Property Name="userstatuscode" Type="smallint" />
+          <Property Name="signature" Type="image" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'RadiantYYZ.sop.vwDepartmentFolders' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="vwDepartmentFolders">
+          <Key>
+            <PropertyRef Name="FileID" />
+          </Key>
+          <Property Name="FileID" Type="int" Nullable="false" />
+          <Property Name="DeptFileName" Type="varchar" MaxLength="255" />
+          <Property Name="SOPNo" Type="varchar" MaxLength="50" />
+          <Property Name="SPFileLink" Type="varchar" MaxLength="455" />
+          <Property Name="CreateDate" Type="datetime" />
+          <Property Name="CreatedBy" Type="varchar" MaxLength="65" />
+          <Property Name="LastModifiedDate" Type="datetime" />
+          <Property Name="ModifiedBy" Type="varchar" MaxLength="65" />
+          <Property Name="VersionNo" Type="nvarchar" MaxLength="10" />
+          <Property Name="ApprovalStatus" Type="varchar" MaxLength="15" />
+          <Property Name="Approvedby" Type="varchar" MaxLength="65" />
+          <Property Name="DeptFileOwner" Type="varchar" MaxLength="65" />
+          <Property Name="SPFilePath" Type="varchar" MaxLength="350" />
+          <Property Name="prioritycode" Type="smallint" />
+          <Property Name="filestatuscode" Type="smallint" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'RadiantYYZ.sop.vwDepartmentSubFolders' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="vwDepartmentSubFolders">
+          <Key>
+            <PropertyRef Name="FileID" />
+          </Key>
+          <Property Name="FileID" Type="int" Nullable="false" />
+          <Property Name="DeptFileName" Type="varchar" MaxLength="255" />
+          <Property Name="SOPNo" Type="varchar" MaxLength="50" />
+          <Property Name="SPFileLink" Type="varchar" MaxLength="455" />
+          <Property Name="CreateDate" Type="datetime" />
+          <Property Name="CreatedBy" Type="varchar" MaxLength="65" />
+          <Property Name="LastModifiedDate" Type="datetime" />
+          <Property Name="ModifiedBy" Type="varchar" MaxLength="65" />
+          <Property Name="VersionNo" Type="nvarchar" MaxLength="10" />
+          <Property Name="ApprovalStatus" Type="varchar" MaxLength="15" />
+          <Property Name="Approvedby" Type="varchar" MaxLength="65" />
+          <Property Name="DeptFileOwner" Type="varchar" MaxLength="65" />
+          <Property Name="SPFilePath" Type="varchar" MaxLength="350" />
+          <Property Name="prioritycode" Type="smallint" />
+          <Property Name="filestatuscode" Type="smallint" />
+        </EntityType>
+        <EntityContainer Name="RadiantYYZModelStoreContainer">
+          <EntitySet Name="codesdepartments" EntityType="Self.codesdepartments" Schema="sop" store:Type="Tables" />
+          <EntitySet Name="deptsopfiles" EntityType="Self.deptsopfiles" Schema="sop" store:Type="Tables" />
+          <EntitySet Name="fileapprovers" EntityType="Self.fileapprovers" Schema="sop" store:Type="Tables" />
+          <EntitySet Name="fileapproversactivities" EntityType="Self.fileapproversactivities" Schema="sop" store:Type="Tables" />
+          <EntitySet Name="filechangerequestactivities" EntityType="Self.filechangerequestactivities" Schema="sop" store:Type="Tables" />
+          <EntitySet Name="fileowners" EntityType="Self.fileowners" Schema="sop" store:Type="Tables" />
+          <EntitySet Name="fileownersactivities" EntityType="Self.fileownersactivities" Schema="sop" store:Type="Tables" />
+          <EntitySet Name="filepublishers" EntityType="Self.filepublishers" Schema="sop" store:Type="Tables" />
+          <EntitySet Name="filepublishersactivities" EntityType="Self.filepublishersactivities" Schema="sop" store:Type="Tables" />
+          <EntitySet Name="filereviewers" EntityType="Self.filereviewers" Schema="sop" store:Type="Tables" />
+          <EntitySet Name="filereviewersactivities" EntityType="Self.filereviewersactivities" Schema="sop" store:Type="Tables" />
+          <EntitySet Name="fileupdateschedule" EntityType="Self.fileupdateschedule" Schema="sop" store:Type="Tables" />
+          <EntitySet Name="codesapprovalstatus" EntityType="Self.codesapprovalstatus" store:Type="Tables" store:Schema="sop">
+            <DefiningQuery>SELECT 
+    [codesapprovalstatus].[statuscode] AS [statuscode], 
+    [codesapprovalstatus].[StatusName] AS [StatusName]
+    FROM [sop].[codesapprovalstatus] AS [codesapprovalstatus]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="codesfilestatus" EntityType="Self.codesfilestatus" store:Type="Tables" store:Schema="sop">
+            <DefiningQuery>SELECT 
+    [codesfilestatus].[statuscode] AS [statuscode], 
+    [codesfilestatus].[StatusName] AS [StatusName]
+    FROM [sop].[codesfilestatus] AS [codesfilestatus]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="codesuserstatus" EntityType="Self.codesuserstatus" store:Type="Tables" store:Schema="sop">
+            <DefiningQuery>SELECT 
+    [codesuserstatus].[statuscode] AS [statuscode], 
+    [codesuserstatus].[StatusName] AS [StatusName]
+    FROM [sop].[codesuserstatus] AS [codesuserstatus]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="users" EntityType="Self.users" store:Type="Tables" store:Schema="sop">
+            <DefiningQuery>SELECT 
+    [users].[userid] AS [userid], 
+    [users].[windowsusername] AS [windowsusername], 
+    [users].[departmentcode] AS [departmentcode], 
+    [users].[userfirstname] AS [userfirstname], 
+    [users].[usermiddlename] AS [usermiddlename], 
+    [users].[userlastname] AS [userlastname], 
+    [users].[useremailaddress] AS [useremailaddress], 
+    [users].[userstatuscode] AS [userstatuscode], 
+    [users].[signature] AS [signature]
+    FROM [sop].[users] AS [users]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="vwDepartmentFolders" EntityType="Self.vwDepartmentFolders" store:Type="Views" store:Schema="sop">
+            <DefiningQuery>SELECT 
+    [vwDepartmentFolders].[FileID] AS [FileID], 
+    [vwDepartmentFolders].[DeptFileName] AS [DeptFileName], 
+    [vwDepartmentFolders].[SOPNo] AS [SOPNo], 
+    [vwDepartmentFolders].[SPFileLink] AS [SPFileLink], 
+    [vwDepartmentFolders].[CreateDate] AS [CreateDate], 
+    [vwDepartmentFolders].[CreatedBy] AS [CreatedBy], 
+    [vwDepartmentFolders].[LastModifiedDate] AS [LastModifiedDate], 
+    [vwDepartmentFolders].[ModifiedBy] AS [ModifiedBy], 
+    [vwDepartmentFolders].[VersionNo] AS [VersionNo], 
+    [vwDepartmentFolders].[ApprovalStatus] AS [ApprovalStatus], 
+    [vwDepartmentFolders].[Approvedby] AS [Approvedby], 
+    [vwDepartmentFolders].[DeptFileOwner] AS [DeptFileOwner], 
+    [vwDepartmentFolders].[SPFilePath] AS [SPFilePath], 
+    [vwDepartmentFolders].[prioritycode] AS [prioritycode], 
+    [vwDepartmentFolders].[filestatuscode] AS [filestatuscode]
+    FROM [sop].[vwDepartmentFolders] AS [vwDepartmentFolders]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="vwDepartmentSubFolders" EntityType="Self.vwDepartmentSubFolders" store:Type="Views" store:Schema="sop">
+            <DefiningQuery>SELECT 
+    [vwDepartmentSubFolders].[FileID] AS [FileID], 
+    [vwDepartmentSubFolders].[DeptFileName] AS [DeptFileName], 
+    [vwDepartmentSubFolders].[SOPNo] AS [SOPNo], 
+    [vwDepartmentSubFolders].[SPFileLink] AS [SPFileLink], 
+    [vwDepartmentSubFolders].[CreateDate] AS [CreateDate], 
+    [vwDepartmentSubFolders].[CreatedBy] AS [CreatedBy], 
+    [vwDepartmentSubFolders].[LastModifiedDate] AS [LastModifiedDate], 
+    [vwDepartmentSubFolders].[ModifiedBy] AS [ModifiedBy], 
+    [vwDepartmentSubFolders].[VersionNo] AS [VersionNo], 
+    [vwDepartmentSubFolders].[ApprovalStatus] AS [ApprovalStatus], 
+    [vwDepartmentSubFolders].[Approvedby] AS [Approvedby], 
+    [vwDepartmentSubFolders].[DeptFileOwner] AS [DeptFileOwner], 
+    [vwDepartmentSubFolders].[SPFilePath] AS [SPFilePath], 
+    [vwDepartmentSubFolders].[prioritycode] AS [prioritycode], 
+    [vwDepartmentSubFolders].[filestatuscode] AS [filestatuscode]
+    FROM [sop].[vwDepartmentSubFolders] AS [vwDepartmentSubFolders]</DefiningQuery>
+          </EntitySet>
+        </EntityContainer>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="RadiantYYZModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="codesdepartment">
+          <Key>
+            <PropertyRef Name="departmentcode" />
+          </Key>
+          <Property Name="departmentcode" Type="Int16" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="departmentname" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="deptsopfile">
+          <Key>
+            <PropertyRef Name="FileID" />
+          </Key>
+          <Property Name="FileID" Type="Int32" Nullable="false" />
+          <Property Name="DeptFileName" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="SOPNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="SPFileLink" Type="String" MaxLength="455" FixedLength="false" Unicode="false" />
+          <Property Name="CreateDate" Type="DateTime" Precision="3" />
+          <Property Name="CreatedBy" Type="String" MaxLength="65" FixedLength="false" Unicode="false" />
+          <Property Name="LastModifiedDate" Type="DateTime" Precision="3" />
+          <Property Name="ModifiedBy" Type="String" MaxLength="65" FixedLength="false" Unicode="false" />
+          <Property Name="VersionNo" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="ApprovalStatus" Type="String" MaxLength="15" FixedLength="false" Unicode="false" />
+          <Property Name="Approvedby" Type="String" MaxLength="65" FixedLength="false" Unicode="false" />
+          <Property Name="DeptFileOwner" Type="String" MaxLength="65" FixedLength="false" Unicode="false" />
+          <Property Name="SPFilePath" Type="String" MaxLength="350" FixedLength="false" Unicode="false" />
+          <Property Name="prioritycode" Type="Int16" />
+          <Property Name="filestatuscode" Type="Int16" />
+        </EntityType>
+        <EntityType Name="fileapprover">
+          <Key>
+            <PropertyRef Name="approveid" />
+          </Key>
+          <Property Name="approveid" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="approverid" Type="Int32" Nullable="false" />
+          <Property Name="fileid" Type="Int32" Nullable="false" />
+          <Property Name="approverstatuscode" Type="Int16" />
+        </EntityType>
+        <EntityType Name="fileapproversactivity">
+          <Key>
+            <PropertyRef Name="approveractivityid" />
+          </Key>
+          <Property Name="approveractivityid" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="changerequestid" Type="Int32" />
+          <Property Name="approveid" Type="Int32" />
+          <Property Name="approvalstatuscode" Type="Int16" />
+          <Property Name="statusdatetime" Type="DateTime" Precision="3" />
+        </EntityType>
+        <EntityType Name="filechangerequestactivity">
+          <Key>
+            <PropertyRef Name="changerequestid" />
+          </Key>
+          <Property Name="changerequestid" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="requesterid" Type="Int32" />
+          <Property Name="approvalstatuscode" Type="Int16" />
+          <Property Name="statusdatetime" Type="DateTime" Precision="3" />
+        </EntityType>
+        <EntityType Name="fileowner">
+          <Key>
+            <PropertyRef Name="ownershipid" />
+          </Key>
+          <Property Name="ownershipid" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ownerid" Type="Int32" Nullable="false" />
+          <Property Name="fileid" Type="Int32" Nullable="false" />
+          <Property Name="ownerstatuscode" Type="Int16" />
+        </EntityType>
+        <EntityType Name="fileownersactivity">
+          <Key>
+            <PropertyRef Name="owneractivityid" />
+          </Key>
+          <Property Name="owneractivityid" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="changerequestid" Type="Int32" />
+          <Property Name="ownershipid" Type="Int32" />
+          <Property Name="approvalstatuscode" Type="Int16" />
+          <Property Name="statusdatetime" Type="DateTime" Precision="3" />
+        </EntityType>
+        <EntityType Name="filepublisher">
+          <Key>
+            <PropertyRef Name="publishid" />
+          </Key>
+          <Property Name="publishid" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="publisherid" Type="Int32" Nullable="false" />
+          <Property Name="fileid" Type="Int32" Nullable="false" />
+          <Property Name="publisherstatuscode" Type="Int16" />
+        </EntityType>
+        <EntityType Name="filepublishersactivity">
+          <Key>
+            <PropertyRef Name="publisheractivityid" />
+          </Key>
+          <Property Name="publisheractivityid" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="changerequestid" Type="Int32" />
+          <Property Name="publishid" Type="Int32" />
+          <Property Name="approvalstatuscode" Type="Int16" />
+          <Property Name="statusdatetime" Type="DateTime" Precision="3" />
+        </EntityType>
+        <EntityType Name="filereviewer">
+          <Key>
+            <PropertyRef Name="reviewid" />
+          </Key>
+          <Property Name="reviewid" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="reviewerid" Type="Int32" Nullable="false" />
+          <Property Name="fileid" Type="Int32" Nullable="false" />
+          <Property Name="reviewerstatuscode" Type="Int16" />
+        </EntityType>
+        <EntityType Name="filereviewersactivity">
+          <Key>
+            <PropertyRef Name="revieweractivityid" />
+          </Key>
+          <Property Name="revieweractivityid" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="changerequestid" Type="Int32" />
+          <Property Name="reviewid" Type="Int32" />
+          <Property Name="approvalstatuscode" Type="Int16" />
+          <Property Name="statusdatetime" Type="DateTime" Precision="3" />
+        </EntityType>
+        <EntityType Name="fileupdateschedule">
+          <Key>
+            <PropertyRef Name="scheduleid" />
+          </Key>
+          <Property Name="scheduleid" Type="Int16" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="fileid" Type="Int32" Nullable="false" />
+          <Property Name="scheduledatetime" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="updatecompleted" Type="Boolean" />
+          <Property Name="actualupdatedatetime" Type="DateTime" Precision="3" />
+          <Property Name="frequencyofrevision" Type="Int16" />
+          <Property Name="unitoffrequency" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="lastrevisionno" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="codesapprovalstatu">
+          <Key>
+            <PropertyRef Name="statuscode" />
+          </Key>
+          <Property Name="statuscode" Type="Int16" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="StatusName" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="codesfilestatu">
+          <Key>
+            <PropertyRef Name="statuscode" />
+          </Key>
+          <Property Name="statuscode" Type="Int16" Nullable="false" />
+          <Property Name="StatusName" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="codesuserstatu">
+          <Key>
+            <PropertyRef Name="statuscode" />
+          </Key>
+          <Property Name="statuscode" Type="Int16" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="StatusName" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="user">
+          <Key>
+            <PropertyRef Name="userid" />
+            <PropertyRef Name="userfirstname" />
+            <PropertyRef Name="userlastname" />
+          </Key>
+          <Property Name="userid" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="windowsusername" Type="String" MaxLength="60" FixedLength="false" Unicode="false" />
+          <Property Name="departmentcode" Type="Int16" />
+          <Property Name="userfirstname" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="usermiddlename" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="userlastname" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="useremailaddress" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="userstatuscode" Type="Int16" />
+          <Property Name="signature" Type="Binary" MaxLength="Max" FixedLength="false" />
+        </EntityType>
+        <EntityType Name="vwDepartmentFolder">
+          <Key>
+            <PropertyRef Name="FileID" />
+          </Key>
+          <Property Name="FileID" Type="Int32" Nullable="false" />
+          <Property Name="DeptFileName" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="SOPNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="SPFileLink" Type="String" MaxLength="455" FixedLength="false" Unicode="false" />
+          <Property Name="CreateDate" Type="DateTime" Precision="3" />
+          <Property Name="CreatedBy" Type="String" MaxLength="65" FixedLength="false" Unicode="false" />
+          <Property Name="LastModifiedDate" Type="DateTime" Precision="3" />
+          <Property Name="ModifiedBy" Type="String" MaxLength="65" FixedLength="false" Unicode="false" />
+          <Property Name="VersionNo" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="ApprovalStatus" Type="String" MaxLength="15" FixedLength="false" Unicode="false" />
+          <Property Name="Approvedby" Type="String" MaxLength="65" FixedLength="false" Unicode="false" />
+          <Property Name="DeptFileOwner" Type="String" MaxLength="65" FixedLength="false" Unicode="false" />
+          <Property Name="SPFilePath" Type="String" MaxLength="350" FixedLength="false" Unicode="false" />
+          <Property Name="prioritycode" Type="Int16" />
+          <Property Name="filestatuscode" Type="Int16" />
+        </EntityType>
+        <EntityType Name="vwDepartmentSubFolder">
+          <Key>
+            <PropertyRef Name="FileID" />
+          </Key>
+          <Property Name="FileID" Type="Int32" Nullable="false" />
+          <Property Name="DeptFileName" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="SOPNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="SPFileLink" Type="String" MaxLength="455" FixedLength="false" Unicode="false" />
+          <Property Name="CreateDate" Type="DateTime" Precision="3" />
+          <Property Name="CreatedBy" Type="String" MaxLength="65" FixedLength="false" Unicode="false" />
+          <Property Name="LastModifiedDate" Type="DateTime" Precision="3" />
+          <Property Name="ModifiedBy" Type="String" MaxLength="65" FixedLength="false" Unicode="false" />
+          <Property Name="VersionNo" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="ApprovalStatus" Type="String" MaxLength="15" FixedLength="false" Unicode="false" />
+          <Property Name="Approvedby" Type="String" MaxLength="65" FixedLength="false" Unicode="false" />
+          <Property Name="DeptFileOwner" Type="String" MaxLength="65" FixedLength="false" Unicode="false" />
+          <Property Name="SPFilePath" Type="String" MaxLength="350" FixedLength="false" Unicode="false" />
+          <Property Name="prioritycode" Type="Int16" />
+          <Property Name="filestatuscode" Type="Int16" />
+        </EntityType>
+        <EntityContainer Name="RadiantYYZEntities2" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="codesdepartments" EntityType="Self.codesdepartment" />
+          <EntitySet Name="deptsopfiles" EntityType="Self.deptsopfile" />
+          <EntitySet Name="fileapprovers" EntityType="Self.fileapprover" />
+          <EntitySet Name="fileapproversactivities" EntityType="Self.fileapproversactivity" />
+          <EntitySet Name="filechangerequestactivities" EntityType="Self.filechangerequestactivity" />
+          <EntitySet Name="fileowners" EntityType="Self.fileowner" />
+          <EntitySet Name="fileownersactivities" EntityType="Self.fileownersactivity" />
+          <EntitySet Name="filepublishers" EntityType="Self.filepublisher" />
+          <EntitySet Name="filepublishersactivities" EntityType="Self.filepublishersactivity" />
+          <EntitySet Name="filereviewers" EntityType="Self.filereviewer" />
+          <EntitySet Name="filereviewersactivities" EntityType="Self.filereviewersactivity" />
+          <EntitySet Name="fileupdateschedules" EntityType="Self.fileupdateschedule" />
+          <EntitySet Name="codesapprovalstatus" EntityType="Self.codesapprovalstatu" />
+          <EntitySet Name="codesfilestatus" EntityType="Self.codesfilestatu" />
+          <EntitySet Name="codesuserstatus" EntityType="Self.codesuserstatu" />
+          <EntitySet Name="users" EntityType="Self.user" />
+          <EntitySet Name="vwDepartmentFolders" EntityType="Self.vwDepartmentFolder" />
+          <EntitySet Name="vwDepartmentSubFolders" EntityType="Self.vwDepartmentSubFolder" />
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="RadiantYYZModelStoreContainer" CdmEntityContainer="RadiantYYZEntities2">
+          <EntitySetMapping Name="codesdepartments">
+            <EntityTypeMapping TypeName="RadiantYYZModel.codesdepartment">
+              <MappingFragment StoreEntitySet="codesdepartments">
+                <ScalarProperty Name="departmentcode" ColumnName="departmentcode" />
+                <ScalarProperty Name="departmentname" ColumnName="departmentname" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="deptsopfiles">
+            <EntityTypeMapping TypeName="RadiantYYZModel.deptsopfile">
+              <MappingFragment StoreEntitySet="deptsopfiles">
+                <ScalarProperty Name="FileID" ColumnName="FileID" />
+                <ScalarProperty Name="DeptFileName" ColumnName="DeptFileName" />
+                <ScalarProperty Name="SOPNo" ColumnName="SOPNo" />
+                <ScalarProperty Name="SPFileLink" ColumnName="SPFileLink" />
+                <ScalarProperty Name="CreateDate" ColumnName="CreateDate" />
+                <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
+                <ScalarProperty Name="LastModifiedDate" ColumnName="LastModifiedDate" />
+                <ScalarProperty Name="ModifiedBy" ColumnName="ModifiedBy" />
+                <ScalarProperty Name="VersionNo" ColumnName="VersionNo" />
+                <ScalarProperty Name="ApprovalStatus" ColumnName="ApprovalStatus" />
+                <ScalarProperty Name="Approvedby" ColumnName="Approvedby" />
+                <ScalarProperty Name="DeptFileOwner" ColumnName="DeptFileOwner" />
+                <ScalarProperty Name="SPFilePath" ColumnName="SPFilePath" />
+                <ScalarProperty Name="prioritycode" ColumnName="prioritycode" />
+                <ScalarProperty Name="filestatuscode" ColumnName="filestatuscode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="fileapprovers">
+            <EntityTypeMapping TypeName="RadiantYYZModel.fileapprover">
+              <MappingFragment StoreEntitySet="fileapprovers">
+                <ScalarProperty Name="approveid" ColumnName="approveid" />
+                <ScalarProperty Name="approverid" ColumnName="approverid" />
+                <ScalarProperty Name="fileid" ColumnName="fileid" />
+                <ScalarProperty Name="approverstatuscode" ColumnName="approverstatuscode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="fileapproversactivities">
+            <EntityTypeMapping TypeName="RadiantYYZModel.fileapproversactivity">
+              <MappingFragment StoreEntitySet="fileapproversactivities">
+                <ScalarProperty Name="approveractivityid" ColumnName="approveractivityid" />
+                <ScalarProperty Name="changerequestid" ColumnName="changerequestid" />
+                <ScalarProperty Name="approveid" ColumnName="approveid" />
+                <ScalarProperty Name="approvalstatuscode" ColumnName="approvalstatuscode" />
+                <ScalarProperty Name="statusdatetime" ColumnName="statusdatetime" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="filechangerequestactivities">
+            <EntityTypeMapping TypeName="RadiantYYZModel.filechangerequestactivity">
+              <MappingFragment StoreEntitySet="filechangerequestactivities">
+                <ScalarProperty Name="changerequestid" ColumnName="changerequestid" />
+                <ScalarProperty Name="requesterid" ColumnName="requesterid" />
+                <ScalarProperty Name="approvalstatuscode" ColumnName="approvalstatuscode" />
+                <ScalarProperty Name="statusdatetime" ColumnName="statusdatetime" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="fileowners">
+            <EntityTypeMapping TypeName="RadiantYYZModel.fileowner">
+              <MappingFragment StoreEntitySet="fileowners">
+                <ScalarProperty Name="ownershipid" ColumnName="ownershipid" />
+                <ScalarProperty Name="ownerid" ColumnName="ownerid" />
+                <ScalarProperty Name="fileid" ColumnName="fileid" />
+                <ScalarProperty Name="ownerstatuscode" ColumnName="ownerstatuscode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="fileownersactivities">
+            <EntityTypeMapping TypeName="RadiantYYZModel.fileownersactivity">
+              <MappingFragment StoreEntitySet="fileownersactivities">
+                <ScalarProperty Name="owneractivityid" ColumnName="owneractivityid" />
+                <ScalarProperty Name="changerequestid" ColumnName="changerequestid" />
+                <ScalarProperty Name="ownershipid" ColumnName="ownershipid" />
+                <ScalarProperty Name="approvalstatuscode" ColumnName="approvalstatuscode" />
+                <ScalarProperty Name="statusdatetime" ColumnName="statusdatetime" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="filepublishers">
+            <EntityTypeMapping TypeName="RadiantYYZModel.filepublisher">
+              <MappingFragment StoreEntitySet="filepublishers">
+                <ScalarProperty Name="publishid" ColumnName="publishid" />
+                <ScalarProperty Name="publisherid" ColumnName="publisherid" />
+                <ScalarProperty Name="fileid" ColumnName="fileid" />
+                <ScalarProperty Name="publisherstatuscode" ColumnName="publisherstatuscode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="filepublishersactivities">
+            <EntityTypeMapping TypeName="RadiantYYZModel.filepublishersactivity">
+              <MappingFragment StoreEntitySet="filepublishersactivities">
+                <ScalarProperty Name="publisheractivityid" ColumnName="publisheractivityid" />
+                <ScalarProperty Name="changerequestid" ColumnName="changerequestid" />
+                <ScalarProperty Name="publishid" ColumnName="publishid" />
+                <ScalarProperty Name="approvalstatuscode" ColumnName="approvalstatuscode" />
+                <ScalarProperty Name="statusdatetime" ColumnName="statusdatetime" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="filereviewers">
+            <EntityTypeMapping TypeName="RadiantYYZModel.filereviewer">
+              <MappingFragment StoreEntitySet="filereviewers">
+                <ScalarProperty Name="reviewid" ColumnName="reviewid" />
+                <ScalarProperty Name="reviewerid" ColumnName="reviewerid" />
+                <ScalarProperty Name="fileid" ColumnName="fileid" />
+                <ScalarProperty Name="reviewerstatuscode" ColumnName="reviewerstatuscode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="filereviewersactivities">
+            <EntityTypeMapping TypeName="RadiantYYZModel.filereviewersactivity">
+              <MappingFragment StoreEntitySet="filereviewersactivities">
+                <ScalarProperty Name="revieweractivityid" ColumnName="revieweractivityid" />
+                <ScalarProperty Name="changerequestid" ColumnName="changerequestid" />
+                <ScalarProperty Name="reviewid" ColumnName="reviewid" />
+                <ScalarProperty Name="approvalstatuscode" ColumnName="approvalstatuscode" />
+                <ScalarProperty Name="statusdatetime" ColumnName="statusdatetime" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="fileupdateschedules">
+            <EntityTypeMapping TypeName="RadiantYYZModel.fileupdateschedule">
+              <MappingFragment StoreEntitySet="fileupdateschedule">
+                <ScalarProperty Name="scheduleid" ColumnName="scheduleid" />
+                <ScalarProperty Name="fileid" ColumnName="fileid" />
+                <ScalarProperty Name="scheduledatetime" ColumnName="scheduledatetime" />
+                <ScalarProperty Name="updatecompleted" ColumnName="updatecompleted" />
+                <ScalarProperty Name="actualupdatedatetime" ColumnName="actualupdatedatetime" />
+                <ScalarProperty Name="frequencyofrevision" ColumnName="frequencyofrevision" />
+                <ScalarProperty Name="unitoffrequency" ColumnName="unitoffrequency" />
+                <ScalarProperty Name="lastrevisionno" ColumnName="lastrevisionno" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="codesapprovalstatus">
+            <EntityTypeMapping TypeName="RadiantYYZModel.codesapprovalstatu">
+              <MappingFragment StoreEntitySet="codesapprovalstatus">
+                <ScalarProperty Name="statuscode" ColumnName="statuscode" />
+                <ScalarProperty Name="StatusName" ColumnName="StatusName" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="codesfilestatus">
+            <EntityTypeMapping TypeName="RadiantYYZModel.codesfilestatu">
+              <MappingFragment StoreEntitySet="codesfilestatus">
+                <ScalarProperty Name="statuscode" ColumnName="statuscode" />
+                <ScalarProperty Name="StatusName" ColumnName="StatusName" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="codesuserstatus">
+            <EntityTypeMapping TypeName="RadiantYYZModel.codesuserstatu">
+              <MappingFragment StoreEntitySet="codesuserstatus">
+                <ScalarProperty Name="statuscode" ColumnName="statuscode" />
+                <ScalarProperty Name="StatusName" ColumnName="StatusName" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="users">
+            <EntityTypeMapping TypeName="RadiantYYZModel.user">
+              <MappingFragment StoreEntitySet="users">
+                <ScalarProperty Name="userid" ColumnName="userid" />
+                <ScalarProperty Name="windowsusername" ColumnName="windowsusername" />
+                <ScalarProperty Name="departmentcode" ColumnName="departmentcode" />
+                <ScalarProperty Name="userfirstname" ColumnName="userfirstname" />
+                <ScalarProperty Name="usermiddlename" ColumnName="usermiddlename" />
+                <ScalarProperty Name="userlastname" ColumnName="userlastname" />
+                <ScalarProperty Name="useremailaddress" ColumnName="useremailaddress" />
+                <ScalarProperty Name="userstatuscode" ColumnName="userstatuscode" />
+                <ScalarProperty Name="signature" ColumnName="signature" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="vwDepartmentFolders">
+            <EntityTypeMapping TypeName="RadiantYYZModel.vwDepartmentFolder">
+              <MappingFragment StoreEntitySet="vwDepartmentFolders">
+                <ScalarProperty Name="FileID" ColumnName="FileID" />
+                <ScalarProperty Name="DeptFileName" ColumnName="DeptFileName" />
+                <ScalarProperty Name="SOPNo" ColumnName="SOPNo" />
+                <ScalarProperty Name="SPFileLink" ColumnName="SPFileLink" />
+                <ScalarProperty Name="CreateDate" ColumnName="CreateDate" />
+                <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
+                <ScalarProperty Name="LastModifiedDate" ColumnName="LastModifiedDate" />
+                <ScalarProperty Name="ModifiedBy" ColumnName="ModifiedBy" />
+                <ScalarProperty Name="VersionNo" ColumnName="VersionNo" />
+                <ScalarProperty Name="ApprovalStatus" ColumnName="ApprovalStatus" />
+                <ScalarProperty Name="Approvedby" ColumnName="Approvedby" />
+                <ScalarProperty Name="DeptFileOwner" ColumnName="DeptFileOwner" />
+                <ScalarProperty Name="SPFilePath" ColumnName="SPFilePath" />
+                <ScalarProperty Name="prioritycode" ColumnName="prioritycode" />
+                <ScalarProperty Name="filestatuscode" ColumnName="filestatuscode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="vwDepartmentSubFolders">
+            <EntityTypeMapping TypeName="RadiantYYZModel.vwDepartmentSubFolder">
+              <MappingFragment StoreEntitySet="vwDepartmentSubFolders">
+                <ScalarProperty Name="FileID" ColumnName="FileID" />
+                <ScalarProperty Name="DeptFileName" ColumnName="DeptFileName" />
+                <ScalarProperty Name="SOPNo" ColumnName="SOPNo" />
+                <ScalarProperty Name="SPFileLink" ColumnName="SPFileLink" />
+                <ScalarProperty Name="CreateDate" ColumnName="CreateDate" />
+                <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
+                <ScalarProperty Name="LastModifiedDate" ColumnName="LastModifiedDate" />
+                <ScalarProperty Name="ModifiedBy" ColumnName="ModifiedBy" />
+                <ScalarProperty Name="VersionNo" ColumnName="VersionNo" />
+                <ScalarProperty Name="ApprovalStatus" ColumnName="ApprovalStatus" />
+                <ScalarProperty Name="Approvedby" ColumnName="Approvedby" />
+                <ScalarProperty Name="DeptFileOwner" ColumnName="DeptFileOwner" />
+                <ScalarProperty Name="SPFilePath" ColumnName="SPFilePath" />
+                <ScalarProperty Name="prioritycode" ColumnName="prioritycode" />
+                <ScalarProperty Name="filestatuscode" ColumnName="filestatuscode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

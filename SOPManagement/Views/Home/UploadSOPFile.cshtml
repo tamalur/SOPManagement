@@ -1,0 +1,58 @@
+﻿
+@{
+    /**/
+
+    ViewBag.Title = "UploadSOPFile";
+}
+
+<h2>UploadSOPFile</h2>
+
+@using (Html.BeginForm("UploadFile", "Home", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form-horizontal", role = "form" }))
+{
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+
+
+    <div>
+
+        <label for="file">Select the Filename:</label>
+        <input type="file" name="postedFile" id="file" />
+
+    </div>
+
+    <div class="form-group">
+        <label for="Department Folder Name" class="label-default">Department Folder Name:</label>
+        <input name="deptfoldername" class="text-info" />
+
+        @Html.DropDownList("ddlDeptFolders", ViewBag.ddlDeptFolders as SelectList, "Please select a folder")
+
+        @Html.DropDownList("ddlSubFolders", ViewBag.ddlSubFolders as SelectList, "Please select a subfolder")
+
+
+        
+       
+
+
+    </div>
+
+
+    <div class="form-group">
+        <label for="Sub Folder Name" class="label-default">Sub Folder name:</label>
+        <input name="subfoldername" class="text-info" />
+    </div>
+
+
+    @*<div class="form-group">
+        <label for="Title" class="label-default">Title:</label>
+        <input name="Title" class="text-info" />
+    </div>*@
+
+
+    <div class="form-group">
+        <label for="SOPNO" class="label-default">SOP NO:</label>
+        <input name="sopno" class="text-info" />
+    </div>
+
+
+    <button type="submit" class="btn-primary">Submit</button>
+}

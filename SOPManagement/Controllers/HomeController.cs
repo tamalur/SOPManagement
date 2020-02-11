@@ -17,6 +17,7 @@ using Break = DocumentFormat.OpenXml.Wordprocessing.Break;
 using System.Xml.Linq;
 using System.Globalization;
 using System.Collections;
+using SOPManagement.Models;
 
 namespace SOPManagement.Controllers
 {
@@ -54,7 +55,120 @@ namespace SOPManagement.Controllers
         }
 
 
-        public void ExportToWord(string Title, string SOPNO)
+        public ActionResult UploadSOPFile()
+        {
+            ViewBag.Message = "Upload SOP File";
+
+
+
+            //if (postedFile != null)
+
+            //{
+
+            //    string path = Server.MapPath("~/Content/DocFiles");
+
+            //    if (!Directory.Exists(path))
+
+            //    {
+
+            //        Directory.CreateDirectory(path);
+
+            //    }
+
+
+
+            //    postedFile.SaveAs(path + Path.GetFileName(postedFile.FileName));
+
+            //    ViewBag.Message = "File uploaded successfully.";
+
+            //}
+
+
+
+            //Create db context object here 
+
+            RadiantYYZEntities2 dbContext = new RadiantYYZEntities2();
+
+            
+            //Get the value from database and then set it to ViewBag to pass it View
+            IEnumerable<SelectListItem> ItemFolders = dbContext.vwDepartmentFolders.Select(c => new SelectListItem
+            {
+                Value = c.DeptFileName,
+                Text = c.DeptFileName
+
+            });
+
+            ViewBag.ddlDeptFolders = ItemFolders;
+
+
+            //Get the value from database and then set it to ViewBag to pass it View
+            IEnumerable<SelectListItem> itemSubFolders = dbContext.vwDepartmentSubFolders.Select(c => new SelectListItem
+            {
+                Value = c.DeptFileName,
+                Text = c.DeptFileName
+
+            });    //.Where(s => s.Text == "Transportation(TRA)");
+
+            ViewBag.ddlSubFolders = itemSubFolders;
+
+
+            return View();
+        }
+
+        //public ViewResult 
+
+        public void UploadFile(HttpPostedFileBase postedFile, string deptfoldername, string subfoldername, string sopno)
+
+        {
+
+
+
+            ViewBag.Message = "Upload SOP File";
+
+            
+
+
+            if (postedFile != null)
+
+            {
+
+                string path = Server.MapPath("~/Content/DocFiles/");
+
+                if (!Directory.Exists(path))
+
+                {
+
+                    Directory.CreateDirectory(path);
+
+                }
+
+
+
+                postedFile.SaveAs(path + Path.GetFileName(postedFile.FileName));
+
+                ViewBag.Message = "File uploaded successfully.";
+
+
+                ArrayList arrvers;
+
+                string filerpath = "/sites/watercooler/SOP/Quality Assurance & Regulatory Affairs (QRA)/QRA  (AIB)/OPS07-01 Training and Personnel.docx" ;
+                arrvers = getFileVersions(siteurl, filerpath);
+
+
+
+            }
+
+
+
+
+
+
+
+
+        }
+
+
+            public void ExportToWord(string Title, string SOPNO)
         {
 
             //1.create requested word document from tempate with cover page
@@ -104,12 +218,13 @@ namespace SOPManagement.Controllers
             //2.uploading the processed doc file to sharepoint
 
             string documentlistname = "SOP";
-            string documentlistUrl = "SOP/Warehouse Operations/";
+            string documentlistUrl = "SOP/Quality Assurance & Regulatory Affairs (QRA)/QRA  (AIB)/";
             string documentname = Title;   //"SOPFile";      // Title;
 
+           // string filerpath = "/sites/watercooler/SOP/Quality Assurance & Regulatory Affairs (QRA)/QRA  (AIB)/OPS07-01 Training and Personnel.docx";
 
-   
-              byte[] stream = System.IO.File.ReadAllBytes(savePath);
+
+            byte[] stream = System.IO.File.ReadAllBytes(savePath);
 
              UploadDocument(siteurl, documentlistname, documentlistUrl, documentname, stream,SOPNO);
 
@@ -314,9 +429,9 @@ namespace SOPManagement.Controllers
 
 
 
-            System.IO.File.Copy(Server.MapPath("~/Content/docfiles/SOPTemplate.docx"), Server.MapPath("~/Content/docfiles/SOPFile.docx"), true);
+          //  System.IO.File.Copy(Server.MapPath("~/Content/docfiles/SOPTemplate.docx"), Server.MapPath("~/Content/docfiles/SOPFile.docx"), true);
 
-            //    System.IO.File.Copy(Server.MapPath("~/Content/docfiles/SOPFile.docx"), Server.MapPath("~/Content/docfiles/SOPTemp.docx"), true);
+          System.IO.File.Copy(Server.MapPath("~/Content/docfiles/SOPTemp.docx"), Server.MapPath("~/Content/docfiles/SOPFile.docx"), true);
 
             string savePath = Server.MapPath("~/Content/docfiles/SOPFile.docx");
 
@@ -519,17 +634,20 @@ namespace SOPManagement.Controllers
             {
                 Microsoft.Office.Interop.Word.Range footerRange = wordSection.Footers[Microsoft.Office.Interop.Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].Range;
 
+                footerRange.Tables[1].Cell(1, 1).Range.Text = sopno + " " + filetitle;
 
 
 
                 // wdoc.Tables.Add(footerRange, 1, 2);
-                Object oMissing = System.Reflection.Missing.Value;
+                //Object oMissing = System.Reflection.Missing.Value;
 
-                Object TotalPages = Microsoft.Office.Interop.Word.WdFieldType.wdFieldNumPages;
 
-                Object CurrentPage = Microsoft.Office.Interop.Word.WdFieldType.wdFieldPage;
 
-                footerRange.Tables[1].Cell(1, 1).Range.Text = sopno +" "+ filetitle;
+                // Object TotalPages = Microsoft.Office.Interop.Word.WdFieldType.wdFieldNumPages;
+
+                // Object CurrentPage = Microsoft.Office.Interop.Word.WdFieldType.wdFieldPage;
+
+
 
 
 
@@ -598,17 +716,27 @@ namespace SOPManagement.Controllers
 
                 clientContext.ExecuteQuery();
 
-      
+
+                string id;
 
                 FileVersionCollection versions = file.Versions;
 
                 clientContext.Load(versions);
 
+                PropertyValues fi = file.Properties;
                 
+                clientContext.Load(fi);
+
+            
                 clientContext.ExecuteQuery();
 
                 var lv = file.MajorVersion.ToString();
 
+
+                id = fi["ID"].ToString();
+
+
+         
 
                 if (versions != null)
                 {
@@ -829,7 +957,7 @@ namespace SOPManagement.Controllers
             clientContext.ExecuteQuery();
 
 
-
+            string fid;
 
             foreach (ListItem item in listItems)
             {
@@ -842,6 +970,9 @@ namespace SOPManagement.Controllers
                     Microsoft.SharePoint.Client.File file = item.File;
 
                     FileVersionCollection versions = file.Versions;
+
+                    fid=file.Properties["ID"].ToString();
+
                     clientContext.Load(file);
                     clientContext.Load(versions);
                     clientContext.ExecuteQuery();
@@ -943,7 +1074,13 @@ namespace SOPManagement.Controllers
                 uploadFile.ListItemAllFields.Update();   
                 clientContext.ExecuteQuery(); //upload file
 
-     
+
+                clientContext.Load(uploadFile, f => f.ListItemAllFields);
+                clientContext.ExecuteQuery();
+                //Print List Item Id
+                Console.WriteLine("List Item Id: {0}", uploadFile.ListItemAllFields.Id);
+
+
 
             }
 
