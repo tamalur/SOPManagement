@@ -192,6 +192,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\CascadingClass.cs" />
     <Compile Include="Models\codesapprovalstatu.cs">
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
@@ -323,6 +324,7 @@
     <Content Include="Views\Home\CreateFile.cshtml" />
     <Content Include="Views\Home\UploadSOPFile.cshtml" />
     <Content Include="Views\Home\UploadFile.cshtml" />
+    <Content Include="Views\Shared\DisplaySubfolders.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

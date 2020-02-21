@@ -85,34 +85,95 @@ namespace SOPManagement.Controllers
 
 
 
-            //Create db context object here 
+            ////Create db context object here 
 
-            RadiantYYZEntities2 dbContext = new RadiantYYZEntities2();
-
-            
-            //Get the value from database and then set it to ViewBag to pass it View
-            IEnumerable<SelectListItem> ItemFolders = dbContext.vwDepartmentFolders.Select(c => new SelectListItem
-            {
-                Value = c.DeptFileName,
-                Text = c.DeptFileName
-
-            });
-
-            ViewBag.ddlDeptFolders = ItemFolders;
+            //RadiantYYZEntities2 dbContext = new RadiantYYZEntities2();
 
 
-            //Get the value from database and then set it to ViewBag to pass it View
-            IEnumerable<SelectListItem> itemSubFolders = dbContext.vwDepartmentSubFolders.Select(c => new SelectListItem
-            {
-                Value = c.DeptFileName,
-                Text = c.DeptFileName
+            ////Get the value from database and then set it to ViewBag to pass it View
+            //IEnumerable<SelectListItem> ItemFolders = dbContext.vwDepartmentFolders.Select(c => new SelectListItem
+            //{
+            //    Value = c.SPFilePath,
+            //    Text = c.DeptFileName
 
-            });    //.Where(s => s.Text == "Transportation(TRA)");
+            //}).Where(q=>q.Value == "SOP/");
 
-            ViewBag.ddlSubFolders = itemSubFolders;
+            //ViewBag.ddlDeptFolders = ItemFolders;
+
+            ////ViewBag.ddlDeptFolders = dbContext.vwDepartmentFolders.Where(i=>i.FileID==170).FirstOrDefault();
+
+            ////string strSelFolder = Request.Form["ddlDeptFolders"].ToString();
+
+            ////Get the value from database and then set it to ViewBag to pass it View
+            //IEnumerable<SelectListItem> itemSubFolders = dbContext.vwDepartmentSubFolders.Select(c => new SelectListItem
+            //{
+            //    Value = c.SPFilePath,
+            //    Text = c.DeptFileName
+
+            //}).Where(q =>q.Text == "OPS");
+
+            //ViewBag.ddlSubFolders = itemSubFolders;
 
 
+            RadiantYYZEntities2 edm = new RadiantYYZEntities2();
+
+            ViewBag.ddlDeptFolders = new SelectList(GetFolders(), "DeptFileName", "DeptFileName");
             return View();
+        }
+
+
+        public List<deptsopfile> GetFolders()
+        {
+
+            List<deptsopfile> folderlist;
+
+           
+
+            using (var ctx = new RadiantYYZEntities2())
+            {
+                var folders = ctx.deptsopfiles
+                                .Where(s => s.SPFilePath == "SOP/");
+
+                folderlist = folders.ToList();
+
+            }
+
+
+            return folderlist;
+
+
+            //List<deptsopfile> folders = (from d in deptsopfile
+            //                             where d.Tags.All(t => _tags.Contains(t))
+            //                    select d.id).ToList<int>();
+
+            //List<deptsopfile> folders = new List<deptsopfile>
+            //    return folders;
+
+
+        }
+
+        public ActionResult GetSubFolderList(string foldername)
+        {
+
+
+            List<deptsopfile> subfolderlist;
+
+            using (var ctx = new RadiantYYZEntities2())
+            {
+                var subfolders = ctx.deptsopfiles
+                                .Where(s => s.SPFilePath == "SOP/"+ foldername +"/" && !s.DeptFileName.Contains(".docx"));
+
+                subfolderlist = subfolders.ToList();
+
+                ViewBag.ddlSubFolders= new SelectList(subfolderlist, "FileID", "DeptFileName");
+
+            }
+
+               return PartialView("DisplaySubfolders");
+
+
+
+
         }
 
         //public ViewResult 
@@ -1101,6 +1162,9 @@ namespace SOPManagement.Controllers
             return oSecurePassword;
         }
 
+        public class vwDepartmentFolders
+        {
+        }
     }  //end of class HomeController
 
 

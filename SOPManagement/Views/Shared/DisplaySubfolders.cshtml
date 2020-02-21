@@ -1,0 +1,13 @@
+﻿@model SOPManagement.Models.deptsopfile
+
+<option value="">--Select Subfolder--</option>
+
+@if (ViewBag.ddlSubFolders != null)
+{
+
+    foreach (var item in ViewBag.ddlSubFolders)
+    {
+        <option value="@item.Value">@item.Text</option>
+
+    }
+}

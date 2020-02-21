@@ -1,4 +1,4 @@
-﻿
+﻿@model SOPManagement.Models.CascadingClass
 @{
     /**/
 
@@ -6,6 +6,9 @@
 }
 
 <h2>UploadSOPFile</h2>
+
+<script src="~/Scripts/jquery-3.3.1.min.js"></script>
+
 
 @using (Html.BeginForm("UploadFile", "Home", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form-horizontal", role = "form" }))
 {
@@ -24,16 +27,57 @@
         <label for="Department Folder Name" class="label-default">Department Folder Name:</label>
         <input name="deptfoldername" class="text-info" />
 
-        @Html.DropDownList("ddlDeptFolders", ViewBag.ddlDeptFolders as SelectList, "Please select a folder")
 
-        @Html.DropDownList("ddlSubFolders", ViewBag.ddlSubFolders as SelectList, "Please select a subfolder")
+        @if (ViewBag.ddlDeptFolders != null)
+        {
+            @Html.DropDownListFor(m => m.DeptFileName, ViewBag.ddlDeptFolders as SelectList, "Please select a folder", new { @class = "form-control" })
+        }
+
+        @Html.DropDownListFor(m => m.FileID, new SelectList(""), "Please select a subfolder", new { @class = "form-control" })
 
 
-        
-       
 
 
     </div>
+
+
+
+
+    <script>
+
+        $(document).ready(function () {
+
+            $("#DeptFileName").change(function () {
+
+                var foldername = $(this).val();
+                //debugger
+
+                $.ajax(
+                    {
+
+                        type: "post",
+                        url: "/Home/GetSubFolderList?foldername=" + foldername,
+                        contentType: "html",
+                        success: function (response) {
+                          //  debugger
+                            $("#FileID").empty();
+                            $("#FileID").append(response);
+
+                        }
+                    }
+
+                )
+
+
+            })
+
+
+        })
+
+
+
+    </script>
+
 
 
     <div class="form-group">
@@ -43,9 +87,9 @@
 
 
     @*<div class="form-group">
-        <label for="Title" class="label-default">Title:</label>
-        <input name="Title" class="text-info" />
-    </div>*@
+            <label for="Title" class="label-default">Title:</label>
+            <input name="Title" class="text-info" />
+        </div>*@
 
 
     <div class="form-group">
