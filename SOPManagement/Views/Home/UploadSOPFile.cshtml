@@ -49,14 +49,48 @@
 
             $("#DeptFileName").change(function () {
 
-                var foldername = $(this).val();
+                var ifoldername = $(this).val();
                 //debugger
+
 
                 $.ajax(
                     {
 
                         type: "post",
-                        url: "/Home/GetSubFolderList?foldername=" + foldername,
+                        //url: "/Home/GetSOPNO?foldername=" + foldername,
+
+                        url: "/Home/GetSOPNO",
+
+                        @*url: '@Url.Action("GetSOPNO", "Home")',*@
+
+                        contentType: 'application/json',
+                        dataType: 'json',
+                        //data: JSON.stringify(foldername),
+                        //data: { foldername: foldername, foo: "bar", other: "otherValue" },
+                        data: JSON.stringify({ foldername: ifoldername}),
+
+                        success: function (data) {
+                            //  debugger
+
+                            if (data.success) {
+
+                                document.getElementById("sopno").value = data.sopno;
+
+                            }
+                            else {
+                                alert('invalid SOP' + data.success);
+                            }
+
+
+                        }
+                    })
+
+
+                $.ajax(
+                    {
+
+                        type: "post",
+                        url: "/Home/GetSubFolderList?foldername=" + ifoldername,
                         contentType: "html",
                         success: function (response) {
                           //  debugger
@@ -94,7 +128,7 @@
 
     <div class="form-group">
         <label for="SOPNO" class="label-default">SOP NO:</label>
-        <input name="sopno" class="text-info" />
+        <input name="sopno" id="sopno" class="text-info" />
     </div>
 
 

@@ -161,18 +161,33 @@ namespace SOPManagement.Controllers
             using (var ctx = new RadiantYYZEntities2())
             {
                 var subfolders = ctx.deptsopfiles
-                                .Where(s => s.SPFilePath == "SOP/"+ foldername +"/" && !s.DeptFileName.Contains(".docx"));
+                                .Where(s => s.SPFilePath == "SOP/"+ foldername +"/" && !s.DeptFileName.Contains(".docx"));  //only sub folders, not file
 
                 subfolderlist = subfolders.ToList();
 
                 ViewBag.ddlSubFolders= new SelectList(subfolderlist, "FileID", "DeptFileName");
+
+               
 
             }
 
                return PartialView("DisplaySubfolders");
 
 
+        }
 
+        public JsonResult GetSOPNO(string foldername)
+        {
+
+            string lsopno="";
+
+            if (foldername!="")
+                lsopno = foldername+ "-001";
+
+            if (lsopno!="")
+                return Json(new { success = true, sopno = lsopno });
+            else
+                return Json(new { success = false });
 
         }
 
