@@ -4,7 +4,7 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-      <Schema Namespace="RadiantYYZModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2008" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+    <Schema Namespace="RadiantYYZModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2008" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
         <!--Errors Found During Generation:
 warning 6002: The table/view 'RadiantYYZ.sop.codesapprovalstatus' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="codesapprovalstatus">
@@ -21,12 +21,6 @@ warning 6002: The table/view 'RadiantYYZ.sop.codesapprovalstatus' does not have 
           <Property Name="departmentcode" Type="smallint" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="departmentname" Type="nvarchar" MaxLength="100" />
         </EntityType>
-        <!--Errors Found During Generation:
-warning 6013: The table/view 'RadiantYYZ.sop.codesfilepriority' does not have a primary key defined and no valid primary key could be inferred. This table/view has been excluded. To use the entity, you will need to review your schema, add the correct keys, and uncomment it.
-        <EntityType Name="codesfilepriority">
-          <Property Name="prioritycode" Type="smallint" />
-          <Property Name="PriorityName" Type="varchar" MaxLength="100" />
-        </EntityType>-->
         <!--Errors Found During Generation:
 warning 6002: The table/view 'RadiantYYZ.sop.codesfilestatus' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="codesfilestatus">
@@ -138,7 +132,6 @@ warning 6002: The table/view 'RadiantYYZ.sop.codesuserstatus' does not have a pr
           <Property Name="reviewid" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="reviewerid" Type="int" Nullable="false" />
           <Property Name="fileid" Type="int" Nullable="false" />
-          <Property Name="reviewerstatuscode" Type="smallint" />
         </EntityType>
         <EntityType Name="filereviewersactivities">
           <Key>
@@ -163,23 +156,45 @@ warning 6002: The table/view 'RadiantYYZ.sop.codesuserstatus' does not have a pr
           <Property Name="unitoffrequency" Type="nvarchar" MaxLength="50" />
           <Property Name="lastrevisionno" Type="nvarchar" MaxLength="50" />
         </EntityType>
-        <!--Errors Found During Generation:
-warning 6002: The table/view 'RadiantYYZ.sop.users' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="users">
           <Key>
             <PropertyRef Name="userid" />
-            <PropertyRef Name="userfirstname" />
-            <PropertyRef Name="userlastname" />
           </Key>
           <Property Name="userid" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="windowsusername" Type="varchar" MaxLength="60" />
           <Property Name="departmentcode" Type="smallint" />
-          <Property Name="userfirstname" Type="nvarchar" MaxLength="50" Nullable="false" />
-          <Property Name="usermiddlename" Type="nvarchar" MaxLength="50" />
-          <Property Name="userlastname" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="userfullname" Type="nvarchar" MaxLength="50" Nullable="false" />
           <Property Name="useremailaddress" Type="nvarchar" MaxLength="50" />
           <Property Name="userstatuscode" Type="smallint" />
-          <Property Name="signature" Type="image" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'RadiantYYZ.sop.v_sopreport' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="v_sopreport">
+          <Key>
+            <PropertyRef Name="FileID" />
+          </Key>
+          <Property Name="FileID" Type="int" Nullable="false" />
+          <Property Name="DeptFileName" Type="varchar" MaxLength="255" />
+          <Property Name="DeptSubFolderName" Type="varchar" MaxLength="255" />
+          <Property Name="DeptSubFolderName2" Type="varchar" MaxLength="455" />
+          <Property Name="SPFileLink" Type="varchar" MaxLength="455" />
+          <Property Name="CreateDate" Type="datetime" />
+          <Property Name="CreatedBy" Type="varchar" MaxLength="65" />
+          <Property Name="LastModifiedDate" Type="datetime" />
+          <Property Name="ModifiedBy" Type="varchar" MaxLength="65" />
+          <Property Name="VersionNo" Type="nvarchar" MaxLength="10" />
+          <Property Name="ApprovalStatus" Type="varchar" MaxLength="15" />
+          <Property Name="Approvedby" Type="varchar" MaxLength="65" />
+          <Property Name="DeptFileOwner" Type="varchar" MaxLength="65" />
+          <Property Name="SPFilePath" Type="varchar" MaxLength="350" />
+          <Property Name="SPFilePath_URL" Type="varchar" MaxLength="407" />
+          <Property Name="SOPFolder" Type="varchar" MaxLength="455" />
+          <Property Name="Department" Type="varchar" MaxLength="350" />
+          <Property Name="prioritycode" Type="smallint" />
+          <Property Name="filestatuscode" Type="smallint" />
+          <Property Name="scheduledatetime" Type="datetime" />
+          <Property Name="NumberOfDays" Type="int" />
+          <Property Name="SOPFileStatus" Type="varchar" MaxLength="6" />
         </EntityType>
         <!--Errors Found During Generation:
 warning 6002: The table/view 'RadiantYYZ.sop.vwDepartmentFolders' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
@@ -225,6 +240,28 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwDepartmentSubFolders' does not ha
           <Property Name="prioritycode" Type="smallint" />
           <Property Name="filestatuscode" Type="smallint" />
         </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'RadiantYYZ.sop.vwSOPReviewers' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="vwSOPReviewers">
+          <Key>
+            <PropertyRef Name="reviewid" />
+            <PropertyRef Name="reviewerid" />
+            <PropertyRef Name="fileid" />
+            <PropertyRef Name="userfullname" />
+          </Key>
+          <Property Name="reviewid" Type="int" Nullable="false" />
+          <Property Name="reviewerid" Type="int" Nullable="false" />
+          <Property Name="fileid" Type="int" Nullable="false" />
+          <Property Name="userfullname" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="useremailaddress" Type="nvarchar" MaxLength="50" />
+          <Property Name="departmentname" Type="nvarchar" MaxLength="100" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6013: The table/view 'RadiantYYZ.sop.vwSubFolders' does not have a primary key defined and no valid primary key could be inferred. This table/view has been excluded. To use the entity, you will need to review your schema, add the correct keys, and uncomment it.
+        <EntityType Name="vwSubFolders">
+          <Property Name="foldername" Type="varchar" MaxLength="8000" />
+          <Property Name="subfoldername" Type="varchar" MaxLength="255" />
+        </EntityType>-->
         <EntityContainer Name="RadiantYYZModelStoreContainer">
           <EntitySet Name="codesdepartments" EntityType="Self.codesdepartments" Schema="sop" store:Type="Tables" />
           <EntitySet Name="deptsopfiles" EntityType="Self.deptsopfiles" Schema="sop" store:Type="Tables" />
@@ -238,6 +275,7 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwDepartmentSubFolders' does not ha
           <EntitySet Name="filereviewers" EntityType="Self.filereviewers" Schema="sop" store:Type="Tables" />
           <EntitySet Name="filereviewersactivities" EntityType="Self.filereviewersactivities" Schema="sop" store:Type="Tables" />
           <EntitySet Name="fileupdateschedule" EntityType="Self.fileupdateschedule" Schema="sop" store:Type="Tables" />
+          <EntitySet Name="users" EntityType="Self.users" Schema="sop" store:Type="Tables" />
           <EntitySet Name="codesapprovalstatus" EntityType="Self.codesapprovalstatus" store:Type="Tables" store:Schema="sop">
             <DefiningQuery>SELECT 
     [codesapprovalstatus].[statuscode] AS [statuscode], 
@@ -256,18 +294,31 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwDepartmentSubFolders' does not ha
     [codesuserstatus].[StatusName] AS [StatusName]
     FROM [sop].[codesuserstatus] AS [codesuserstatus]</DefiningQuery>
           </EntitySet>
-          <EntitySet Name="users" EntityType="Self.users" store:Type="Tables" store:Schema="sop">
+          <EntitySet Name="v_sopreport" EntityType="Self.v_sopreport" store:Type="Views" store:Schema="sop">
             <DefiningQuery>SELECT 
-    [users].[userid] AS [userid], 
-    [users].[windowsusername] AS [windowsusername], 
-    [users].[departmentcode] AS [departmentcode], 
-    [users].[userfirstname] AS [userfirstname], 
-    [users].[usermiddlename] AS [usermiddlename], 
-    [users].[userlastname] AS [userlastname], 
-    [users].[useremailaddress] AS [useremailaddress], 
-    [users].[userstatuscode] AS [userstatuscode], 
-    [users].[signature] AS [signature]
-    FROM [sop].[users] AS [users]</DefiningQuery>
+    [v_sopreport].[FileID] AS [FileID], 
+    [v_sopreport].[DeptFileName] AS [DeptFileName], 
+    [v_sopreport].[DeptSubFolderName] AS [DeptSubFolderName], 
+    [v_sopreport].[DeptSubFolderName2] AS [DeptSubFolderName2], 
+    [v_sopreport].[SPFileLink] AS [SPFileLink], 
+    [v_sopreport].[CreateDate] AS [CreateDate], 
+    [v_sopreport].[CreatedBy] AS [CreatedBy], 
+    [v_sopreport].[LastModifiedDate] AS [LastModifiedDate], 
+    [v_sopreport].[ModifiedBy] AS [ModifiedBy], 
+    [v_sopreport].[VersionNo] AS [VersionNo], 
+    [v_sopreport].[ApprovalStatus] AS [ApprovalStatus], 
+    [v_sopreport].[Approvedby] AS [Approvedby], 
+    [v_sopreport].[DeptFileOwner] AS [DeptFileOwner], 
+    [v_sopreport].[SPFilePath] AS [SPFilePath], 
+    [v_sopreport].[SPFilePath_URL] AS [SPFilePath_URL], 
+    [v_sopreport].[SOPFolder] AS [SOPFolder], 
+    [v_sopreport].[Department] AS [Department], 
+    [v_sopreport].[prioritycode] AS [prioritycode], 
+    [v_sopreport].[filestatuscode] AS [filestatuscode], 
+    [v_sopreport].[scheduledatetime] AS [scheduledatetime], 
+    [v_sopreport].[NumberOfDays] AS [NumberOfDays], 
+    [v_sopreport].[SOPFileStatus] AS [SOPFileStatus]
+    FROM [sop].[v_sopreport] AS [v_sopreport]</DefiningQuery>
           </EntitySet>
           <EntitySet Name="vwDepartmentFolders" EntityType="Self.vwDepartmentFolders" store:Type="Views" store:Schema="sop">
             <DefiningQuery>SELECT 
@@ -307,9 +358,18 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwDepartmentSubFolders' does not ha
     [vwDepartmentSubFolders].[filestatuscode] AS [filestatuscode]
     FROM [sop].[vwDepartmentSubFolders] AS [vwDepartmentSubFolders]</DefiningQuery>
           </EntitySet>
+          <EntitySet Name="vwSOPReviewers" EntityType="Self.vwSOPReviewers" store:Type="Views" store:Schema="sop">
+            <DefiningQuery>SELECT 
+    [vwSOPReviewers].[reviewid] AS [reviewid], 
+    [vwSOPReviewers].[reviewerid] AS [reviewerid], 
+    [vwSOPReviewers].[fileid] AS [fileid], 
+    [vwSOPReviewers].[userfullname] AS [userfullname], 
+    [vwSOPReviewers].[useremailaddress] AS [useremailaddress], 
+    [vwSOPReviewers].[departmentname] AS [departmentname]
+    FROM [sop].[vwSOPReviewers] AS [vwSOPReviewers]</DefiningQuery>
+          </EntitySet>
         </EntityContainer>
-      </Schema>
-    </edmx:StorageModels>
+      </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="RadiantYYZModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
@@ -413,7 +473,6 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwDepartmentSubFolders' does not ha
           <Property Name="reviewid" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="reviewerid" Type="Int32" Nullable="false" />
           <Property Name="fileid" Type="Int32" Nullable="false" />
-          <Property Name="reviewerstatuscode" Type="Int16" />
         </EntityType>
         <EntityType Name="filereviewersactivity">
           <Key>
@@ -438,6 +497,17 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwDepartmentSubFolders' does not ha
           <Property Name="unitoffrequency" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="lastrevisionno" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
         </EntityType>
+        <EntityType Name="user">
+          <Key>
+            <PropertyRef Name="userid" />
+          </Key>
+          <Property Name="userid" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="windowsusername" Type="String" MaxLength="60" FixedLength="false" Unicode="false" />
+          <Property Name="departmentcode" Type="Int16" />
+          <Property Name="useremailaddress" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="userstatuscode" Type="Int16" />
+          <Property Name="userfullname" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+        </EntityType>
         <EntityType Name="codesapprovalstatu">
           <Key>
             <PropertyRef Name="statuscode" />
@@ -459,21 +529,32 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwDepartmentSubFolders' does not ha
           <Property Name="statuscode" Type="Int16" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="StatusName" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
         </EntityType>
-        <EntityType Name="user">
+        <EntityType Name="v_sopreport">
           <Key>
-            <PropertyRef Name="userid" />
-            <PropertyRef Name="userfirstname" />
-            <PropertyRef Name="userlastname" />
+            <PropertyRef Name="FileID" />
           </Key>
-          <Property Name="userid" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="windowsusername" Type="String" MaxLength="60" FixedLength="false" Unicode="false" />
-          <Property Name="departmentcode" Type="Int16" />
-          <Property Name="userfirstname" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="usermiddlename" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="userlastname" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="useremailaddress" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="userstatuscode" Type="Int16" />
-          <Property Name="signature" Type="Binary" MaxLength="Max" FixedLength="false" />
+          <Property Name="FileID" Type="Int32" Nullable="false" />
+          <Property Name="DeptFileName" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="DeptSubFolderName" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="DeptSubFolderName2" Type="String" MaxLength="455" FixedLength="false" Unicode="false" />
+          <Property Name="SPFileLink" Type="String" MaxLength="455" FixedLength="false" Unicode="false" />
+          <Property Name="CreateDate" Type="DateTime" Precision="3" />
+          <Property Name="CreatedBy" Type="String" MaxLength="65" FixedLength="false" Unicode="false" />
+          <Property Name="LastModifiedDate" Type="DateTime" Precision="3" />
+          <Property Name="ModifiedBy" Type="String" MaxLength="65" FixedLength="false" Unicode="false" />
+          <Property Name="VersionNo" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="ApprovalStatus" Type="String" MaxLength="15" FixedLength="false" Unicode="false" />
+          <Property Name="Approvedby" Type="String" MaxLength="65" FixedLength="false" Unicode="false" />
+          <Property Name="DeptFileOwner" Type="String" MaxLength="65" FixedLength="false" Unicode="false" />
+          <Property Name="SPFilePath" Type="String" MaxLength="350" FixedLength="false" Unicode="false" />
+          <Property Name="SPFilePath_URL" Type="String" MaxLength="407" FixedLength="false" Unicode="false" />
+          <Property Name="SOPFolder" Type="String" MaxLength="455" FixedLength="false" Unicode="false" />
+          <Property Name="Department" Type="String" MaxLength="350" FixedLength="false" Unicode="false" />
+          <Property Name="prioritycode" Type="Int16" />
+          <Property Name="filestatuscode" Type="Int16" />
+          <Property Name="scheduledatetime" Type="DateTime" Precision="3" />
+          <Property Name="NumberOfDays" Type="Int32" />
+          <Property Name="SOPFileStatus" Type="String" MaxLength="6" FixedLength="false" Unicode="false" />
         </EntityType>
         <EntityType Name="vwDepartmentFolder">
           <Key>
@@ -515,7 +596,7 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwDepartmentSubFolders' does not ha
           <Property Name="prioritycode" Type="Int16" />
           <Property Name="filestatuscode" Type="Int16" />
         </EntityType>
-        <EntityContainer Name="RadiantYYZEntities2" annotation:LazyLoadingEnabled="true">
+        <EntityContainer Name="RadiantSOPEntities" annotation:LazyLoadingEnabled="true">
           <EntitySet Name="codesdepartments" EntityType="Self.codesdepartment" />
           <EntitySet Name="deptsopfiles" EntityType="Self.deptsopfile" />
           <EntitySet Name="fileapprovers" EntityType="Self.fileapprover" />
@@ -528,19 +609,35 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwDepartmentSubFolders' does not ha
           <EntitySet Name="filereviewers" EntityType="Self.filereviewer" />
           <EntitySet Name="filereviewersactivities" EntityType="Self.filereviewersactivity" />
           <EntitySet Name="fileupdateschedules" EntityType="Self.fileupdateschedule" />
+          <EntitySet Name="users" EntityType="Self.user" />
           <EntitySet Name="codesapprovalstatus" EntityType="Self.codesapprovalstatu" />
           <EntitySet Name="codesfilestatus" EntityType="Self.codesfilestatu" />
           <EntitySet Name="codesuserstatus" EntityType="Self.codesuserstatu" />
-          <EntitySet Name="users" EntityType="Self.user" />
+          <EntitySet Name="v_sopreport" EntityType="Self.v_sopreport" />
           <EntitySet Name="vwDepartmentFolders" EntityType="Self.vwDepartmentFolder" />
           <EntitySet Name="vwDepartmentSubFolders" EntityType="Self.vwDepartmentSubFolder" />
+          <EntitySet Name="vwSOPReviewers" EntityType="RadiantYYZModel.vwSOPReviewer" />
         </EntityContainer>
+        <EntityType Name="vwSOPReviewer">
+          <Key>
+            <PropertyRef Name="reviewid" />
+            <PropertyRef Name="reviewerid" />
+            <PropertyRef Name="fileid" />
+            <PropertyRef Name="userfullname" />
+          </Key>
+          <Property Name="reviewid" Type="Int32" Nullable="false" />
+          <Property Name="reviewerid" Type="Int32" Nullable="false" />
+          <Property Name="fileid" Type="Int32" Nullable="false" />
+          <Property Name="userfullname" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="useremailaddress" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="departmentname" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+        </EntityType>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
     <edmx:Mappings>
       <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
-        <EntityContainerMapping StorageEntityContainer="RadiantYYZModelStoreContainer" CdmEntityContainer="RadiantYYZEntities2">
+        <EntityContainerMapping StorageEntityContainer="RadiantYYZModelStoreContainer" CdmEntityContainer="RadiantSOPEntities">
           <EntitySetMapping Name="codesdepartments">
             <EntityTypeMapping TypeName="RadiantYYZModel.codesdepartment">
               <MappingFragment StoreEntitySet="codesdepartments">
@@ -649,7 +746,6 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwDepartmentSubFolders' does not ha
                 <ScalarProperty Name="reviewid" ColumnName="reviewid" />
                 <ScalarProperty Name="reviewerid" ColumnName="reviewerid" />
                 <ScalarProperty Name="fileid" ColumnName="fileid" />
-                <ScalarProperty Name="reviewerstatuscode" ColumnName="reviewerstatuscode" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -678,6 +774,18 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwDepartmentSubFolders' does not ha
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <EntitySetMapping Name="users">
+            <EntityTypeMapping TypeName="RadiantYYZModel.user">
+              <MappingFragment StoreEntitySet="users">
+                <ScalarProperty Name="userfullname" ColumnName="userfullname" />
+                <ScalarProperty Name="userid" ColumnName="userid" />
+                <ScalarProperty Name="windowsusername" ColumnName="windowsusername" />
+                <ScalarProperty Name="departmentcode" ColumnName="departmentcode" />
+                <ScalarProperty Name="useremailaddress" ColumnName="useremailaddress" />
+                <ScalarProperty Name="userstatuscode" ColumnName="userstatuscode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
           <EntitySetMapping Name="codesapprovalstatus">
             <EntityTypeMapping TypeName="RadiantYYZModel.codesapprovalstatu">
               <MappingFragment StoreEntitySet="codesapprovalstatus">
@@ -702,18 +810,31 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwDepartmentSubFolders' does not ha
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="users">
-            <EntityTypeMapping TypeName="RadiantYYZModel.user">
-              <MappingFragment StoreEntitySet="users">
-                <ScalarProperty Name="userid" ColumnName="userid" />
-                <ScalarProperty Name="windowsusername" ColumnName="windowsusername" />
-                <ScalarProperty Name="departmentcode" ColumnName="departmentcode" />
-                <ScalarProperty Name="userfirstname" ColumnName="userfirstname" />
-                <ScalarProperty Name="usermiddlename" ColumnName="usermiddlename" />
-                <ScalarProperty Name="userlastname" ColumnName="userlastname" />
-                <ScalarProperty Name="useremailaddress" ColumnName="useremailaddress" />
-                <ScalarProperty Name="userstatuscode" ColumnName="userstatuscode" />
-                <ScalarProperty Name="signature" ColumnName="signature" />
+          <EntitySetMapping Name="v_sopreport">
+            <EntityTypeMapping TypeName="RadiantYYZModel.v_sopreport">
+              <MappingFragment StoreEntitySet="v_sopreport">
+                <ScalarProperty Name="FileID" ColumnName="FileID" />
+                <ScalarProperty Name="DeptFileName" ColumnName="DeptFileName" />
+                <ScalarProperty Name="DeptSubFolderName" ColumnName="DeptSubFolderName" />
+                <ScalarProperty Name="DeptSubFolderName2" ColumnName="DeptSubFolderName2" />
+                <ScalarProperty Name="SPFileLink" ColumnName="SPFileLink" />
+                <ScalarProperty Name="CreateDate" ColumnName="CreateDate" />
+                <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
+                <ScalarProperty Name="LastModifiedDate" ColumnName="LastModifiedDate" />
+                <ScalarProperty Name="ModifiedBy" ColumnName="ModifiedBy" />
+                <ScalarProperty Name="VersionNo" ColumnName="VersionNo" />
+                <ScalarProperty Name="ApprovalStatus" ColumnName="ApprovalStatus" />
+                <ScalarProperty Name="Approvedby" ColumnName="Approvedby" />
+                <ScalarProperty Name="DeptFileOwner" ColumnName="DeptFileOwner" />
+                <ScalarProperty Name="SPFilePath" ColumnName="SPFilePath" />
+                <ScalarProperty Name="SPFilePath_URL" ColumnName="SPFilePath_URL" />
+                <ScalarProperty Name="SOPFolder" ColumnName="SOPFolder" />
+                <ScalarProperty Name="Department" ColumnName="Department" />
+                <ScalarProperty Name="prioritycode" ColumnName="prioritycode" />
+                <ScalarProperty Name="filestatuscode" ColumnName="filestatuscode" />
+                <ScalarProperty Name="scheduledatetime" ColumnName="scheduledatetime" />
+                <ScalarProperty Name="NumberOfDays" ColumnName="NumberOfDays" />
+                <ScalarProperty Name="SOPFileStatus" ColumnName="SOPFileStatus" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -756,6 +877,18 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwDepartmentSubFolders' does not ha
                 <ScalarProperty Name="SPFilePath" ColumnName="SPFilePath" />
                 <ScalarProperty Name="prioritycode" ColumnName="prioritycode" />
                 <ScalarProperty Name="filestatuscode" ColumnName="filestatuscode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="vwSOPReviewers">
+            <EntityTypeMapping TypeName="RadiantYYZModel.vwSOPReviewer">
+              <MappingFragment StoreEntitySet="vwSOPReviewers">
+                <ScalarProperty Name="departmentname" ColumnName="departmentname" />
+                <ScalarProperty Name="useremailaddress" ColumnName="useremailaddress" />
+                <ScalarProperty Name="userfullname" ColumnName="userfullname" />
+                <ScalarProperty Name="fileid" ColumnName="fileid" />
+                <ScalarProperty Name="reviewerid" ColumnName="reviewerid" />
+                <ScalarProperty Name="reviewid" ColumnName="reviewid" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

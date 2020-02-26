@@ -17,11 +17,8 @@ namespace SOPManagement.Models
         public int userid { get; set; }
         public string windowsusername { get; set; }
         public Nullable<short> departmentcode { get; set; }
-        public string userfirstname { get; set; }
-        public string usermiddlename { get; set; }
-        public string userlastname { get; set; }
         public string useremailaddress { get; set; }
         public Nullable<short> userstatuscode { get; set; }
-        public byte[] signature { get; set; }
+        public string userfullname { get; set; }
     }
 }

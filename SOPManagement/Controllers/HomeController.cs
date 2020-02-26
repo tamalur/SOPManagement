@@ -115,27 +115,69 @@ namespace SOPManagement.Controllers
             //ViewBag.ddlSubFolders = itemSubFolders;
 
 
-            RadiantYYZEntities2 edm = new RadiantYYZEntities2();
+            RadiantSOPEntities ctx = new RadiantSOPEntities();
 
             ViewBag.ddlDeptFolders = new SelectList(GetFolders(), "DeptFileName", "DeptFileName");
+
+          //  ViewBag.employees = new SelectList(GetEmployees(), "useremailaddress", "userfirstname");
+
+            ViewBag.employees = (from c in ctx.users select new { c.useremailaddress, c.userfullname }).Distinct();
+
             return View();
         }
 
 
-        public List<deptsopfile> GetFolders()
+        public List<Employee> GetEmployees()
         {
 
-            List<deptsopfile> folderlist;
+            List<Employee> employeelist;
+
+            using (var ctx = new RadiantSOPEntities())
+
+            {
+                var employees = ctx.users.Select(x => new Employee()
+                {
+
+                    userid = x.userid,
+                    userfullname = x.userfullname,
+                    useremailaddress = x.useremailaddress,
+                    departmentcode = x.departmentcode.Value,
+                    userstatuscode = x.userstatuscode.Value
+
+
+                });
+
+                employeelist = employees.ToList();
+
+            }
+
+                return employeelist;
+
+        }
+
+        public List<SOPClass> GetFolders()
+        {
+
+            List<SOPClass> folderlist;
 
            
 
-            using (var ctx = new RadiantYYZEntities2())
+            using (var ctx = new RadiantSOPEntities())
             {
-                var folders = ctx.deptsopfiles
-                                .Where(s => s.SPFilePath == "SOP/");
+
+                var folders = ctx.deptsopfiles.Select(x => new SOPClass()
+                {
+                    FileID = x.FileID,
+                    DeptFileName = x.DeptFileName,
+                    SPFilePath = x.SPFilePath,
+                    SPFileLink = x.SPFileLink,
+                    SOPNo=x.SOPNo
+                }).Where(s => s.SPFilePath == "SOP/");
+
 
                 folderlist = folders.ToList();
 
+            
             }
 
 
@@ -156,18 +198,32 @@ namespace SOPManagement.Controllers
         {
 
 
-            List<deptsopfile> subfolderlist;
+            List<SOPClass> subfolderlist;
 
-            using (var ctx = new RadiantYYZEntities2())
+            using (RadiantSOPEntities ctx = new RadiantSOPEntities())
+
             {
-                var subfolders = ctx.deptsopfiles
-                                .Where(s => s.SPFilePath == "SOP/"+ foldername +"/" && !s.DeptFileName.Contains(".docx"));  //only sub folders, not file
+
+
+                var subfolders = ctx.deptsopfiles.Select(x => new SOPClass()
+                {
+                    FileID = x.FileID,
+                    DeptFileName = x.DeptFileName,
+                    SPFilePath = x.SPFilePath,
+                    SPFileLink = x.SPFileLink,
+                    SOPNo = x.SOPNo
+                }).Where(s => s.SPFilePath == "SOP/" + foldername + "/" && !s.DeptFileName.Contains(".docx"));
+
+
+
+                //var subfolders = ctx.deptsopfiles
+                //                .Where(s => s.SPFilePath == "SOP/" + foldername + "/" && !s.DeptFileName.Contains(".docx"));  //only sub folders, not file
 
                 subfolderlist = subfolders.ToList();
 
-                ViewBag.ddlSubFolders= new SelectList(subfolderlist, "FileID", "DeptFileName");
+                ViewBag.ddlSubFolders = new SelectList(subfolderlist, "FileID", "DeptFileName");
 
-               
+
 
             }
 
@@ -192,6 +248,52 @@ namespace SOPManagement.Controllers
         }
 
         //public ViewResult 
+
+
+
+        public JsonResult InsertUsers(List<user> users)
+
+        {
+
+            using (RadiantSOPEntities entities = new RadiantSOPEntities())
+
+            {
+
+                //Truncate Table to delete all old records.
+
+                entities.Database.ExecuteSqlCommand("TRUNCATE TABLE [RadiantYYZ].[sop].[users]");
+
+
+
+                //Check for NULL.
+
+                if (users == null)
+
+                {
+
+                    users = new List<user>();
+
+                }
+
+
+
+                //Loop and insert records.
+
+                foreach (user usr in users)
+
+                {
+
+                    entities.users.Add(usr);
+
+                }
+
+                int insertedRecords = entities.SaveChanges();
+
+                return Json(insertedRecords);
+
+            }
+
+        }
 
         public void UploadFile(HttpPostedFileBase postedFile, string deptfoldername, string subfoldername, string sopno)
 
@@ -806,7 +908,7 @@ namespace SOPManagement.Controllers
             
                 clientContext.ExecuteQuery();
 
-                var lv = file.MajorVersion.ToString();
+                string lv = file.MajorVersion.ToString();
 
 
                 id = fi["ID"].ToString();
@@ -849,7 +951,7 @@ namespace SOPManagement.Controllers
         private void AssignFilePermission(string siteURL, string documentListName, string documentListURL, string documentName, string operation, string plabel,string useremail)
         {
 
-            var clientContext = new ClientContext(siteURL);
+            ClientContext clientContext = new ClientContext(siteURL);
 
             string userName = "tshaikh@radiantdelivers.com";
             string password = "bagerhat79&";
@@ -986,7 +1088,7 @@ namespace SOPManagement.Controllers
         private void GetFileVersions(string siteURL, string documentListName, string documentListURL, string documentName)
         {
 
-            var clientContext = new ClientContext(siteURL);
+            ClientContext clientContext = new ClientContext(siteURL);
 
             string userName = "tshaikh@radiantdelivers.com";
             string password = "bagerhat79&";
@@ -1067,13 +1169,13 @@ namespace SOPManagement.Controllers
                         clientContext.Load(v);
                         clientContext.ExecuteQuery();
 
-                        var modifiedBy = v.CreatedBy;
+                        User modifiedBy = v.CreatedBy;
                         clientContext.Load(modifiedBy);
 
                         clientContext.ExecuteQuery();
 
-                        var loginnm=modifiedBy.LoginName;
-                        var title = modifiedBy.Title;
+                        string loginnm =modifiedBy.LoginName;
+                        string title = modifiedBy.Title;
 
 
                     }
@@ -1122,7 +1224,7 @@ namespace SOPManagement.Controllers
 
                 Microsoft.SharePoint.Client.List documentsList = clientContext.Web.Lists.GetByTitle(documentListName);
 
-                var fileCreationInformation = new FileCreationInformation();
+                FileCreationInformation fileCreationInformation = new FileCreationInformation();
                 //Assign to content byte[] i.e. documentStream
 
                 fileCreationInformation.Content = documentStream;

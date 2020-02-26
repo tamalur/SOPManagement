@@ -13,10 +13,10 @@ namespace SOPManagement.Models
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
     
-    public partial class RadiantYYZEntities2 : DbContext
+    public partial class RadiantSOPEntities : DbContext
     {
-        public RadiantYYZEntities2()
-            : base("name=RadiantYYZEntities2")
+        public RadiantSOPEntities()
+            : base("name=RadiantSOPEntities")
         {
         }
     
@@ -37,11 +37,13 @@ namespace SOPManagement.Models
         public virtual DbSet<filereviewer> filereviewers { get; set; }
         public virtual DbSet<filereviewersactivity> filereviewersactivities { get; set; }
         public virtual DbSet<fileupdateschedule> fileupdateschedules { get; set; }
+        public virtual DbSet<user> users { get; set; }
         public virtual DbSet<codesapprovalstatu> codesapprovalstatus { get; set; }
         public virtual DbSet<codesfilestatu> codesfilestatus { get; set; }
         public virtual DbSet<codesuserstatu> codesuserstatus { get; set; }
-        public virtual DbSet<user> users { get; set; }
+        public virtual DbSet<v_sopreport> v_sopreport { get; set; }
         public virtual DbSet<vwDepartmentFolder> vwDepartmentFolders { get; set; }
         public virtual DbSet<vwDepartmentSubFolder> vwDepartmentSubFolders { get; set; }
+        public virtual DbSet<vwSOPReviewer> vwSOPReviewers { get; set; }
     }
 }

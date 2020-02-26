@@ -187,8 +187,10 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Controllers\deptsopfile.cs" />
     <Compile Include="Controllers\DOCXDocument.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\RadiantYYZEntities2.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -208,6 +210,7 @@
     <Compile Include="Models\deptsopfile.cs">
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\Employee.cs" />
     <Compile Include="Models\fileapprover.cs">
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
@@ -238,6 +241,7 @@
     <Compile Include="Models\fileupdateschedule.cs">
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\SOPClass.cs" />
     <Compile Include="Models\SOPEDM.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -260,6 +264,12 @@
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\vwDepartmentSubFolder.cs">
+      <DependentUpon>SOPEDM.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\vwSOPReviewer.cs">
+      <DependentUpon>SOPEDM.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\v_sopreport.cs">
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />

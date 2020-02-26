@@ -4,7 +4,7 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="70df6fd7f57c485c80c2a31f9bca1737" Name="Diagram1">
+      <Diagram DiagramId="a6dfb3cbd7ba4d648eb0eb25b8769425" Name="Diagram1">
         <EntityTypeShape EntityType="RadiantYYZModel.codesdepartment" Width="1.5" PointX="0.75" PointY="0.75" IsExpanded="true" />
         <EntityTypeShape EntityType="RadiantYYZModel.deptsopfile" Width="1.5" PointX="2.75" PointY="0.75" IsExpanded="true" />
         <EntityTypeShape EntityType="RadiantYYZModel.fileapprover" Width="1.5" PointX="4.75" PointY="0.75" IsExpanded="true" />
@@ -17,12 +17,14 @@
         <EntityTypeShape EntityType="RadiantYYZModel.filereviewer" Width="1.5" PointX="6.75" PointY="6.75" IsExpanded="true" />
         <EntityTypeShape EntityType="RadiantYYZModel.filereviewersactivity" Width="1.5" PointX="8.75" PointY="0.75" IsExpanded="true" />
         <EntityTypeShape EntityType="RadiantYYZModel.fileupdateschedule" Width="1.5" PointX="8.75" PointY="3.75" IsExpanded="true" />
-        <EntityTypeShape EntityType="RadiantYYZModel.codesapprovalstatu" Width="1.5" PointX="8.75" PointY="7.75" IsExpanded="true" />
-        <EntityTypeShape EntityType="RadiantYYZModel.codesfilestatu" Width="1.5" PointX="0.75" PointY="9.75" IsExpanded="true" />
-        <EntityTypeShape EntityType="RadiantYYZModel.codesuserstatu" Width="1.5" PointX="2.75" PointY="9.75" IsExpanded="true" />
-        <EntityTypeShape EntityType="RadiantYYZModel.user" Width="1.5" PointX="4.75" PointY="9.75" IsExpanded="true" />
-        <EntityTypeShape EntityType="RadiantYYZModel.vwDepartmentFolder" Width="1.5" PointX="10.75" PointY="0.75" IsExpanded="true" />
-        <EntityTypeShape EntityType="RadiantYYZModel.vwDepartmentSubFolder" Width="1.5" PointX="10.75" PointY="5.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RadiantYYZModel.user" Width="1.5" PointX="8.75" PointY="7.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RadiantYYZModel.codesapprovalstatu" Width="1.5" PointX="0.75" PointY="9.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RadiantYYZModel.codesfilestatu" Width="1.5" PointX="2.75" PointY="9.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RadiantYYZModel.codesuserstatu" Width="1.5" PointX="4.75" PointY="9.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RadiantYYZModel.v_sopreport" Width="1.5" PointX="10.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RadiantYYZModel.vwDepartmentFolder" Width="1.5" PointX="10.75" PointY="6.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RadiantYYZModel.vwDepartmentSubFolder" Width="1.5" PointX="6.75" PointY="11.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RadiantYYZModel.vwSOPReviewer" Width="1.5" PointX="9.375" PointY="11.75" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

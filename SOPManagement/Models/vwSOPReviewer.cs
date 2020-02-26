@@ -12,10 +12,13 @@ namespace SOPManagement.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class filereviewer
+    public partial class vwSOPReviewer
     {
         public int reviewid { get; set; }
         public int reviewerid { get; set; }
         public int fileid { get; set; }
+        public string userfullname { get; set; }
+        public string useremailaddress { get; set; }
+        public string departmentname { get; set; }
     }
 }
