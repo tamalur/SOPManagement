@@ -25,8 +25,8 @@
     </div>
 
     <div class="form-group">
-        <label for="Department Folder Name" class="label-default">Department Folder Name:</label>
-        <input name="deptfoldername" class="text-info" />
+        <label for="Enter File Name">Enter File Name:</label>
+        <input name="sopfilename" class="text-info" />
 
 
         @if (ViewBag.ddlDeptFolders != null)
@@ -37,7 +37,7 @@
         @Html.DropDownListFor(m => m.FileID, new SelectList(""), "Please select a subfolder", new { @class = "form-control" })
 
 
-        @Html.DropDownList("CoulumnName", new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "--Select--", new { @id = "ddlTable" })
+        @*@Html.DropDownList("CoulumnName", new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "--Select--", new { @id = "ddlTable" })*@
 
 
 
@@ -51,11 +51,13 @@
 
         $(document).ready(function () {
 
+            var newsopno;
+
             $("#DeptFileName").change(function () {
 
                 var ifoldername = $(this).val();
                 //debugger
-
+                
 
                 $.ajax(
                     {
@@ -71,7 +73,7 @@
                         dataType: 'json',
                         //data: JSON.stringify(foldername),
                         //data: { foldername: foldername, foo: "bar", other: "otherValue" },
-                        data: JSON.stringify({ foldername: ifoldername}),
+                        data: JSON.stringify({ foldername: ifoldername, subfoldername:""}),
 
                         success: function (data) {
                             //  debugger
@@ -79,6 +81,26 @@
                             if (data.success) {
 
                                 document.getElementById("sopno").value = data.sopno;
+
+
+                                var n1 = ifoldername.indexOf("(");
+
+                                var n2 = ifoldername.indexOf(")");
+
+                                var sopcode = ifoldername.substring(n1 + 1, n2);
+
+                          
+                                var currsopno = parseInt(data.sopno) + 1;
+
+                                //newsopno = sopcode + currsopno;
+
+                                newsopno = sopcode + "-" + zeroPad(currsopno, 2);
+
+
+                                // document.getElementById("sopno").value = data.sopno;
+                                document.getElementById("sopno").value = newsopno;
+
+
 
                             }
                             else {
@@ -109,8 +131,71 @@
 
             })
 
+            $("#FileID").change(function () {
+
+                var ifoldername = $('#DeptFileName :selected').text()
+                var isubfoldername = $('#FileID :selected').text();
+                //debugger
+                //var newsopno;
+
+                $.ajax(
+                    {
+
+                        type: "post",
+                        //url: "/Home/GetSOPNO?foldername=" + foldername,
+
+                        url: "/Home/GetSOPNO",
+
+                        @* url: '@Url.Action("GetSOPNO", "Home")',*@
+
+                contentType: 'application/json',
+                    dataType: 'json',
+                        //data: JSON.stringify(foldername),
+                        //data: { foldername: foldername, foo: "bar", other: "otherValue" },
+                        data: JSON.stringify({ foldername: ifoldername, subfoldername: isubfoldername }),
+
+                            success: function (data) {
+                                //  debugger
+
+                                if (data.success) {
+
+                                    var n1 = isubfoldername.indexOf("(");
+
+                                    var n2 = isubfoldername.indexOf(")");
+
+                                    var sopcode = isubfoldername.substring(n1+1, n2);
+
+                                    var currsopno = parseInt(data.sopno) + 1;
+
+                                    newsopno = sopcode +"-"+ zeroPad(currsopno,2);
+
+
+                                   // document.getElementById("sopno").value = data.sopno;
+                                    document.getElementById("sopno").value = newsopno;
+
+                                }
+                                else {
+                                    alert('invalid SOP' + data.success);
+                                }
+
+
+                            }
+            })
+
+
 
         })
+
+
+
+
+        })
+
+
+        function zeroPad(num, places) {
+            var zero = places - num.toString().length + 1;
+            return Array(+(zero > 0 && zero)).join("0") + num;
+        }
 
 
 
@@ -118,10 +203,10 @@
 
 
 
-    <div class="form-group">
+    @*<div class="form-group">
         <label for="Sub Folder Name" class="label-default">Sub Folder name:</label>
         <input name="subfoldername" class="text-info" />
-    </div>
+    </div>*@
 
 
     @*<div class="form-group">
@@ -157,12 +242,12 @@
             @using (var db = new SOPManagement.Models.RadiantSOPEntities())
             {
 
-                foreach (var usr in db.vwSOPReviewers)
+                foreach (var usr in db.vwSOPReviewers.Where(x => x.fileid==63))
 
                 {
-                    if (usr.fileid == 63)
+                  //  if (usr.fileid == 63)
 
-                    {
+                   // {
 
 
                             <tr>
@@ -176,7 +261,7 @@
 
 
                             </tr>
-                        }
+                     //   }
 
                     }
                 }
@@ -187,10 +272,6 @@
 
             <tr>
 
-
-
-              
-
                 <td>
 
                     @Html.DropDownList("userid", new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select", new { @id = "ddlEmployees" })
@@ -198,10 +279,7 @@
                 
 
 
-                <td><input type="text" id="txtName" /></td>
-
-                <td><input type="text" id="txtEmail" /></td>
-
+ 
                 <td><input type="button" id="btnAdd" value="Add" /></td>
 
             </tr>
@@ -367,19 +445,20 @@
 
             var usersarr = new Array();
 
+            var usersarr2 = new Array();
+
             $("#tblReviewers TBODY TR").each(function () {
 
                 var row = $(this);
 
                 var user = {};
 
-                user.userfirstname = row.find("TD").eq(0).html();
+                user.userfullname = row.find("TD").eq(0).html();
 
                 user.useremailaddress = row.find("TD").eq(1).html();
 
-                user.userlastname = row.find("TD").eq(0).html();
-
                 usersarr.push(user);
+                usersarr2.push(user);
 
             });
 
@@ -387,13 +466,21 @@
 
             //Send the JSON array to Controller using AJAX.
 
+            var sopnonew = document.getElementById("sopno").value;
+
+            var postedfname = document.getElementById("file").name;
+            
+
+            var dataarr = JSON.stringify({ users: usersarr, users2: usersarr2, sopno: sopnonew, pfname: postedfname});
+
             $.ajax({
 
                 type: "POST",
 
                 url: "/Home/InsertUsers",
 
-                data: JSON.stringify(usersarr),
+               // data: JSON.stringify(usersarr),
+                data: dataarr,
 
                 contentType: "application/json; charset=utf-8",
 

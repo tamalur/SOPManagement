@@ -12,6 +12,8 @@ namespace SOPManagement.Models
     using System;
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
+    using System.Data.Entity.Core.Objects;
+    using System.Linq;
     
     public partial class RadiantSOPEntities : DbContext
     {
@@ -45,5 +47,31 @@ namespace SOPManagement.Models
         public virtual DbSet<vwDepartmentFolder> vwDepartmentFolders { get; set; }
         public virtual DbSet<vwDepartmentSubFolder> vwDepartmentSubFolders { get; set; }
         public virtual DbSet<vwSOPReviewer> vwSOPReviewers { get; set; }
+    
+        public virtual ObjectResult<Nullable<int>> sp_getSOPNo(string deptfolder, string deptsubfolder)
+        {
+            var deptfolderParameter = deptfolder != null ?
+                new ObjectParameter("deptfolder", deptfolder) :
+                new ObjectParameter("deptfolder", typeof(string));
+    
+            var deptsubfolderParameter = deptsubfolder != null ?
+                new ObjectParameter("deptsubfolder", deptsubfolder) :
+                new ObjectParameter("deptsubfolder", typeof(string));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<Nullable<int>>("sp_getSOPNo", deptfolderParameter, deptsubfolderParameter);
+        }
+    
+        public virtual ObjectResult<Nullable<int>> GetLastSOPNO(string deptfolder, string deptsubfolder)
+        {
+            var deptfolderParameter = deptfolder != null ?
+                new ObjectParameter("deptfolder", deptfolder) :
+                new ObjectParameter("deptfolder", typeof(string));
+    
+            var deptsubfolderParameter = deptsubfolder != null ?
+                new ObjectParameter("deptsubfolder", deptsubfolder) :
+                new ObjectParameter("deptsubfolder", typeof(string));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<Nullable<int>>("GetLastSOPNO", deptfolderParameter, deptsubfolderParameter);
+        }
     }
 }

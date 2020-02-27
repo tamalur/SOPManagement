@@ -232,13 +232,18 @@ namespace SOPManagement.Controllers
 
         }
 
-        public JsonResult GetSOPNO(string foldername)
+        public JsonResult GetSOPNO(string foldername,string subfoldername)
         {
 
             string lsopno="";
 
-            if (foldername!="")
-                lsopno = foldername+ "-001";
+            RadiantSOPEntities ctx = new RadiantSOPEntities();
+
+                //lsopno = foldername + "-001";
+
+             lsopno = ctx.GetLastSOPNO(foldername, subfoldername).FirstOrDefault().ToString();
+
+            //  lsopno = ctx.GetLastSOPNO(foldername, "").ToString();
 
             if (lsopno!="")
                 return Json(new { success = true, sopno = lsopno });
@@ -247,13 +252,16 @@ namespace SOPManagement.Controllers
 
         }
 
+
         //public ViewResult 
 
 
 
-        public JsonResult InsertUsers(List<user> users)
+        public JsonResult InsertUsers(List<user> users, List<user> users2, string sopno, HttpPostedFileBase pfname)
 
         {
+
+            UploadFile(pfname, "", "","");
 
             using (RadiantSOPEntities entities = new RadiantSOPEntities())
 
@@ -261,7 +269,7 @@ namespace SOPManagement.Controllers
 
                 //Truncate Table to delete all old records.
 
-                entities.Database.ExecuteSqlCommand("TRUNCATE TABLE [RadiantYYZ].[sop].[users]");
+              //  entities.Database.ExecuteSqlCommand("TRUNCATE TABLE [RadiantYYZ].[sop].[users]");
 
 
 
@@ -303,6 +311,7 @@ namespace SOPManagement.Controllers
 
             ViewBag.Message = "Upload SOP File";
 
+            
             
 
 

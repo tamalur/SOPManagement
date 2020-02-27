@@ -256,12 +256,10 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwSOPReviewers' does not have a pri
           <Property Name="useremailaddress" Type="nvarchar" MaxLength="50" />
           <Property Name="departmentname" Type="nvarchar" MaxLength="100" />
         </EntityType>
-        <!--Errors Found During Generation:
-warning 6013: The table/view 'RadiantYYZ.sop.vwSubFolders' does not have a primary key defined and no valid primary key could be inferred. This table/view has been excluded. To use the entity, you will need to review your schema, add the correct keys, and uncomment it.
-        <EntityType Name="vwSubFolders">
-          <Property Name="foldername" Type="varchar" MaxLength="8000" />
-          <Property Name="subfoldername" Type="varchar" MaxLength="255" />
-        </EntityType>-->
+        <Function Name="sp_getSOPNo" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="sop">
+          <Parameter Name="deptfolder" Type="varchar" Mode="In" />
+          <Parameter Name="deptsubfolder" Type="varchar" Mode="In" />
+        </Function>
         <EntityContainer Name="RadiantYYZModelStoreContainer">
           <EntitySet Name="codesdepartments" EntityType="Self.codesdepartments" Schema="sop" store:Type="Tables" />
           <EntitySet Name="deptsopfiles" EntityType="Self.deptsopfiles" Schema="sop" store:Type="Tables" />
@@ -617,6 +615,14 @@ warning 6013: The table/view 'RadiantYYZ.sop.vwSubFolders' does not have a prima
           <EntitySet Name="vwDepartmentFolders" EntityType="Self.vwDepartmentFolder" />
           <EntitySet Name="vwDepartmentSubFolders" EntityType="Self.vwDepartmentSubFolder" />
           <EntitySet Name="vwSOPReviewers" EntityType="RadiantYYZModel.vwSOPReviewer" />
+          <FunctionImport Name="sp_getSOPNo" ReturnType="Collection(Int32)">
+            <Parameter Name="deptfolder" Mode="In" Type="String" />
+            <Parameter Name="deptsubfolder" Mode="In" Type="String" />
+          </FunctionImport>
+          <FunctionImport Name="GetLastSOPNO" ReturnType="Collection(Int32)">
+            <Parameter Name="deptfolder" Mode="In" Type="String" />
+            <Parameter Name="deptsubfolder" Mode="In" Type="String" />
+          </FunctionImport>
         </EntityContainer>
         <EntityType Name="vwSOPReviewer">
           <Key>
@@ -892,6 +898,8 @@ warning 6013: The table/view 'RadiantYYZ.sop.vwSubFolders' does not have a prima
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <FunctionImportMapping FunctionImportName="sp_getSOPNo" FunctionName="RadiantYYZModel.Store.sp_getSOPNo" />
+          <FunctionImportMapping FunctionImportName="GetLastSOPNO" FunctionName="RadiantYYZModel.Store.sp_getSOPNo" />
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>
