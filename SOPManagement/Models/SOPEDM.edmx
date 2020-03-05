@@ -166,6 +166,7 @@ warning 6002: The table/view 'RadiantYYZ.sop.codesuserstatus' does not have a pr
           <Property Name="userfullname" Type="nvarchar" MaxLength="50" Nullable="false" />
           <Property Name="useremailaddress" Type="nvarchar" MaxLength="50" />
           <Property Name="userstatuscode" Type="smallint" />
+          <Property Name="jobtitle" Type="varchar" MaxLength="60" />
         </EntityType>
         <!--Errors Found During Generation:
 warning 6002: The table/view 'RadiantYYZ.sop.v_sopreport' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
@@ -256,9 +257,17 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwSOPReviewers' does not have a pri
           <Property Name="useremailaddress" Type="nvarchar" MaxLength="50" />
           <Property Name="departmentname" Type="nvarchar" MaxLength="100" />
         </EntityType>
+        <Function Name="sp_getFullNameByEmailUserID" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="sop">
+          <Parameter Name="emailaddress" Type="varchar" Mode="In" />
+          <Parameter Name="userid" Type="int" Mode="In" />
+        </Function>
         <Function Name="sp_getSOPNo" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="sop">
           <Parameter Name="deptfolder" Type="varchar" Mode="In" />
           <Parameter Name="deptsubfolder" Type="varchar" Mode="In" />
+        </Function>
+        <Function Name="sp_getUserJobTitleByEmailUserID" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="sop">
+          <Parameter Name="emailaddress" Type="varchar" Mode="In" />
+          <Parameter Name="userid" Type="int" Mode="In" />
         </Function>
         <EntityContainer Name="RadiantYYZModelStoreContainer">
           <EntitySet Name="codesdepartments" EntityType="Self.codesdepartments" Schema="sop" store:Type="Tables" />
@@ -505,6 +514,7 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwSOPReviewers' does not have a pri
           <Property Name="useremailaddress" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="userstatuscode" Type="Int16" />
           <Property Name="userfullname" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="jobtitle" Type="String" MaxLength="60" FixedLength="false" Unicode="false" />
         </EntityType>
         <EntityType Name="codesapprovalstatu">
           <Key>
@@ -622,6 +632,22 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwSOPReviewers' does not have a pri
           <FunctionImport Name="GetLastSOPNO" ReturnType="Collection(Int32)">
             <Parameter Name="deptfolder" Mode="In" Type="String" />
             <Parameter Name="deptsubfolder" Mode="In" Type="String" />
+          </FunctionImport>
+          <FunctionImport Name="sp_getFullNameByEmailUserID" ReturnType="Collection(String)">
+            <Parameter Name="emailaddress" Mode="In" Type="String" />
+            <Parameter Name="userid" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="getUserFullNameByEmailUserID" ReturnType="Collection(String)">
+            <Parameter Name="emailaddress" Mode="In" Type="String" />
+            <Parameter Name="userid" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="sp_getUserJobTitleByEmailUserID" ReturnType="Collection(String)">
+            <Parameter Name="emailaddress" Mode="In" Type="String" />
+            <Parameter Name="userid" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="GetUserJobTitleByEmailUserID" ReturnType="Collection(String)">
+            <Parameter Name="emailaddress" Mode="In" Type="String" />
+            <Parameter Name="userid" Mode="In" Type="Int32" />
           </FunctionImport>
         </EntityContainer>
         <EntityType Name="vwSOPReviewer">
@@ -783,6 +809,7 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwSOPReviewers' does not have a pri
           <EntitySetMapping Name="users">
             <EntityTypeMapping TypeName="RadiantYYZModel.user">
               <MappingFragment StoreEntitySet="users">
+                <ScalarProperty Name="jobtitle" ColumnName="jobtitle" />
                 <ScalarProperty Name="userfullname" ColumnName="userfullname" />
                 <ScalarProperty Name="userid" ColumnName="userid" />
                 <ScalarProperty Name="windowsusername" ColumnName="windowsusername" />
@@ -900,6 +927,10 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwSOPReviewers' does not have a pri
           </EntitySetMapping>
           <FunctionImportMapping FunctionImportName="sp_getSOPNo" FunctionName="RadiantYYZModel.Store.sp_getSOPNo" />
           <FunctionImportMapping FunctionImportName="GetLastSOPNO" FunctionName="RadiantYYZModel.Store.sp_getSOPNo" />
+          <FunctionImportMapping FunctionImportName="sp_getFullNameByEmailUserID" FunctionName="RadiantYYZModel.Store.sp_getFullNameByEmailUserID" />
+          <FunctionImportMapping FunctionImportName="getUserFullNameByEmailUserID" FunctionName="RadiantYYZModel.Store.sp_getFullNameByEmailUserID" />
+          <FunctionImportMapping FunctionImportName="sp_getUserJobTitleByEmailUserID" FunctionName="RadiantYYZModel.Store.sp_getUserJobTitleByEmailUserID" />
+          <FunctionImportMapping FunctionImportName="GetUserJobTitleByEmailUserID" FunctionName="RadiantYYZModel.Store.sp_getUserJobTitleByEmailUserID" />
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>

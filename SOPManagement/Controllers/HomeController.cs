@@ -18,6 +18,8 @@ using System.Xml.Linq;
 using System.Globalization;
 using System.Collections;
 using SOPManagement.Models;
+using Newtonsoft.Json;
+using System.Text.RegularExpressions;
 
 namespace SOPManagement.Controllers
 {
@@ -122,6 +124,8 @@ namespace SOPManagement.Controllers
           //  ViewBag.employees = new SelectList(GetEmployees(), "useremailaddress", "userfirstname");
 
             ViewBag.employees = (from c in ctx.users select new { c.useremailaddress, c.userfullname }).Distinct();
+
+            ViewBag.departments = (from c in ctx.codesdepartments select new { c.departmentname, c.departmentcode }).Distinct();
 
             return View();
         }
@@ -257,11 +261,18 @@ namespace SOPManagement.Controllers
 
 
 
-        public JsonResult InsertUsers(List<user> users, List<user> users2, string sopno, HttpPostedFileBase pfname)
+        // public JsonResult InsertUsers(List<user> users, List<user> users2, string sopno)   //, HttpPostedFileBase pfname
+
+
+
+        public JsonResult ProcessSOPFile(List<user> reviewers, List<user> viewers, string sopno, string approver,string owner)   //, HttpPostedFileBase pfname
 
         {
 
-            UploadFile(pfname, "", "","");
+
+            // UploadFile(pfname, "", "","");
+
+            var sopnos = sopno;
 
             using (RadiantSOPEntities entities = new RadiantSOPEntities())
 
@@ -269,17 +280,17 @@ namespace SOPManagement.Controllers
 
                 //Truncate Table to delete all old records.
 
-              //  entities.Database.ExecuteSqlCommand("TRUNCATE TABLE [RadiantYYZ].[sop].[users]");
+                //  entities.Database.ExecuteSqlCommand("TRUNCATE TABLE [RadiantYYZ].[sop].[users]");
 
 
 
                 //Check for NULL.
 
-                if (users == null)
+                if (reviewers == null)
 
                 {
 
-                    users = new List<user>();
+                    reviewers = new List<user>();
 
                 }
 
@@ -287,15 +298,17 @@ namespace SOPManagement.Controllers
 
                 //Loop and insert records.
 
-                foreach (user usr in users)
+                //foreach (user usr in users)
 
-                {
+                //{
 
-                    entities.users.Add(usr);
+                //    entities.users.Add(usr);
 
-                }
+                //}
 
-                int insertedRecords = entities.SaveChanges();
+                int insertedRecords = 1;
+
+               // int insertedRecords = entities.SaveChanges();
 
                 return Json(insertedRecords);
 
@@ -303,23 +316,53 @@ namespace SOPManagement.Controllers
 
         }
 
-        public void UploadFile(HttpPostedFileBase postedFile, string deptfoldername, string subfoldername, string sopno)
+
+        //[HttpPost]
+        //public ActionResult Submit(System.Web.Mvc.FormCollection formCode)
+        //{
+        //    string i, j;
+        //    string FirstName = formCode["FirstName"].ToString();
+        //    string LastName = formCode["LastName"].ToString();
+        //    string Email = formCode["Email"].ToString();
+        //    string Number = formCode["Number"].ToString();
+        //    string AddLine1 = formCode["AddLine1"].ToString();
+        //    string empId = formCode["AddLine2"].ToString();
+        //    string Game = formCode["Game"].ToString();
+
+        //    return View();
+
+        //}
+
+        //public void UploadFile(HttpPostedFileBase postedFile, string deptfoldername, string subfoldername, string sopno)
+
+
+
+        public JsonResult UploadCreateFile(HttpPostedFileBase postedFile, string newfilename, string[] reviewers, string[] viewers, string sopno, 
+            string approver, string owner, string allvwrs,string vwrdptcode, string deptfoldername,string deptsubfoldername, string sopeffdate)
 
         {
 
 
+           // Employee myItems = JsonConvert.DeserializeObject<Employee>(reviewers[0]);
+
+            
+            Employee[] rvwrItems = JsonConvert.DeserializeObject<Employee[]>(reviewers[0]);
+
+            Employee[] vwrItems = JsonConvert.DeserializeObject<Employee[]>(viewers[0]);
+
 
             ViewBag.Message = "Upload SOP File";
 
-            
-            
+            bool fileuploaded=false;
 
+
+            //if a file is uploaded then save it to server location  
+
+            string path = Server.MapPath("~/Content/DocFiles/");
 
             if (postedFile != null)
 
             {
-
-                string path = Server.MapPath("~/Content/DocFiles/");
 
                 if (!Directory.Exists(path))
 
@@ -329,33 +372,320 @@ namespace SOPManagement.Controllers
 
                 }
 
+                // postedFile.SaveAs(path + Path.GetFileName(postedFile.FileName));
 
+                postedFile.SaveAs(path + "SOPTemp.docx");
 
-                postedFile.SaveAs(path + Path.GetFileName(postedFile.FileName));
+                fileuploaded = true;
 
                 ViewBag.Message = "File uploaded successfully.";
 
+            }
 
-                ArrayList arrvers;
+            //if file is uploaded then update top sheet and revision history in newly upaloaded file
 
-                string filerpath = "/sites/watercooler/SOP/Quality Assurance & Regulatory Affairs (QRA)/QRA  (AIB)/OPS07-01 Training and Personnel.docx" ;
-                arrvers = getFileVersions(siteurl, filerpath);
 
+            if (fileuploaded == true)
+            {
+
+                //once SOP top sheet and revision history is updated then generate name and upload the file with that name
+
+                string filepath = path + Path.GetFileName(postedFile.FileName);
+                string sopfilename = Path.GetFileName(postedFile.FileName);
+
+                UpdateCoverRevhistPage(sopfilename, sopno, rvwrItems, owner, approver, sopeffdate);
+
+            }
+                                                  
+            return Json(fileuploaded);
+            
+
+        }
+
+        private void UpdateCoverRevhistPage(string sfilename, string sopno, Employee[] reviewers, string owneremail, string apporveremail, string sopeffedate)
+        {
+
+
+            System.IO.File.Copy(Server.MapPath("~/Content/docfiles/SOPTemp.docx"), Server.MapPath("~/Content/docfiles/"+ sopno+sfilename), true);
+
+            string savePath = Server.MapPath("~/Content/docfiles/" + sfilename);
+
+
+            //  add row in table and data in cell
+
+            Employee emp = new Employee();
+            string ownerfullname;
+            string approverfullname;
+            string approvertitle;
+
+            emp.useremailaddress = owneremail;
+            emp.GetUserInfoByEmail();
+            ownerfullname = emp.userfullname;
+
+            emp.useremailaddress = apporveremail;
+            emp.GetUserInfoByEmail();
+            approverfullname= emp.userfullname;
+            approvertitle = emp.userjobtitle;
+
+
+
+            object missObj = System.Reflection.Missing.Value;
+            object path = savePath;
+            Microsoft.Office.Interop.Word.Application app = new Microsoft.Office.Interop.Word.Application();
+            Microsoft.Office.Interop.Word.Document wdoc = app.Documents.Open(ref path, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj);
+
+
+
+            int totalTables = wdoc.Tables.Count;
+            bool donotaddrow = false;
+
+
+            //Add data into reviewer table  - 2nd table in the cover page
+
+            if (totalTables > 0)
+            {
+
+
+                //update first table in cover page, file title, SOP #, Rev #, Eff date, owner
+
+                Microsoft.Office.Interop.Word.Table tab1 = wdoc.Tables[1];
+                Microsoft.Office.Interop.Word.Range range1 = tab1.Range;
+
+                // Select the last row as source row.
+                int selectedRow1 = tab1.Rows.Count;
+
+                // Write new vaules to each cell.
+                tab1.Rows[1].Cells[2].Range.Text = sfilename;
+                tab1.Rows[2].Cells[2].Range.Text = sopno;
+                tab1.Rows[2].Cells[4].Range.Text = "1.0";
+                tab1.Rows[3].Cells[2].Range.Text = sopeffedate;
+                tab1.Rows[4].Cells[2].Range.Text = ownerfullname;
+
+
+                //update 2nd table in  cover page for updating reviewers
+
+                Microsoft.Office.Interop.Word.Table tab2 = wdoc.Tables[2];
+                Microsoft.Office.Interop.Word.Range range2 = tab2.Range;
+
+                // Select the last row as source row.
+                int selectedRow2 = tab2.Rows.Count;
+
+                // Select and copy content of the source row.
+                range2.Start = tab2.Rows[selectedRow2].Cells[1].Range.Start;
+                range2.End = tab2.Rows[selectedRow2].Cells[tab2.Rows[selectedRow2].Cells.Count].Range.End;
+                range2.Copy();
+
+                // Insert a new row after the last row if it is not first row to add data
+
+                foreach (Employee rvwr in reviewers)
+                {
+
+                    if (selectedRow2 >= 3)
+                    {
+
+                        if (tab2.Rows[tab2.Rows.Count].Cells[1].Range.Text == "" || tab2.Rows[tab2.Rows.Count].Cells[1].Range.Text == "\r\a")
+                            donotaddrow = true;
+
+                        if (!donotaddrow)
+                            tab2.Rows.Add(ref missObj);
+
+                    }
+
+                    // Moves the cursor to the first cell of target row.
+                    range2.Start = tab2.Rows[tab2.Rows.Count].Cells[1].Range.Start;
+                    range2.End = range2.Start;
+
+                    // Paste values to target row.
+                    range2.Paste();
+
+                    // Write new vaules to each cell.
+                    tab2.Rows[tab2.Rows.Count].Cells[1].Range.Text = rvwr.userfullname;
+                    tab2.Rows[tab2.Rows.Count].Cells[2].Range.Text = rvwr.userjobtitle;
+                    //tab2.Rows[tab2.Rows.Count].Cells[3].Range.Text = "cell 3";
+
+
+                }
+
+
+                //Add data into Revison history table - last table in last page
+
+                Microsoft.Office.Interop.Word.Table tab = wdoc.Tables[totalTables];
+                Microsoft.Office.Interop.Word.Range range = tab.Range;
+
+                // Select the last row as source row.
+                int selectedRow = tab.Rows.Count;
+
+                // Select and copy content of the source row.
+                range.Start = tab.Rows[selectedRow].Cells[1].Range.Start;
+                range.End = tab.Rows[selectedRow].Cells[tab.Rows[selectedRow].Cells.Count].Range.End;
+                range.Copy();
+
+                // Insert a new row after the last row if it is not first row to add data
+
+                //if (selectedRow >= 4)
+                //    tab.Rows.Add(ref missObj);
+
+                donotaddrow = false;
+
+                if (selectedRow >= 2)
+                {
+                    if (tab.Rows[tab.Rows.Count].Cells[1].Range.Text == "" || tab.Rows[tab.Rows.Count].Cells[1].Range.Text == "\r\a")
+                        donotaddrow = true;
+
+                    if (!donotaddrow)
+                        tab.Rows.Add(ref missObj);
+
+                }
+
+
+                // Moves the cursor to the first cell of target row.
+                range.Start = tab.Rows[tab.Rows.Count].Cells[1].Range.Start;
+                range.End = range.Start;
+
+                // Paste values to target row.
+                range.Paste();
+
+
+
+                ArrayList vers = new ArrayList(new string[] { "1.0" });
+
+
+                string filerpath = "SOP/Warehouse Operations/" + sfilename + ".docx";
+                //  vers = getFileVersions(siteurl, filerpath);
+
+                //vers.Add(arr);
+
+                foreach (string s in vers)
+                {
+
+                    // Write new vaules to each cell.
+                    tab.Rows[tab.Rows.Count].Cells[1].Range.Text = s;
+                    tab.Rows[tab.Rows.Count].Cells[2].Range.Text = "cell 2";
+                    tab.Rows[tab.Rows.Count].Cells[3].Range.Text = "cell 3";
+
+                }
+
+                //// Write new vaules to each cell.
+                //tab.Rows[tab.Rows.Count].Cells[1].Range.Text = "new row";
+                //tab.Rows[tab.Rows.Count].Cells[2].Range.Text = "cell 2";
+                //tab.Rows[tab.Rows.Count].Cells[3].Range.Text = "cell 3";
+
+
+
+                //object replaceAll = Microsoft.Office.Interop.Word.WdReplace.wdReplaceAll;
+                //foreach (Microsoft.Office.Interop.Word.Section section in wdoc.Sections)
+                //{
+                //    Microsoft.Office.Interop.Word.Range footerRange = section.Footers[Microsoft.Office.Interop.Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].Range;
+                //    footerRange.Find.Text = "<Title>";
+                //    footerRange.Find.Replacement.Text = filetitle;
+                //    footerRange.Find.Execute(ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref replaceAll, ref missObj, ref missObj, ref missObj, ref missObj);
+                //}
+
+
+            }
+
+
+            //update footer
+
+            ////Add the footers into the document
+            //foreach (Microsoft.Office.Interop.Word.Section wordSection in wdoc.Sections)
+            //{
+            //    //Get the footer range and add the footer details.
+            //    Microsoft.Office.Interop.Word.Range footerRange = wordSection.Footers[Microsoft.Office.Interop.Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].Range;
+            //    //  footerRange.Font.ColorIndex = Microsoft.Office.Interop.Word.WdColorIndex.wdDarkRed;
+            //    //  footerRange.Font.Size = 10;
+
+            //    footerRange.Collapse(Microsoft.Office.Interop.Word.WdCollapseDirection.wdCollapseEnd);
+
+
+
+
+            //    footerRange.ParagraphFormat.Alignment = Microsoft.Office.Interop.Word.WdParagraphAlignment.wdAlignParagraphLeft;
+            //    footerRange.Text = filetitle +" "+sopno;
+
+            //    //footerRange.Fields.Add(footerRange)
+
+
+
+
+
+            //}
+
+
+            //foreach (Microsoft.Office.Interop.Word.Section sec in wdoc.Sections)
+
+            //{
+
+            //  //  Microsoft.Office.Interop.Word.WdSeekView.wdSeekPrimaryFooter
+
+            //    Microsoft.Office.Interop.Word.Range rng = sec.Footers[Microsoft.Office.Interop.Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].Range;
+            //    //  rng.Font.Name = "Arial";
+            //    //  rng.Font.Size = 8;
+            //    rng.ParagraphFormat.Alignment = Microsoft.Office.Interop.Word.WdParagraphAlignment.wdAlignParagraphRight;
+            //    rng.Fields.Add(rng, Type: Microsoft.Office.Interop.Word.WdFieldType.wdFieldPage);
+            //}
+
+
+
+            // Set footers
+            foreach (Microsoft.Office.Interop.Word.Section wordSection in wdoc.Sections)
+            {
+                Microsoft.Office.Interop.Word.Range footerRange = wordSection.Footers[Microsoft.Office.Interop.Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].Range;
+
+                footerRange.Tables[1].Cell(1, 1).Range.Text = sopno + " " + sfilename;
+
+
+
+                // wdoc.Tables.Add(footerRange, 1, 2);
+                //Object oMissing = System.Reflection.Missing.Value;
+
+
+
+                // Object TotalPages = Microsoft.Office.Interop.Word.WdFieldType.wdFieldNumPages;
+
+                // Object CurrentPage = Microsoft.Office.Interop.Word.WdFieldType.wdFieldPage;
+
+
+
+
+
+                //  footerRange.Tables[1].Cell(1, 2).Range.Fields.Add(footerRange, ref CurrentPage, ref oMissing, ref oMissing);
+
+
+
+
+                //footerRange.Collapse(Microsoft.Office.Interop.Word.WdCollapseDirection.wdCollapseEnd);
+                //footerRange.Paragraphs.TabStops.Add(app.InchesToPoints(3.25F), Microsoft.Office.Interop.Word.WdTabAlignment.wdAlignTabCenter);
+                //footerRange.Paragraphs.TabStops.Add(app.InchesToPoints(6.5F), Microsoft.Office.Interop.Word.WdTabAlignment.wdAlignTabRight);
+
+                //footerRange.Fields.Add(footerRange, Microsoft.Office.Interop.Word.WdFieldType.wdFieldPage, "\t", true);
+
+
+
+                ////footerRange.Font.ColorIndex = Microsoft.Office.Interop.Word.WdColorIndex.wdDarkRed;
+                ////footerRange.Font.Size = 20;
+                //footerRange.Text = "    \t";
+                ////footerRange.InsertBefore("01-DEC-18");
+
+
+
+                //footerRange.InsertBefore(filetitle);
 
 
             }
 
 
 
-
-
+            wdoc.SaveAs2(savePath);   //save in actual file from tempalte
+            app.Application.Quit();
 
 
 
         }
 
 
-            public void ExportToWord(string Title, string SOPNO)
+
+        public void ExportToWord(string Title, string SOPNO)
         {
 
             //1.create requested word document from tempate with cover page
@@ -527,7 +857,7 @@ namespace SOPManagement.Controllers
         //}
 
  
-            private void CreateDocFromTemplate(string filetitle,string sopno)
+        private void CreateDocFromTemplate(string filetitle,string sopno)
         {
 
 

@@ -20,5 +20,6 @@ namespace SOPManagement.Models
         public string useremailaddress { get; set; }
         public Nullable<short> userstatuscode { get; set; }
         public string userfullname { get; set; }
+        public string jobtitle { get; set; }
     }
 }

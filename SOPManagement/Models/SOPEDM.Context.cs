@@ -73,5 +73,57 @@ namespace SOPManagement.Models
     
             return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<Nullable<int>>("GetLastSOPNO", deptfolderParameter, deptsubfolderParameter);
         }
+    
+        public virtual ObjectResult<string> sp_getFullNameByEmailUserID(string emailaddress, Nullable<int> userid)
+        {
+            var emailaddressParameter = emailaddress != null ?
+                new ObjectParameter("emailaddress", emailaddress) :
+                new ObjectParameter("emailaddress", typeof(string));
+    
+            var useridParameter = userid.HasValue ?
+                new ObjectParameter("userid", userid) :
+                new ObjectParameter("userid", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<string>("sp_getFullNameByEmailUserID", emailaddressParameter, useridParameter);
+        }
+    
+        public virtual ObjectResult<string> getUserFullNameByEmailUserID(string emailaddress, Nullable<int> userid)
+        {
+            var emailaddressParameter = emailaddress != null ?
+                new ObjectParameter("emailaddress", emailaddress) :
+                new ObjectParameter("emailaddress", typeof(string));
+    
+            var useridParameter = userid.HasValue ?
+                new ObjectParameter("userid", userid) :
+                new ObjectParameter("userid", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<string>("getUserFullNameByEmailUserID", emailaddressParameter, useridParameter);
+        }
+    
+        public virtual ObjectResult<string> sp_getUserJobTitleByEmailUserID(string emailaddress, Nullable<int> userid)
+        {
+            var emailaddressParameter = emailaddress != null ?
+                new ObjectParameter("emailaddress", emailaddress) :
+                new ObjectParameter("emailaddress", typeof(string));
+    
+            var useridParameter = userid.HasValue ?
+                new ObjectParameter("userid", userid) :
+                new ObjectParameter("userid", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<string>("sp_getUserJobTitleByEmailUserID", emailaddressParameter, useridParameter);
+        }
+    
+        public virtual ObjectResult<string> GetUserJobTitleByEmailUserID(string emailaddress, Nullable<int> userid)
+        {
+            var emailaddressParameter = emailaddress != null ?
+                new ObjectParameter("emailaddress", emailaddress) :
+                new ObjectParameter("emailaddress", typeof(string));
+    
+            var useridParameter = userid.HasValue ?
+                new ObjectParameter("userid", userid) :
+                new ObjectParameter("userid", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<string>("GetUserJobTitleByEmailUserID", emailaddressParameter, useridParameter);
+        }
     }
 }

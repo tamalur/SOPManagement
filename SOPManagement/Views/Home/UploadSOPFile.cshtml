@@ -3,48 +3,293 @@
 @{
     /**/
 
-    ViewBag.Title = "UploadSOPFile";
+    ViewBag.Title = "Upload or Create SOP File";
 }
 
-<h2>UploadSOPFile</h2>
+<h2>Upload or Create SOP File</h2>
 
 <script src="~/Scripts/jquery-3.3.1.min.js"></script>
 
 
-@using (Html.BeginForm("UploadFile", "Home", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form-horizontal", role = "form" }))
+@using (Html.BeginForm("UploadSOPFile", "Home", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form-horizontal", role = "form" }))
 {
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
+    //@Request.QueryString["fileid"]
 
 
     <div>
+        Select File To Upload:
+    </div>
 
-        <label for="file">Select the Filename:</label>
-        <input type="file" name="postedFile" id="file" />
+    <div>
+
+        <input type="file" name="postedFile" id="updfile" />
 
     </div>
 
-    <div class="form-group">
-        <label for="Enter File Name">Enter File Name:</label>
-        <input name="sopfilename" class="text-info" />
+    <br />
+    //class="form-group"
 
+    <div>
+        Enter New File Name to Create:
+    </div>
+    <div>
+        <input name="sopfilename" id="newsopfname" size="100" />
+    </div>
+
+    <br />
+
+    <div>
+        SOP Effective Date:
+    </div>
+
+    <div>
+
+        <input type="date" id="sopeffdate" name="effectivedate">
+
+    </div>
+
+    <br />
+    <div>
+        Select Department Folder Name:
+    </div>
+
+    <div>
 
         @if (ViewBag.ddlDeptFolders != null)
         {
             @Html.DropDownListFor(m => m.DeptFileName, ViewBag.ddlDeptFolders as SelectList, "Please select a folder", new { @class = "form-control" })
         }
 
+    </div>
+
+    <br />
+
+    <div>Select Sub Folder Under Department Folder :</div>
+
+    <div>
         @Html.DropDownListFor(m => m.FileID, new SelectList(""), "Please select a subfolder", new { @class = "form-control" })
+    </div>
+
+    @*@Html.DropDownList("CoulumnName", new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "--Select--", new { @id = "ddlTable" })*@
+
+    <br />
+
+    <div>
+        SOP NO (Auto Generated)
+    </div>
+    <div>
+        <input name="sopno" id="sopno" readonly />
+    </div>
+
+    <br />
+    <div>
+        Add Reviewers:
+    </div>
+
+    <div>
+        <table id="tblReviewers" class="table" cellpadding="0" cellspacing="0">
+
+            <thead>
+
+                <tr>
+
+                    <th style="width:150px">Full Name</th>
+
+                    <th style="width:150px">Email</th>
+
+                    <th></th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                @using (var db = new SOPManagement.Models.RadiantSOPEntities())
+                {
+
+                    foreach (var usr in db.vwSOPReviewers.Where(x => x.fileid == -1))
+
+                    {
+                        //  if (usr.fileid == 63)
+
+                        // {
 
 
-        @*@Html.DropDownList("CoulumnName", new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "--Select--", new { @id = "ddlTable" })*@
+                        <tr>
+
+                            <td> @usr.userfullname </td>
+
+                            <td> @usr.useremailaddress </td>
+
+                            <td><input type="button" value="Remove" onclick="Remove(this,'#tblReviewers')" /></td>
 
 
 
+                        </tr>
+                        //   }
+
+                    }
+                }
+
+            </tbody>
+
+            <tfoot>
+
+                <tr>
+
+                    <td>
+
+                        @Html.DropDownList("userid", new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select", new { @id = "ddlEmployees" })
+                    </td>
+
+
+
+
+                    <td><input type="button" id="btnAdd" value="Add" /></td>
+
+                </tr>
+
+            </tfoot>
+
+        </table>
+    </div>
+
+    <div>
+        Owner:
+    </div>
+
+    <div>
+        @Html.DropDownList("owner", new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "--Select--", new { @id = "ddlowner" })
 
     </div>
 
+    <br />
 
+    <div>
+        Approver:
+
+    </div>
+    <div>
+        @Html.DropDownList("approver", new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "--Select--", new { @id = "ddlapprover" })
+
+    </div>
+
+    <br />
+
+    <div>
+        Assign read access right to the file:
+
+    </div>
+
+    <div>
+
+        <input type="checkbox" name="allusers" value="allusers" id="allusersaccs" checked>
+        <label for="allusers" style="font-weight: normal"> All Users &nbsp </label>
+
+    </div>
+    <div>
+        By Department:
+    </div>
+
+    <div>
+        @Html.DropDownList("department", new SelectList(ViewBag.departments, "departmentcode", "departmentname"), "--Select--", new { @id = "ddldepartment" })
+
+    </div>
+
+    <br />
+
+    <div>
+        By Users :
+    </div>
+
+    <div>
+        <table id="tblViewers" class="table" cellpadding="0" cellspacing="0">
+
+            <thead>
+
+                <tr>
+
+                    <th style="width:150px">Full Name</th>
+
+                    <th style="width:150px">Email</th>
+
+                    <th></th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                @using (var db = new SOPManagement.Models.RadiantSOPEntities())
+                {
+
+                    foreach (var usr in db.vwSOPReviewers.Where(x => x.fileid == -1))
+
+                    {
+                        //  if (usr.fileid == 63)
+
+                        // {
+
+
+                        <tr>
+
+                            <td> @usr.userfullname </td>
+
+                            <td> @usr.useremailaddress </td>
+
+                            <td><input type="button" value="Remove" onclick="Remove(this,'#tblViewers')" /></td>
+
+
+
+                        </tr>
+                        //   }
+
+                    }
+                }
+
+            </tbody>
+
+            <tfoot>
+
+                <tr>
+
+                    <td>
+
+                        @Html.DropDownList("userid", new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select", new { @id = "ddlViewers" })
+                    </td>
+
+
+
+
+                    <td><input type="button" id="btnAddUser" value="Add" /></td>
+
+                </tr>
+
+            </tfoot>
+
+        </table>
+    </div>
+
+
+    <br />
+    <br />
+
+
+
+    <div>
+        @*<input type="button" id="btnSave" value="Save All" />*@
+
+        <button type="submit" id="btnSubmit" class="btn-primary">Submit</button>
+
+    </div>
+
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+
+    <script type="text/javascript" src="http://ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js"></script>
 
 
     <script>
@@ -57,7 +302,7 @@
 
                 var ifoldername = $(this).val();
                 //debugger
-                
+
 
                 $.ajax(
                     {
@@ -89,7 +334,7 @@
 
                                 var sopcode = ifoldername.substring(n1 + 1, n2);
 
-                          
+
                                 var currsopno = parseInt(data.sopno) + 1;
 
                                 //newsopno = sopcode + currsopno;
@@ -201,101 +446,6 @@
 
     </script>
 
-
-
-    @*<div class="form-group">
-        <label for="Sub Folder Name" class="label-default">Sub Folder name:</label>
-        <input name="subfoldername" class="text-info" />
-    </div>*@
-
-
-    @*<div class="form-group">
-            <label for="Title" class="label-default">Title:</label>
-            <input name="Title" class="text-info" />
-        </div>*@
-
-
-    <div class="form-group">
-        <label for="SOPNO" class="label-default">SOP NO:</label>
-        <input name="sopno" id="sopno" class="text-info" />
-    </div>
-
-
-    <table id="tblReviewers" class="table" cellpadding="0" cellspacing="0">
-
-        <thead>
-
-            <tr>
-
-                <th style="width:150px">Full Name</th>
-
-                <th style="width:150px">Email</th>
-
-                <th></th>
-
-            </tr>
-
-        </thead>
-
-        <tbody>
-
-            @using (var db = new SOPManagement.Models.RadiantSOPEntities())
-            {
-
-                foreach (var usr in db.vwSOPReviewers.Where(x => x.fileid==63))
-
-                {
-                  //  if (usr.fileid == 63)
-
-                   // {
-
-
-                            <tr>
-
-                            <td> @usr.userfullname </td >
-
-                            <td> @usr.useremailaddress </td >
-
-                            <td><input type="button" value="Remove" onclick = "Remove(this)" /></td >
-
-
-
-                            </tr>
-                     //   }
-
-                    }
-                }
-
-        </tbody>
-
-        <tfoot>
-
-            <tr>
-
-                <td>
-
-                    @Html.DropDownList("userid", new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select", new { @id = "ddlEmployees" })
-                </td>
-                
-
-
- 
-                <td><input type="button" id="btnAdd" value="Add" /></td>
-
-            </tr>
-
-        </tfoot>
-
-    </table>
-
-    <br />
-
-    <input type="button" id="btnSave" value="Save All" />
-
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-
-    <script type="text/javascript" src="http://ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js"></script>
-
     <script type="text/javascript">
 
         $("body").on("click", "#btnAdd", function () {
@@ -307,10 +457,10 @@
             var txtEmail = $("#txtEmail");
 
             var txtEmail = $('#ddlEmployees').val();
-            
+
 
             //To get the currently selected text:
-           // $('#dropDownId :selected').text();
+            // $('#dropDownId :selected').text();
 
 
 
@@ -321,14 +471,14 @@
 
             var eml = $('#ddlEmployees').val();
 
-            var f = searchtable(eml);
+            var f = searchtable(eml, 'tblReviewers');
 
-            
-            alert(f);
 
-          // document.getElementById("ddlEmployees").contains(eml); 
+            //alert(f);
 
-            if (f !='') {
+            // document.getElementById("ddlEmployees").contains(eml);
+
+            if (f != '') {
 
                 alert('already added');
                 return;
@@ -367,15 +517,15 @@
 
             cell = $(row.insertCell(-1));
 
-            var btnRemove = $("<input />");
+            var btnRemoveRvr = $("<input />");
 
-            btnRemove.attr("type", "button");
+            btnRemoveRvr.attr("type", "button");
 
-            btnRemove.attr("onclick", "Remove(this);");
+            btnRemoveRvr.attr("onclick", "Remove(this,'#tblReviewers');");
 
-            btnRemove.val("Remove");
+            btnRemoveRvr.val("Remove");
 
-            cell.append(btnRemove);
+            cell.append(btnRemoveRvr);
 
 
 
@@ -383,24 +533,116 @@
 
             txtName.val("");
 
-           // txtEmail.val("");famnb1932
+            // txtEmail.val("");famnb1932
 
 
         });
 
 
-        function searchtable(eml) {
+        $("body").on("click", "#btnAddUser", function () {
 
-            var tab = document.getElementById('tblReviewers');
+            //Reference the Name and Country TextBoxes.
+
+            var txtName = $("#txtName");
+
+            var txtEmail = $("#txtEmail");
+
+            var txtEmail = $('#ddlViewers').val();
+
+
+            //To get the currently selected text:
+            // $('#dropDownId :selected').text();
+
+
+
+            //Get the reference of the Table's TBODY element.
+
+            var tBody = $("#tblViewers > TBODY")[0];
+
+
+            var eml = $('#ddlViewers').val();
+
+            var f = searchtable(eml, 'tblViewers');
+
+
+            //alert(f);
+
+            // document.getElementById("ddlEmployees").contains(eml);
+
+            if (f != '') {
+
+                alert('already added');
+                return;
+
+            }
+
+            //Add Row.
+
+            var row = tBody.insertRow(-1);
+
+
+
+            //Add Name cell.
+
+            var cell = $(row.insertCell(-1));
+
+            //cell.html(txtName.val());
+
+            cell.html($('#ddlViewers :selected').text());
+
+            //$('#ddlEmployees :selected').text();
+
+
+
+            //Add Country cell.
+
+            cell = $(row.insertCell(-1));
+
+            //cell.html(txtEmail.val());
+
+            cell.html($('#ddlViewers').val());
+
+
+
+            //Add Button cell.
+
+            cell = $(row.insertCell(-1));
+
+            var btnRemoveVwr = $("<input />");
+
+            btnRemoveVwr.attr("type", "button");
+
+            //btnRemove.attr("onclick", "Remove(this);");
+            btnRemoveVwr.attr("onclick", "Remove(this,'#tblViewers');");
+
+            btnRemoveVwr.val("Remove");
+
+            cell.append(btnRemoveVwr);
+
+
+
+            //Clear the TextBoxes.
+
+            txtName.val("");
+
+            // txtEmail.val("");famnb1932
+
+
+        });
+
+
+        function searchtable(eml, tblname) {
+
+            var tab = document.getElementById(tblname);
             var l = tab.rows.length;
             var s = '';
             for (var i = 0; i < l; i++) {
                 var tr = tab.rows[i];
                 var cll = tr.cells[1];
-               
+
                 if (cll.innerText.indexOf(eml) != -1) {
                     //document.write(i + 1);
-                    
+
                     s = 'found';
                     break;
                 }
@@ -411,9 +653,9 @@
         }
 
 
-            
 
-        function Remove(button) {
+
+        function Remove(button, tableid) {
 
             //Determine the reference of the Row using the Button.
 
@@ -425,7 +667,9 @@
 
                 //Get the reference of the Table.
 
-                var table = $("#tblReviewers")[0];
+                // var table = $("#tblReviewers")[0];
+
+                var table = $(tableid)[0];
 
 
 
@@ -439,66 +683,156 @@
 
 
 
-        $("body").on("click", "#btnSave", function () {
+        $("body").on("click", "#btnSubmit", function () {
+
+
+            //Send the JSON array and other data to Controller using AJAX.
+
+
+
+            var reviewerarr = new Array();
+
+            var viewersarr = new Array();
 
             //Loop through the Table rows and build a JSON array.
-
-            var usersarr = new Array();
-
-            var usersarr2 = new Array();
 
             $("#tblReviewers TBODY TR").each(function () {
 
                 var row = $(this);
 
-                var user = {};
+                var reviewer = {};
 
-                user.userfullname = row.find("TD").eq(0).html();
+                reviewer.userfullname = row.find("TD").eq(0).html();
 
-                user.useremailaddress = row.find("TD").eq(1).html();
+                reviewer.useremailaddress = row.find("TD").eq(1).html();
 
-                usersarr.push(user);
-                usersarr2.push(user);
+                reviewerarr.push(reviewer);
+
+
+            });
+
+
+            $("#tblViewers TBODY TR").each(function () {
+
+                var row = $(this);
+
+                var viewer = {};
+
+                viewer.userfullname = row.find("TD").eq(0).html();
+
+                viewer.useremailaddress = row.find("TD").eq(1).html();
+
+                viewersarr.push(viewer);
+
 
             });
 
 
 
-            //Send the JSON array to Controller using AJAX.
+
+            //var dataarr = JSON.stringify({ reviewers: reviewerarr, viewers: viewersarr, sopno: sopnonew, approver: apporveremail, owner: owneremail });
+
+
+            var formData = new FormData();
+
+            var deptfoldernm = $('#DeptFileName :selected').text();
+            var deptsubfoldernm = $('#FileID :selected').text();
+
+
+            //var ifoldername = $('#DeptFileName :selected').text()
+            //var isubfoldername = $('#FileID :selected').text();
+
+            var rvwrarr = JSON.stringify(reviewerarr);
+
+            var vwrarr = JSON.stringify(viewersarr);
 
             var sopnonew = document.getElementById("sopno").value;
 
-            var postedfname = document.getElementById("file").name;
-            
+            var apporveremail = $('#ddlapprover').val();
 
-            var dataarr = JSON.stringify({ users: usersarr, users2: usersarr2, sopno: sopnonew, pfname: postedfname});
+            var owneremail = $('#ddlowner').val();
+
+            var fileuploaded = document.getElementById("updfile").files[0];
+
+            var chkAllVwrs = document.getElementById("allusersaccs").checked;
+
+            var vwrdeptcode = $('#ddldepartment').val();
+
+            var sopeffdate = $('#sopeffdate').val();
+
+
+            formData.append("postedFile", fileuploaded);
+            formData.append("newfilename", $("#newsopfname").val());
+            formData.append("reviewers", rvwrarr);
+            formData.append("viewers", vwrarr);
+            formData.append("sopno", sopnonew);
+            formData.append("approver", apporveremail);
+            formData.append("owner", owneremail);
+            formData.append("allvwrs", chkAllVwrs);
+            formData.append("vwrdptcode", vwrdeptcode);
+            formData.append("deptfoldername", deptfoldernm);
+            formData.append("deptsubfoldername", deptsubfoldernm);
+            formData.append("sopeffdate", sopeffdate);
+
+
+            //Upon success of the first request to upload file or create file, initiate the second request to process the uploaded file
 
             $.ajax({
 
                 type: "POST",
 
-                url: "/Home/InsertUsers",
+                url: "/Home/UploadCreateFile",
 
-               // data: JSON.stringify(usersarr),
-                data: dataarr,
+                data: formData,
 
-                contentType: "application/json; charset=utf-8",
+                processData: false,
+
+                contentType: false,
 
                 dataType: "json",
 
-                success: function (r) {
+                success: function (r) {  //if file is uploaded to server successfully process the uploaded file to update topsheet and, revision history and  upload it to sharepoint server
 
-                    alert(r + " record(s) inserted.");
+                    alert("file uploaded:" + r);
 
+
+                    //$.ajax({
+
+                    //    type: "POST",
+
+                    //    url: "/Home/ProcessSOPFile",
+                    //    contentType: "application/json; charset=utf-8",
+                    //    dataType: "json",
+                    //    data: dataarr,
+
+                    //    success: function (r) {
+
+
+                    //        alert(r + " record(s) inserted first.");
+
+                    //    }
+
+                    //});
+
+
+
+                },
+                failure: function (r) {
+                    alert(r);
                 }
 
             });
 
+
+
         });
+
+
+
 
     </script>
 
 
 
-    <button type="submit" class="btn-primary">Submit</button>
+
 }
