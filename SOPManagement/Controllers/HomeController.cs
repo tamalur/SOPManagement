@@ -405,10 +405,11 @@ namespace SOPManagement.Controllers
         private void UpdateCoverRevhistPage(string sfilename, string sopno, Employee[] reviewers, string owneremail, string apporveremail, string sopeffedate)
         {
 
+            string newfilename = sopno + " " + sfilename;
 
-            System.IO.File.Copy(Server.MapPath("~/Content/docfiles/SOPTemp.docx"), Server.MapPath("~/Content/docfiles/"+ sopno+sfilename), true);
+            System.IO.File.Copy(Server.MapPath("~/Content/docfiles/SOPTemp.docx"), Server.MapPath("~/Content/docfiles/"+ newfilename), true);
 
-            string savePath = Server.MapPath("~/Content/docfiles/" + sfilename);
+            string savePath = Server.MapPath("~/Content/docfiles/" + newfilename);
 
 
             //  add row in table and data in cell
@@ -446,7 +447,7 @@ namespace SOPManagement.Controllers
             {
 
 
-                //update first table in cover page, file title, SOP #, Rev #, Eff date, owner
+                //update 1st table in cover page, file title, SOP #, Rev #, Eff date, owner
 
                 Microsoft.Office.Interop.Word.Table tab1 = wdoc.Tables[1];
                 Microsoft.Office.Interop.Word.Range range1 = tab1.Range;
@@ -477,19 +478,23 @@ namespace SOPManagement.Controllers
 
                 // Insert a new row after the last row if it is not first row to add data
 
+                int rvwrcnt=1;
                 foreach (Employee rvwr in reviewers)
                 {
 
-                    if (selectedRow2 >= 3)
+                    if (selectedRow2 == 3 && rvwrcnt==1)
                     {
 
-                        if (tab2.Rows[tab2.Rows.Count].Cells[1].Range.Text == "" || tab2.Rows[tab2.Rows.Count].Cells[1].Range.Text == "\r\a")
+                        //if (tab2.Rows[tab2.Rows.Count].Cells[1].Range.Text == "" || tab2.Rows[tab2.Rows.Count].Cells[1].Range.Text == "\r\a")
                             donotaddrow = true;
 
-                        if (!donotaddrow)
-                            tab2.Rows.Add(ref missObj);
-
                     }
+                    else
+                        donotaddrow = false;
+
+                    if (!donotaddrow )
+                        tab2.Rows.Add(ref missObj);
+
 
                     // Moves the cursor to the first cell of target row.
                     range2.Start = tab2.Rows[tab2.Rows.Count].Cells[1].Range.Start;
@@ -499,15 +504,37 @@ namespace SOPManagement.Controllers
                     range2.Paste();
 
                     // Write new vaules to each cell.
+
+                    emp.useremailaddress = rvwr.useremailaddress;
+                    emp.GetUserInfoByEmail();
+
                     tab2.Rows[tab2.Rows.Count].Cells[1].Range.Text = rvwr.userfullname;
-                    tab2.Rows[tab2.Rows.Count].Cells[2].Range.Text = rvwr.userjobtitle;
+                    tab2.Rows[tab2.Rows.Count].Cells[2].Range.Text = emp.userjobtitle;
                     //tab2.Rows[tab2.Rows.Count].Cells[3].Range.Text = "cell 3";
+
+                    rvwrcnt = rvwrcnt + 1;
 
 
                 }
 
+                //end updating 2nd reviewers table
 
-                //Add data into Revison history table - last table in last page
+                //update 3rd table for approver
+
+                //update 1st table in cover page, file title, SOP #, Rev #, Eff date, owner
+
+                Microsoft.Office.Interop.Word.Table tab3 = wdoc.Tables[3];
+                Microsoft.Office.Interop.Word.Range range3 = tab3.Range;
+
+                // Write new vaules to each cell of row 3. One row always as there will be one approver
+                tab3.Rows[3].Cells[1].Range.Text = approverfullname;
+                tab3.Rows[3].Cells[2].Range.Text = approvertitle;
+
+
+
+                //end updating 3rd table for approver
+
+                //update last table to add data into Revison history table 
 
                 Microsoft.Office.Interop.Word.Table tab = wdoc.Tables[totalTables];
                 Microsoft.Office.Interop.Word.Range range = tab.Range;
@@ -550,7 +577,7 @@ namespace SOPManagement.Controllers
                 ArrayList vers = new ArrayList(new string[] { "1.0" });
 
 
-                string filerpath = "SOP/Warehouse Operations/" + sfilename + ".docx";
+                string filerpath = "SOP/Warehouse Operations/" + newfilename;
                 //  vers = getFileVersions(siteurl, filerpath);
 
                 //vers.Add(arr);
@@ -560,71 +587,14 @@ namespace SOPManagement.Controllers
 
                     // Write new vaules to each cell.
                     tab.Rows[tab.Rows.Count].Cells[1].Range.Text = s;
-                    tab.Rows[tab.Rows.Count].Cells[2].Range.Text = "cell 2";
-                    tab.Rows[tab.Rows.Count].Cells[3].Range.Text = "cell 3";
+                    tab.Rows[tab.Rows.Count].Cells[2].Range.Text = DateTime.Now.ToString("M/d/yyyy"); 
+                    tab.Rows[tab.Rows.Count].Cells[3].Range.Text = "new file";
 
                 }
 
-                //// Write new vaules to each cell.
-                //tab.Rows[tab.Rows.Count].Cells[1].Range.Text = "new row";
-                //tab.Rows[tab.Rows.Count].Cells[2].Range.Text = "cell 2";
-                //tab.Rows[tab.Rows.Count].Cells[3].Range.Text = "cell 3";
-
-
-
-                //object replaceAll = Microsoft.Office.Interop.Word.WdReplace.wdReplaceAll;
-                //foreach (Microsoft.Office.Interop.Word.Section section in wdoc.Sections)
-                //{
-                //    Microsoft.Office.Interop.Word.Range footerRange = section.Footers[Microsoft.Office.Interop.Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].Range;
-                //    footerRange.Find.Text = "<Title>";
-                //    footerRange.Find.Replacement.Text = filetitle;
-                //    footerRange.Find.Execute(ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref replaceAll, ref missObj, ref missObj, ref missObj, ref missObj);
-                //}
 
 
             }
-
-
-            //update footer
-
-            ////Add the footers into the document
-            //foreach (Microsoft.Office.Interop.Word.Section wordSection in wdoc.Sections)
-            //{
-            //    //Get the footer range and add the footer details.
-            //    Microsoft.Office.Interop.Word.Range footerRange = wordSection.Footers[Microsoft.Office.Interop.Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].Range;
-            //    //  footerRange.Font.ColorIndex = Microsoft.Office.Interop.Word.WdColorIndex.wdDarkRed;
-            //    //  footerRange.Font.Size = 10;
-
-            //    footerRange.Collapse(Microsoft.Office.Interop.Word.WdCollapseDirection.wdCollapseEnd);
-
-
-
-
-            //    footerRange.ParagraphFormat.Alignment = Microsoft.Office.Interop.Word.WdParagraphAlignment.wdAlignParagraphLeft;
-            //    footerRange.Text = filetitle +" "+sopno;
-
-            //    //footerRange.Fields.Add(footerRange)
-
-
-
-
-
-            //}
-
-
-            //foreach (Microsoft.Office.Interop.Word.Section sec in wdoc.Sections)
-
-            //{
-
-            //  //  Microsoft.Office.Interop.Word.WdSeekView.wdSeekPrimaryFooter
-
-            //    Microsoft.Office.Interop.Word.Range rng = sec.Footers[Microsoft.Office.Interop.Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].Range;
-            //    //  rng.Font.Name = "Arial";
-            //    //  rng.Font.Size = 8;
-            //    rng.ParagraphFormat.Alignment = Microsoft.Office.Interop.Word.WdParagraphAlignment.wdAlignParagraphRight;
-            //    rng.Fields.Add(rng, Type: Microsoft.Office.Interop.Word.WdFieldType.wdFieldPage);
-            //}
-
 
 
             // Set footers
@@ -632,44 +602,10 @@ namespace SOPManagement.Controllers
             {
                 Microsoft.Office.Interop.Word.Range footerRange = wordSection.Footers[Microsoft.Office.Interop.Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].Range;
 
-                footerRange.Tables[1].Cell(1, 1).Range.Text = sopno + " " + sfilename;
+                footerRange.Tables[1].Cell(1, 1).Range.Text = newfilename;
 
 
 
-                // wdoc.Tables.Add(footerRange, 1, 2);
-                //Object oMissing = System.Reflection.Missing.Value;
-
-
-
-                // Object TotalPages = Microsoft.Office.Interop.Word.WdFieldType.wdFieldNumPages;
-
-                // Object CurrentPage = Microsoft.Office.Interop.Word.WdFieldType.wdFieldPage;
-
-
-
-
-
-                //  footerRange.Tables[1].Cell(1, 2).Range.Fields.Add(footerRange, ref CurrentPage, ref oMissing, ref oMissing);
-
-
-
-
-                //footerRange.Collapse(Microsoft.Office.Interop.Word.WdCollapseDirection.wdCollapseEnd);
-                //footerRange.Paragraphs.TabStops.Add(app.InchesToPoints(3.25F), Microsoft.Office.Interop.Word.WdTabAlignment.wdAlignTabCenter);
-                //footerRange.Paragraphs.TabStops.Add(app.InchesToPoints(6.5F), Microsoft.Office.Interop.Word.WdTabAlignment.wdAlignTabRight);
-
-                //footerRange.Fields.Add(footerRange, Microsoft.Office.Interop.Word.WdFieldType.wdFieldPage, "\t", true);
-
-
-
-                ////footerRange.Font.ColorIndex = Microsoft.Office.Interop.Word.WdColorIndex.wdDarkRed;
-                ////footerRange.Font.Size = 20;
-                //footerRange.Text = "    \t";
-                ////footerRange.InsertBefore("01-DEC-18");
-
-
-
-                //footerRange.InsertBefore(filetitle);
 
 
             }
