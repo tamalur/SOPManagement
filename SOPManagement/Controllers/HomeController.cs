@@ -383,6 +383,12 @@ namespace SOPManagement.Controllers
             }
 
             //if file is uploaded then update top sheet and revision history in newly upaloaded file
+            string filepath="";
+            string sopfilename;
+            string documentlistname;
+            int newfileid;
+
+            documentlistname = "SOP";
 
 
             if (fileuploaded == true)
@@ -390,13 +396,34 @@ namespace SOPManagement.Controllers
 
                 //once SOP top sheet and revision history is updated then generate name and upload the file with that name
 
-                string filepath = path + Path.GetFileName(postedFile.FileName);
-                string sopfilename = Path.GetFileName(postedFile.FileName);
+              
+                sopfilename = Path.GetFileName(postedFile.FileName);
 
-                UpdateCoverRevhistPage(sopfilename, sopno, rvwrItems, owner, approver, sopeffdate);
+                 UpdateCoverRevhistPage(sopfilename, sopno, rvwrItems, owner, approver, sopeffdate);
+
+                //upload the processed doc file to sharepoint
+
+                filepath = path + sopno+" "+sopfilename;
+
+                string documentlistUrl = "SOP/" + deptfoldername + "/" + deptsubfoldername + "/";
+                string documentname = Path.ChangeExtension(sopfilename, null);   //"SOPFile";      // Title;
+
+                // string filerpath = "/sites/watercooler/SOP/Quality Assurance & Regulatory Affairs (QRA)/QRA  (AIB)/OPS07-01 Training and Personnel.docx";
+
+
+                byte[] stream = System.IO.File.ReadAllBytes(filepath);
+
+                newfileid=UploadDocument(siteurl, documentlistname, documentlistUrl, documentname, stream, sopno);
+
+
 
             }
-                                                  
+
+ 
+
+
+
+
             return Json(fileuploaded);
             
 
@@ -404,6 +431,9 @@ namespace SOPManagement.Controllers
 
         private void UpdateCoverRevhistPage(string sfilename, string sopno, Employee[] reviewers, string owneremail, string apporveremail, string sopeffedate)
         {
+
+
+            string filetitle = Path.ChangeExtension(sfilename, null);
 
             string newfilename = sopno + " " + sfilename;
 
@@ -456,7 +486,7 @@ namespace SOPManagement.Controllers
                 int selectedRow1 = tab1.Rows.Count;
 
                 // Write new vaules to each cell.
-                tab1.Rows[1].Cells[2].Range.Text = sfilename;
+                tab1.Rows[1].Cells[2].Range.Text = filetitle;
                 tab1.Rows[2].Cells[2].Range.Text = sopno;
                 tab1.Rows[2].Cells[4].Range.Text = "1.0";
                 tab1.Rows[3].Cells[2].Range.Text = sopeffedate;
@@ -602,10 +632,8 @@ namespace SOPManagement.Controllers
             {
                 Microsoft.Office.Interop.Word.Range footerRange = wordSection.Footers[Microsoft.Office.Interop.Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].Range;
 
-                footerRange.Tables[1].Cell(1, 1).Range.Text = newfilename;
-
-
-
+                footerRange.Tables[1].Cell(1, 1).Range.Text = filetitle;
+                               
 
 
             }
@@ -1475,20 +1503,21 @@ namespace SOPManagement.Controllers
 
 
 
-        private void UploadDocument(string siteURL, string documentListName, string documentListURL, string documentName, byte[] documentStream,string pSOPNO)
+        private int UploadDocument(string siteURL, string documentListName, string documentListURL, string documentName, byte[] documentStream,string pSOPNO)
         {
 
 
-         //   ClientContext clientContext = new ClientContext(siteurl);
-           // SecureString SecurePassword = GetSecureString(Password);
-         //   clientContext.Credentials = new SharePointOnlineCredentials(username, SecurePassword);
+            //   ClientContext clientContext = new ClientContext(siteurl);
+            // SecureString SecurePassword = GetSecureString(Password);
+            //   clientContext.Credentials = new SharePointOnlineCredentials(username, SecurePassword);
 
+            int fileid = 0;
 
             using (ClientContext clientContext = new ClientContext(siteURL))
             {
 
                 string userName = "tshaikh@radiantdelivers.com";
-                string password = "bagerhat79&";
+                string password = "bdkbg88#";
                 
 
                 SecureString SecurePassword = GetSecureString(password);
@@ -1533,12 +1562,13 @@ namespace SOPManagement.Controllers
                 //Print List Item Id
                 Console.WriteLine("List Item Id: {0}", uploadFile.ListItemAllFields.Id);
 
+                fileid = uploadFile.ListItemAllFields.Id;
 
 
             }
 
+            return fileid;
 
-                                                             
         }
 
 
