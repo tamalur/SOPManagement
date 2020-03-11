@@ -477,6 +477,10 @@ namespace SOPManagement.Controllers
 
                 //once SOP top sheet and revision history is updated then generate name and upload the file with that name
 
+                SOPClass oSop = new SOPClass();
+
+                
+
               
                 sopfilename = Path.GetFileName(postedFile.FileName);
 
@@ -497,17 +501,25 @@ namespace SOPManagement.Controllers
                 newfileid=UploadDocument(siteurl, documentlistname, documentlistUrl, documentname, stream, sopno);
 
 
+                
+                //update SQL Data table with reviewers, approver and owner
+
+                oSop.FileID = newfileid;
+                oSop.FileApproverEmail = approver;
+                oSop.FileOwnerEmail = owner;
+                oSop.FileReviewers = rvwrItems;
+
+                oSop.AddFileReviewers();
+                oSop.AddFileApprover();
+                oSop.AddFileOwner();
+
+                //assign permission
 
                 if (allvwrs.ToUpper() == "FALSE")   //if All users are not permitted to view then customize the read permission according to either department or custom users
 
                 {
                     //prepare viewers array
 
-                    Employee emp = new Employee();
-
-                    //emp.departmentcode=
-
-             
 
                     short sdeptcode = Convert.ToInt16(vwrdptcode);
 
