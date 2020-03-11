@@ -269,6 +269,9 @@
     <Compile Include="Models\vwSOPReviewer.cs">
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\vwUser.cs">
+      <DependentUpon>SOPEDM.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\v_sopreport.cs">
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>

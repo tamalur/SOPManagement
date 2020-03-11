@@ -18,6 +18,8 @@ namespace SOPManagement.Models
 
         public short departmentcode { get; set; }
 
+        public string departmentname { get; set; }
+
         public short userstatuscode { get; set; }
 
         
@@ -31,6 +33,7 @@ namespace SOPManagement.Models
             userfullname = ctx.getUserFullNameByEmailUserID(useremailaddress,0).FirstOrDefault().ToString();
 
             userjobtitle = ctx.GetUserJobTitleByEmailUserID(useremailaddress, 0).FirstOrDefault().ToString();
+
 
         }
 

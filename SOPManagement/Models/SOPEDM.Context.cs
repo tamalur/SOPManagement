@@ -47,6 +47,7 @@ namespace SOPManagement.Models
         public virtual DbSet<vwDepartmentFolder> vwDepartmentFolders { get; set; }
         public virtual DbSet<vwDepartmentSubFolder> vwDepartmentSubFolders { get; set; }
         public virtual DbSet<vwSOPReviewer> vwSOPReviewers { get; set; }
+        public virtual DbSet<vwUser> vwUsers { get; set; }
     
         public virtual ObjectResult<Nullable<int>> sp_getSOPNo(string deptfolder, string deptsubfolder)
         {

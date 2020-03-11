@@ -20,6 +20,9 @@ using System.Collections;
 using SOPManagement.Models;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
+using Group = Microsoft.SharePoint.Client.Group;
+using System.Data.Entity.Infrastructure;
+using System.Data.Entity.Core.Objects;
 
 namespace SOPManagement.Controllers
 {
@@ -131,9 +134,14 @@ namespace SOPManagement.Controllers
         }
 
 
+        //https://www.entityframeworktutorial.net/Querying-with-EDM.aspx
+
+
         public List<Employee> GetEmployees()
         {
 
+            //Query Entity Framework by using type of query- LINQ - Entities 
+            //you can also use Entity SQL, or Native SQL query method to fect data through EF
             List<Employee> employeelist;
 
             using (var ctx = new RadiantSOPEntities())
@@ -156,6 +164,74 @@ namespace SOPManagement.Controllers
             }
 
                 return employeelist;
+
+        }
+
+
+        //public List<Employee> GetEmployeesByDeptCode(short deptcode)
+        public Employee[] GetEmployeesByDeptCode(short deptcode)
+        {
+            //ctx.vwUsers.Where(i => i.departmentcode == departmentcode).FirstOrDefault();
+
+            //Query Entity Framework by using type of query- LINQ - Entities 
+
+
+           Employee[] empllist;
+
+
+            using (var ctx = new RadiantSOPEntities())
+            {
+
+                var employees = ctx.vwUsers.Select(x => new Employee()
+                {
+
+                    userid = x.userid,
+                    useremailaddress = x.useremailaddress,
+                    userfullname = x.userfullname,
+                    userjobtitle = x.jobtitle,
+                    departmentcode = (short)x.departmentcode,
+                    departmentname = x.departmentname
+
+                }).Where(q => q.departmentcode == deptcode);
+
+                //empllist = employees.ToList();
+
+                empllist = new Employee[employees.Count()];
+                int i = 0;
+
+                foreach(Employee emp in employees)
+                {
+                    empllist[i] = emp;
+
+                    i++;
+
+                }
+                
+
+                //empllist
+
+
+            }
+
+            //or 
+            //Query Entity Framework by using type of query- Entity SQL
+
+            // not complete          
+
+           // var ctx = new RadiantSOPEntities();
+
+           //string sqlString = "SELECT VALUE emp FROM RadiantSOPEntities.vwUsers " +
+           //                     "AS emp WHERE emp.departmentcode ==" + deptcode;
+
+           // var objctx = (ctx as IObjectContextAdapter).ObjectContext;
+
+           // ObjectQuery<Employee> employee = objctx.CreateQuery<Employee>(sqlString);
+           // Employee newemp = employee.First<Employee>();
+
+
+
+            return empllist;
+
 
         }
 
@@ -336,6 +412,11 @@ namespace SOPManagement.Controllers
         //public void UploadFile(HttpPostedFileBase postedFile, string deptfoldername, string subfoldername, string sopno)
 
 
+        public bool IsNumeric(string value)
+        {
+            return value.All(char.IsNumber);
+        }
+
 
         public JsonResult UploadCreateFile(HttpPostedFileBase postedFile, string newfilename, string[] reviewers, string[] viewers, string sopno, 
             string approver, string owner, string allvwrs,string vwrdptcode, string deptfoldername,string deptsubfoldername, string sopeffdate)
@@ -343,12 +424,12 @@ namespace SOPManagement.Controllers
         {
 
 
-           // Employee myItems = JsonConvert.DeserializeObject<Employee>(reviewers[0]);
-
             
+                        
             Employee[] rvwrItems = JsonConvert.DeserializeObject<Employee[]>(reviewers[0]);
 
-            Employee[] vwrItems = JsonConvert.DeserializeObject<Employee[]>(viewers[0]);
+            Employee[] vwrItems;
+            
 
 
             ViewBag.Message = "Upload SOP File";
@@ -417,9 +498,74 @@ namespace SOPManagement.Controllers
 
 
 
+                if (allvwrs.ToUpper() == "FALSE")   //if All users are not permitted to view then customize the read permission according to either department or custom users
+
+                {
+                    //prepare viewers array
+
+                    Employee emp = new Employee();
+
+                    //emp.departmentcode=
+
+             
+
+                    short sdeptcode = Convert.ToInt16(vwrdptcode);
+
+    
+                    if (vwrdptcode != "")  //if department is selected then preference is to get employees by department code
+                    {
+                        vwrItems=GetEmployeesByDeptCode(sdeptcode);
+
+                        //  vwrItems
+
+                        //first remove existing permission from the file, default is Watercooler Visitors
+
+                        RemoveAllFilePermissions(siteurl, documentlistname, documentlistUrl, documentname);
+
+                        //give read permission to all custom viewers
+
+                        AssignFilePermission(siteurl, documentlistname, documentlistUrl, documentname, "add", "read", vwrItems);
+
+
+                    }
+
+                    else if (viewers.Count() > 0)   //get employees from added 
+                    {
+                        vwrItems = JsonConvert.DeserializeObject<Employee[]>(viewers[0]);
+
+                        //first remove existing permission from the file, default is Watercooler Visitors
+
+                        RemoveAllFilePermissions(siteurl, documentlistname, documentlistUrl, documentname);
+
+                        //give read permission to all custom viewers
+
+                        AssignFilePermission(siteurl, documentlistname, documentlistUrl, documentname, "add", "read", vwrItems);
+
+                    }
+
+
+
+                }
+
+
+                //give contribute permission to all reviewers
+
+                AssignFilePermission(siteurl, documentlistname, documentlistUrl, documentname, "add", "contribute", rvwrItems);
+
+
+                //give edit permission to approver
+
+                AssignFilePermission(siteurl, documentlistname, documentlistUrl, documentname, "add", "edit", approver);
+
+                //give full permission to owner
+
+                AssignFilePermission(siteurl, documentlistname, documentlistUrl, documentname, "add", "full control", owner);
+
+
+
             }
 
- 
+
 
 
 
@@ -1251,13 +1397,131 @@ namespace SOPManagement.Controllers
             return fversions;
         }
 
+        private void RemoveAllFilePermissions(string siteURL, string documentListName, string documentListURL, string documentName)
+        {
+
+            ClientContext clientContext = new ClientContext(siteURL);
+
+            string userName = "tshaikh@radiantdelivers.com";
+            string password = "bdkbg88#";
+
+            SecureString SecurePassword = GetSecureString(password);
+            clientContext.Credentials = new SharePointOnlineCredentials(userName, SecurePassword);
+
+
+
+            Web web = clientContext.Web;
+
+
+            clientContext.Load(web);
+            clientContext.Load(web.Lists);
+            clientContext.Load(web, wb => wb.ServerRelativeUrl);
+            clientContext.ExecuteQuery();
+
+            Microsoft.SharePoint.Client.List list = web.Lists.GetByTitle(documentListName);
+            clientContext.Load(list);
+            clientContext.ExecuteQuery();
+
+            Folder folder = web.GetFolderByServerRelativeUrl(web.ServerRelativeUrl + documentListURL);
+            clientContext.Load(folder);
+            clientContext.ExecuteQuery();
+
+            CamlQuery camlQuery = new CamlQuery();
+
+
+            //TO GET ONLY FILE ITEM
+            camlQuery.ViewXml = "<View Scope='Recursive'> " +
+                                   "  <Query> " +
+
+                                  " + <Where> " +
+                                       "  <Contains>" +
+                                            " <FieldRef Name='FileLeafRef'/> " +
+                                                " <Value Type='File'>" + documentName + "</Value>" +
+                                           " </Contains> " +
+                                       " </Where> " +
+
+                                    " </Query> " +
+                                " </View>";
+
+
+            camlQuery.FolderServerRelativeUrl = folder.ServerRelativeUrl;
+            ListItemCollection listItems = list.GetItems(camlQuery);
+            clientContext.Load(listItems);
+            clientContext.ExecuteQuery();
+
+
+            foreach (ListItem item in listItems)
+            {
+                //item.FileSystemObjectType;
+
+                if (item.FileSystemObjectType == FileSystemObjectType.File)
+                {
+                    // This is a File
+
+                    item.BreakRoleInheritance(false, false);
+
+
+                    RoleAssignmentCollection roleAssCol = item.RoleAssignments;
+
+                    clientContext.Load(roleAssCol);
+                    clientContext.ExecuteQuery();
+
+
+                    int iRoles = 0;
+                    while (iRoles < roleAssCol.Count)
+                    {
+                        //delete the existing permissions
+
+                        //item.RoleAssignments[iRoles].DeleteObject();
+
+                        item.RoleAssignments[iRoles].RoleDefinitionBindings.RemoveAll();
+                        //add the reader permission
+
+                        iRoles++;
+                    }
+
+                    //foreach (RoleAssignment assi in item.RoleAssignments)
+                    //{
+                    //    item.BreakRoleInheritance(false,false);
+                    //    item.RoleAssignments.re.RemoveById(assi.Member.ID);
+                    //    item.Update();
+                    //}
+
+                    //foreach (RoleAssignment roleAss in roleAssCol)
+                    //{
+                    //    clientContext.Load(roleAss.Member);
+                    //    clientContext.ExecuteQuery();
+                    //    Console.WriteLine(roleAss.Member.Title);
+                    //}
+
+
+                    item.Update();
+
+
+                    clientContext.ExecuteQuery();
+
+                }
+                else if (item.FileSystemObjectType == FileSystemObjectType.Folder)
+                {
+                    // This is a  Folder
+                }
+
+
+
+
+            }
+
+
+
+        }
+
         private void AssignFilePermission(string siteURL, string documentListName, string documentListURL, string documentName, string operation, string plabel,string useremail)
         {
 
             ClientContext clientContext = new ClientContext(siteURL);
 
             string userName = "tshaikh@radiantdelivers.com";
-            string password = "bagerhat79&";
+            string password = "bdkbg88#";
 
             SecureString SecurePassword = GetSecureString(password);
             clientContext.Credentials = new SharePointOnlineCredentials(userName, SecurePassword);
@@ -1279,20 +1543,6 @@ namespace SOPManagement.Controllers
 
             CamlQuery camlQuery = new CamlQuery();
 
-            ////TO GET ONLY FILE ITEM
-            //camlQuery.ViewXml = @"<View Scope='Recursive'>
-            //                         <Query>
-
-            //                        <Where>
-            //                             <Contains>
-            //                                 <FieldRef Name='FileLeafRef'/>
-            //                                     <Value Type='File'>SOPStudent01.docx</Value>
-            //                                </Contains>
-            //                            </Where>
-
-            //                         </Query>
-            //                     </View>";
-
 
             //TO GET ONLY FILE ITEM
             camlQuery.ViewXml = "<View Scope='Recursive'> "+
@@ -1308,11 +1558,114 @@ namespace SOPManagement.Controllers
                                     " </Query> "+
                                 " </View>";
 
-            //TO GET ALL FOLDERS AND FILE ITEMS
-            //camlQuery.ViewXml = @"<View Scope='RecursiveAll'>
-            //                         <Query>
-            //                         </Query>
-            //                     </View>";
+            camlQuery.FolderServerRelativeUrl = folder.ServerRelativeUrl;
+            ListItemCollection listItems = list.GetItems(camlQuery);
+            clientContext.Load(listItems);
+            clientContext.ExecuteQuery();
+
+
+            string loginname = useremail;
+
+                
+            foreach (ListItem item in listItems)
+            {
+
+                if (item.FileSystemObjectType == FileSystemObjectType.File)
+                {
+                    // This is a File
+
+                    RoleDefinitionBindingCollection rd = new RoleDefinitionBindingCollection(clientContext);
+
+
+                    rd.Add(clientContext.Web.RoleDefinitions.GetByName(plabel));
+                    Principal user = clientContext.Web.EnsureUser(loginname);
+                    item.BreakRoleInheritance(false, false);
+
+
+                   // Microsoft.SharePoint.Client.GroupCollection groupCollection = web.SiteGroups;
+
+                   // Group grpvisitor = groupCollection.GetByName("Watercooler Visitors");
+                   // clientContext.Load(grpvisitor);
+
+
+                    if (operation == "add")
+                    {
+                        item.RoleAssignments.Add(user,  rd);
+                    }
+                    else if (operation=="remove")
+                    {
+
+                        item.RoleAssignments.GetByPrincipal(user).DeleteObject();
+
+                    }
+
+
+                    item.Update();
+
+                   // item.RoleAssignments.Groups.Remove(grpvisitor);
+
+                    clientContext.ExecuteQuery();
+
+                }
+                else if (item.FileSystemObjectType == FileSystemObjectType.Folder)
+                {
+                    // This is a  Folder
+                }
+
+
+
+
+            }
+
+
+
+        }
+
+        private void AssignFilePermission(string siteURL, string documentListName, string documentListURL, string documentName, string operation, string plabel, Employee[] employees)
+        {
+
+            ClientContext clientContext = new ClientContext(siteURL);
+
+            string userName = "tshaikh@radiantdelivers.com";
+            string password = "bdkbg88#";
+
+            SecureString SecurePassword = GetSecureString(password);
+            clientContext.Credentials = new SharePointOnlineCredentials(userName, SecurePassword);
+
+
+
+            Web web = clientContext.Web;
+
+
+            clientContext.Load(web);
+            clientContext.Load(web.Lists);
+            clientContext.Load(web, wb => wb.ServerRelativeUrl);
+            clientContext.ExecuteQuery();
+
+            Microsoft.SharePoint.Client.List list = web.Lists.GetByTitle(documentListName);
+            clientContext.Load(list);
+            clientContext.ExecuteQuery();
+
+            Folder folder = web.GetFolderByServerRelativeUrl(web.ServerRelativeUrl + documentListURL);
+            clientContext.Load(folder);
+            clientContext.ExecuteQuery();
+
+            CamlQuery camlQuery = new CamlQuery();
+
+
+            //TO GET ONLY FILE ITEM
+            camlQuery.ViewXml = "<View Scope='Recursive'> " +
+                                   "  <Query> " +
+
+                                  " + <Where> " +
+                                       "  <Contains>" +
+                                            " <FieldRef Name='FileLeafRef'/> " +
+                                                " <Value Type='File'>" + documentName + "</Value>" +
+                                           " </Contains> " +
+                                       " </Where> " +
+
+                                    " </Query> " +
+                                " </View>";
 
 
             camlQuery.FolderServerRelativeUrl = folder.ServerRelativeUrl;
@@ -1321,7 +1674,6 @@ namespace SOPManagement.Controllers
             clientContext.ExecuteQuery();
 
 
-            string loginname = useremail;
 
             foreach (ListItem item in listItems)
             {
@@ -1331,46 +1683,42 @@ namespace SOPManagement.Controllers
                 {
                     // This is a File
 
-
-
                     RoleDefinitionBindingCollection rd = new RoleDefinitionBindingCollection(clientContext);
-
-                    //if (!item.HasUniqueRoleAssignments)
-                    //{
-                    //    item.BreakRoleInheritance(false, false);
-                    //}
-
                     rd.Add(clientContext.Web.RoleDefinitions.GetByName(plabel));
-                    Principal user = clientContext.Web.EnsureUser(loginname);
-                    item.BreakRoleInheritance(false, false);
 
 
-                    //Get the list of Role Assignments to list item and remove one by one.
+                   // Microsoft.SharePoint.Client.GroupCollection groupCollection = web.SiteGroups;
+                    Principal user;
 
-                    //RoleAssignmentCollection SPRoleAssColn = item.RoleAssignments;
+                   // Group grpvisitor = groupCollection.GetByName("Watercooler Visitors");
+                   // clientContext.Load(grpvisitor);
 
-                    //clientContext.ExecuteQuery();
 
-                    ////   for (int i = SPRoleAssColn.Count - 1; i >= 0; i--)
 
-                    //foreach (RoleAssignment ri in SPRoleAssColn)
-                    //{
-
-                    //    ri.DeleteObject();
-
-                    //}
-
-                    if (operation == "add")
+                    foreach(Employee emp in employees)
                     {
-                        item.RoleAssignments.Add(user, rd);
-                    }
-                    else if (operation=="remove")
-                    {
-                        item.RoleAssignments.GetByPrincipal(user).DeleteObject();
+
+                        user = clientContext.Web.EnsureUser(emp.useremailaddress);
+                        item.BreakRoleInheritance(false, false);
+
+                        if (operation == "add")
+                        {
+                            item.RoleAssignments.Add(user, rd);
+                        }
+                        else if (operation == "remove")
+                        {
+
+                            item.RoleAssignments.GetByPrincipal(user).DeleteObject();
+
+                        }
 
                     }
+
 
                     item.Update();
+
+                   // item.RoleAssignments.Groups.Remove(grpvisitor);
+
                     clientContext.ExecuteQuery();
 
                 }
