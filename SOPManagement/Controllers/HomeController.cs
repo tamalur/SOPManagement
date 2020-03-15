@@ -64,67 +64,9 @@ namespace SOPManagement.Controllers
         {
             ViewBag.Message = "Upload SOP File";
 
-
-
-            //if (postedFile != null)
-
-            //{
-
-            //    string path = Server.MapPath("~/Content/DocFiles");
-
-            //    if (!Directory.Exists(path))
-
-            //    {
-
-            //        Directory.CreateDirectory(path);
-
-            //    }
-
-
-
-            //    postedFile.SaveAs(path + Path.GetFileName(postedFile.FileName));
-
-            //    ViewBag.Message = "File uploaded successfully.";
-
-            //}
-
-
-
-            ////Create db context object here 
-
-            //RadiantYYZEntities2 dbContext = new RadiantYYZEntities2();
-
-
-            ////Get the value from database and then set it to ViewBag to pass it View
-            //IEnumerable<SelectListItem> ItemFolders = dbContext.vwDepartmentFolders.Select(c => new SelectListItem
-            //{
-            //    Value = c.SPFilePath,
-            //    Text = c.DeptFileName
-
-            //}).Where(q=>q.Value == "SOP/");
-
-            //ViewBag.ddlDeptFolders = ItemFolders;
-
-            ////ViewBag.ddlDeptFolders = dbContext.vwDepartmentFolders.Where(i=>i.FileID==170).FirstOrDefault();
-
-            ////string strSelFolder = Request.Form["ddlDeptFolders"].ToString();
-
-            ////Get the value from database and then set it to ViewBag to pass it View
-            //IEnumerable<SelectListItem> itemSubFolders = dbContext.vwDepartmentSubFolders.Select(c => new SelectListItem
-            //{
-            //    Value = c.SPFilePath,
-            //    Text = c.DeptFileName
-
-            //}).Where(q =>q.Text == "OPS");
-
-            //ViewBag.ddlSubFolders = itemSubFolders;
-
-
             RadiantSOPEntities ctx = new RadiantSOPEntities();
 
-            ViewBag.ddlDeptFolders = new SelectList(GetFolders(), "DeptFileName", "DeptFileName");
-
-          //  ViewBag.employees = new SelectList(GetEmployees(), "useremailaddress", "userfirstname");
+            ViewBag.ddlDeptFolders = new SelectList(GetFolders(), "FileName", "FileName");
 
             ViewBag.employees = (from c in ctx.users select new { c.useremailaddress, c.userfullname }).Distinct();
 
@@ -136,6 +78,91 @@ namespace SOPManagement.Controllers
 
         //https://www.entityframeworktutorial.net/Querying-with-EDM.aspx
 
+        public List<SOPClass> GetFolders()
+        {
+
+            List<SOPClass> folderlist;
+
+            using (var ctx = new RadiantSOPEntities())
+            {
+
+                var folders = ctx.deptsopfiles.Select(x => new SOPClass()
+                {
+                    FileID = x.FileID,
+                    FileName = x.DeptFileName,
+                    FilePath = x.SPFilePath,
+                    FileLink = x.SPFileLink,
+                    SOPNo = x.SOPNo
+                }).Where(s => s.FilePath == "SOP/");
+
+
+                folderlist = folders.ToList();
+
+
+            }
+
+
+            return folderlist;
+
+
+        }
+
+
+        public ActionResult GetSubFolderList(string foldername)
+        {
+            List<SOPClass> subfolderlist;
+
+            using (RadiantSOPEntities ctx = new RadiantSOPEntities())
+
+            {
+                var subfolders = ctx.deptsopfiles.Select(x => new SOPClass()
+                {
+                    FileID = x.FileID,
+                    FileName = x.DeptFileName,
+                    FilePath = x.SPFilePath,
+                    FileLink = x.SPFileLink,
+                    SOPNo = x.SOPNo
+                }).Where(s => s.FilePath == "SOP/" + foldername + "/" && !s.FileName.Contains(".docx"));
+
+
+                subfolderlist = subfolders.ToList();
+
+                ViewBag.ddlSubFolders = new SelectList(subfolderlist, "FileID", "FileName");
+
+            }
+
+            return PartialView("DisplaySubfolders");
+
+
+        }
+
+        public JsonResult GetSOPNO(string foldername, string subfoldername)
+        {
+
+            string lsopno = "";
+
+            //RadiantSOPEntities ctx = new RadiantSOPEntities();
+
+            //    //lsopno = foldername + "-001";
+
+            // lsopno = ctx.GetLastSOPNO(foldername, subfoldername).FirstOrDefault().ToString();
+
+            ////  lsopno = ctx.GetLastSOPNO(foldername, "").ToString();
+            ///
+
+
+            SOPClass oSOP = new SOPClass();
+            oSOP.FolderName = foldername;
+            oSOP.SubFolderName = subfoldername;
+            oSOP.GetSOPNo();
+            lsopno = oSOP.SOPNo;
+
+            if (lsopno != "")
+                return Json(new { success = true, sopno = lsopno });
+            else
+                return Json(new { success = false });
+
+        }
 
         public List<Employee> GetEmployees()
         {
@@ -235,102 +262,7 @@ namespace SOPManagement.Controllers
 
         }
 
-        public List<SOPClass> GetFolders()
-        {
-
-            List<SOPClass> folderlist;
-
-           
-
-            using (var ctx = new RadiantSOPEntities())
-            {
-
-                var folders = ctx.deptsopfiles.Select(x => new SOPClass()
-                {
-                    FileID = x.FileID,
-                    DeptFileName = x.DeptFileName,
-                    SPFilePath = x.SPFilePath,
-                    SPFileLink = x.SPFileLink,
-                    SOPNo=x.SOPNo
-                }).Where(s => s.SPFilePath == "SOP/");
-
-
-                folderlist = folders.ToList();
-
-            
-            }
-
-
-            return folderlist;
-
-
-            //List<deptsopfile> folders = (from d in deptsopfile
-            //                             where d.Tags.All(t => _tags.Contains(t))
-            //                    select d.id).ToList<int>();
-
-            //List<deptsopfile> folders = new List<deptsopfile>
-            //    return folders;
-
-
-        }
-
-        public ActionResult GetSubFolderList(string foldername)
-        {
-
-
-            List<SOPClass> subfolderlist;
-
-            using (RadiantSOPEntities ctx = new RadiantSOPEntities())
-
-            {
-
-
-                var subfolders = ctx.deptsopfiles.Select(x => new SOPClass()
-                {
-                    FileID = x.FileID,
-                    DeptFileName = x.DeptFileName,
-                    SPFilePath = x.SPFilePath,
-                    SPFileLink = x.SPFileLink,
-                    SOPNo = x.SOPNo
-                }).Where(s => s.SPFilePath == "SOP/" + foldername + "/" && !s.DeptFileName.Contains(".docx"));
-
-
-
-                //var subfolders = ctx.deptsopfiles
-                //                .Where(s => s.SPFilePath == "SOP/" + foldername + "/" && !s.DeptFileName.Contains(".docx"));  //only sub folders, not file
-
-                subfolderlist = subfolders.ToList();
-
-                ViewBag.ddlSubFolders = new SelectList(subfolderlist, "FileID", "DeptFileName");
-
-
-
-            }
-
-               return PartialView("DisplaySubfolders");
-
-
-        }
-
-        public JsonResult GetSOPNO(string foldername,string subfoldername)
-        {
-
-            string lsopno="";
-
-            RadiantSOPEntities ctx = new RadiantSOPEntities();
-
-                //lsopno = foldername + "-001";
-
-             lsopno = ctx.GetLastSOPNO(foldername, subfoldername).FirstOrDefault().ToString();
-
-            //  lsopno = ctx.GetLastSOPNO(foldername, "").ToString();
-
-            if (lsopno!="")
-                return Json(new { success = true, sopno = lsopno });
-            else
-                return Json(new { success = false });
-
-        }
+       
 
 
         //public ViewResult 
@@ -419,49 +351,81 @@ namespace SOPManagement.Controllers
 
 
         public JsonResult UploadCreateFile(HttpPostedFileBase postedFile, string newfilename, string[] reviewers, string[] viewers, string sopno, 
-            string approver, string owner, string allvwrs,string vwrdptcode, string deptfoldername,string deptsubfoldername, string sopeffdate)
+            string approver, string owner, string allvwrs,string vwrdptcode, string deptfoldername,
+            string deptsubfoldername, string sopeffdate,string sopupdfreq,string sopupdfrequnit)
 
         {
 
 
-            
-                        
+                                  
             Employee[] rvwrItems = JsonConvert.DeserializeObject<Employee[]>(reviewers[0]);
 
             Employee[] vwrItems;
-            
+
+            //documentlistname = "SOP";
+
+            SOPClass oSop = new SOPClass();
+
+            Employee oEmp = new Employee();
+
+            oSop.DocumentLibName = "SOP";
+            oSop.SOPNo = sopno;
 
 
             ViewBag.Message = "Upload SOP File";
 
-            bool fileuploaded=false;
+            bool fileloaded=false;
 
 
-            //if a file is uploaded then save it to server location  
+            //load file first
 
-            string path = Server.MapPath("~/Content/DocFiles/");
+            string docpath = Server.MapPath("~/Content/DocFiles/");
 
-            if (postedFile != null)
+            if (newfilename.Trim()!="")
+            {
+
+                //for new file copy from template to temp file
+                System.IO.File.Copy(Server.MapPath("~/Content/docfiles/SOPTemplate.docx"), Server.MapPath("~/Content/docfiles/SOPTemp.docx"), true);
+
+                oSop.FileName = sopno+" "+newfilename + ".docx";
+
+                oSop.FileTitle = newfilename ;
+
+                fileloaded = true;
+            }
+
+
+            else if (postedFile != null)
 
             {
 
-                if (!Directory.Exists(path))
+                //for uploaded file copy it from posted file to temp file
+
+                oSop.FileName = Path.GetFileName(postedFile.FileName);
+
+                oSop.FileTitle = Path.ChangeExtension(oSop.FileName, null);
+
+                oSop.FileName= oSop.SOPNo+" "+oSop.FileName;
+
+                if (!Directory.Exists(docpath))
 
                 {
 
-                    Directory.CreateDirectory(path);
+                    Directory.CreateDirectory(docpath);
 
                 }
 
                 // postedFile.SaveAs(path + Path.GetFileName(postedFile.FileName));
 
-                postedFile.SaveAs(path + "SOPTemp.docx");
+                postedFile.SaveAs(docpath + "SOPTemp.docx");
 
-                fileuploaded = true;
+                fileloaded = true;
 
                 ViewBag.Message = "File uploaded successfully.";
 
             }
+
+            
 
             //if file is uploaded then update top sheet and revision history in newly upaloaded file
             string filepath="";
@@ -469,49 +433,94 @@ namespace SOPManagement.Controllers
             string documentlistname;
             int newfileid;
 
-            documentlistname = "SOP";
 
 
-            if (fileuploaded == true)
+            if (fileloaded == true)
             {
 
                 //once SOP top sheet and revision history is updated then generate name and upload the file with that name
 
-                SOPClass oSop = new SOPClass();
 
-                
 
-              
-                sopfilename = Path.GetFileName(postedFile.FileName);
+                //sopfilename = Path.GetFileName(postedFile.FileName);
 
-                 UpdateCoverRevhistPage(sopfilename, sopno, rvwrItems, owner, approver, sopeffdate);
+                // UpdateCoverRevhistPage(sopfilename, sopno, rvwrItems, owner, approver, sopeffdate);
+
+                short supdfreq = Convert.ToInt16(sopupdfreq);
+
+
+                oSop.FileApproverEmail = approver;
+                oSop.FileOwnerEmail = owner;
+                oSop.Reviewers = rvwrItems;
+                oSop.Updatefreq = supdfreq;
+                oSop.Updatefrequnit = sopupdfrequnit;
+                oSop.SOPEffectiveDate = Convert.ToDateTime(sopeffdate);
+
+            
+                oSop.FilePath = docpath + oSop.FileName;
+
+                FileRevision[] oRevarr= new FileRevision[2];
+
+                FileRevision rev1 = new FileRevision();
+
+                rev1.RevisionNo = "1.0";
+                rev1.RevisionDate = DateTime.Now;
+                rev1.Description = "Newly Created";
+
+                oRevarr[0] = rev1;
+
+                FileRevision rev2 = new FileRevision();
+
+                rev2.RevisionNo = "2.0";
+                rev2.RevisionDate = DateTime.Now;
+                rev2.Description = "Newly Created";
+
+                oRevarr[1] = rev2;
+
+                oSop.FileRevisions = oRevarr;
+
+                oSop.SiteUrl = siteurl;
+                oSop.FileCurrVersion = "2.0";
+
+                //versions[0]= oSop.FileVersions.
+
+                oSop.UpdateCoverRevhistPage();
+
 
                 //upload the processed doc file to sharepoint
 
-                filepath = path + sopno+" "+sopfilename;
+               // filepath = path + sopno+" "+sopfilename;
 
-                string documentlistUrl = "SOP/" + deptfoldername + "/" + deptsubfoldername + "/";
-                string documentname = Path.ChangeExtension(sopfilename, null);   //"SOPFile";      // Title;
+                //string documentlistUrl = "SOP/" + deptfoldername + "/" + deptsubfoldername + "/";
+                //string documentname = Path.ChangeExtension(sopfilename, null);   //"SOPFile";      // Title;
+
+                oSop.FolderName = deptfoldername;
+                oSop.SubFolderName = deptsubfoldername;
+
+                oSop.FileUrl = "SOP/" + oSop.FolderName + "/" + oSop.SubFolderName + "/";
 
                 // string filerpath = "/sites/watercooler/SOP/Quality Assurance & Regulatory Affairs (QRA)/QRA  (AIB)/OPS07-01 Training and Personnel.docx";
 
-
-                byte[] stream = System.IO.File.ReadAllBytes(filepath);
-
-                newfileid=UploadDocument(siteurl, documentlistname, documentlistUrl, documentname, stream, sopno);
-
-
                 
+                //byte[] stream = System.IO.File.ReadAllBytes(filepath);
+
+                oSop.FileStream= System.IO.File.ReadAllBytes(oSop.FilePath);
+
+                oSop.UploadDocument();
+
+              //  newfileid =UploadDocument(siteurl, documentlistname, documentlistUrl, documentname, stream, sopno);
+
+
+
                 //update SQL Data table with reviewers, approver and owner
 
-                oSop.FileID = newfileid;
-                oSop.FileApproverEmail = approver;
-                oSop.FileOwnerEmail = owner;
-                oSop.FileReviewers = rvwrItems;
+                oSop.FileID = oSop.FileID;
 
                 oSop.AddFileReviewers();
                 oSop.AddFileApprover();
                 oSop.AddFileOwner();
+                oSop.AddUpdateFreq();
+
 
                 //assign permission
 
@@ -523,35 +532,50 @@ namespace SOPManagement.Controllers
 
                     short sdeptcode = Convert.ToInt16(vwrdptcode);
 
-    
+                    oEmp.departmentcode = sdeptcode;
+
+
                     if (vwrdptcode != "")  //if department is selected then preference is to get employees by department code
                     {
-                        vwrItems=GetEmployeesByDeptCode(sdeptcode);
+                        //vwrItems=GetEmployeesByDeptCode(sdeptcode);
+
+                       oEmp.GetEmployeesByDeptCode();
+
+                        vwrItems = oEmp.employees;
+
 
                         //  vwrItems
 
                         //first remove existing permission from the file, default is Watercooler Visitors
 
-                        RemoveAllFilePermissions(siteurl, documentlistname, documentlistUrl, documentname);
+                        //   RemoveAllFilePermissions(siteurl, documentlistname, documentlistUrl, documentname);
+
+                        oSop.RemoveAllFilePermissions();
 
                         //give read permission to all custom viewers
 
-                        AssignFilePermission(siteurl, documentlistname, documentlistUrl, documentname, "add", "read", vwrItems);
+                        // AssignFilePermission(siteurl, documentlistname, documentlistUrl, documentname, "add", "read", vwrItems);
+
+                        oSop.AssignFilePermission("add", "read", vwrItems);
 
 
                     }
 
-                    else if (viewers.Count() > 0)   //get employees from added 
+                    else if (viewers.Count() > 0)   //get employees from added list
                     {
                         vwrItems = JsonConvert.DeserializeObject<Employee[]>(viewers[0]);
 
                         //first remove existing permission from the file, default is Watercooler Visitors
 
-                        RemoveAllFilePermissions(siteurl, documentlistname, documentlistUrl, documentname);
+                        //  RemoveAllFilePermissions(siteurl, documentlistname, documentlistUrl, documentname);
+
+                        oSop.RemoveAllFilePermissions();
 
                         //give read permission to all custom viewers
 
-                        AssignFilePermission(siteurl, documentlistname, documentlistUrl, documentname, "add", "read", vwrItems);
+                        // AssignFilePermission(siteurl, documentlistname, documentlistUrl, documentname, "add", "read", vwrItems);
+
+                        oSop.AssignFilePermission("add", "read", vwrItems);
 
                     }
 
@@ -562,17 +586,22 @@ namespace SOPManagement.Controllers
 
                 //give contribute permission to all reviewers
 
-                AssignFilePermission(siteurl, documentlistname, documentlistUrl, documentname, "add", "contribute", rvwrItems);
+                // AssignFilePermission(siteurl, documentlistname, documentlistUrl, documentname, "add", "contribute", rvwrItems);
+
+                oSop.AssignFilePermission("add", "contribute", rvwrItems);
 
 
                 //give edit permission to approver
 
-                AssignFilePermission(siteurl, documentlistname, documentlistUrl, documentname, "add", "edit", approver);
+                // AssignFilePermission(siteurl, documentlistname, documentlistUrl, documentname, "add", "edit", approver);
+
+                oSop.AssignFilePermission("add", "edit", approver);
 
                 //give full permission to owner
 
-                AssignFilePermission(siteurl, documentlistname, documentlistUrl, documentname, "add", "full control", owner);
+                //AssignFilePermission(siteurl, documentlistname, documentlistUrl, documentname, "add", "full control", owner);
 
+                oSop.AssignFilePermission("add", "full control", owner);
 
 
             }
@@ -582,7 +611,7 @@ namespace SOPManagement.Controllers
 
 
 
-            return Json(fileuploaded);
+            return Json(fileloaded);
             
 
         }

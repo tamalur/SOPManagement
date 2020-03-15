@@ -82,6 +82,31 @@
     <div>
         <input name="sopno" id="sopno" readonly />
     </div>
+    
+    <br />
+
+    <div>
+        Update Frequency
+    </div>
+    <div>
+        <input name="updatefreq" value="1" size="2" maxlength="2" id="idupdfreq" /> 
+    </div>
+    <div>
+
+        <select id="unitoffreq">
+            <option>
+                Yearly
+            </option>
+            <option>
+                Monthly
+            </option>
+            <option>
+                Weekly
+            </option>
+
+        </select>
+    </div>
+
 
     <br />
     <div>
@@ -760,6 +785,9 @@
 
             var sopeffdate = $('#sopeffdate').val();
 
+            var updfreq = $('#idupdfreq').val();
+            var upfrequnit = $('#unitoffreq :selected').text();
+
 
             formData.append("postedFile", fileuploaded);
             formData.append("newfilename", $("#newsopfname").val());
@@ -773,6 +801,8 @@
             formData.append("deptfoldername", deptfoldernm);
             formData.append("deptsubfoldername", deptsubfoldernm);
             formData.append("sopeffdate", sopeffdate);
+            formData.append("sopupdfreq", updfreq);
+            formData.append("sopupdfrequnit", upfrequnit);
 
 
             //Upon success of the first request to upload file or create file, initiate the second request to process the uploaded file

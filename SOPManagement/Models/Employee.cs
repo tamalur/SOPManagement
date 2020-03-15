@@ -22,6 +22,8 @@ namespace SOPManagement.Models
 
         public short userstatuscode { get; set; }
 
+        public Employee[] employees { get; set; }
+
 
         public void GetUserInfoByEmail()
         {
@@ -33,6 +35,51 @@ namespace SOPManagement.Models
             userfullname = ctx.getUserFullNameByEmailUserID(useremailaddress, 0).FirstOrDefault().ToString();
 
             userjobtitle = ctx.GetUserJobTitleByEmailUserID(useremailaddress, 0).FirstOrDefault().ToString();
+
+
+        }
+
+        public void GetEmployeesByDeptCode()
+        {
+            //ctx.vwUsers.Where(i => i.departmentcode == departmentcode).FirstOrDefault();
+
+            //Query Entity Framework by using type of query- LINQ - Entities 
+
+
+            Employee[] empllist;
+
+
+            using (var ctx = new RadiantSOPEntities())
+            {
+
+                var employees = ctx.vwUsers.Select(x => new Employee()
+                {
+
+                    userid = x.userid,
+                    useremailaddress = x.useremailaddress,
+                    userfullname = x.userfullname,
+                    userjobtitle = x.jobtitle,
+                    departmentcode = (short)x.departmentcode,
+                    departmentname = x.departmentname
+
+                }).Where(q => q.departmentcode == departmentcode);
+
+                //empllist = employees.ToList();
+
+                empllist = new Employee[employees.Count()];
+                int i = 0;
+
+                foreach (Employee emp in employees)
+                {
+                    empllist[i] = emp;
+
+                    i++;
+
+                }
+
+            }
+
+            employees= empllist;
 
 
         }
