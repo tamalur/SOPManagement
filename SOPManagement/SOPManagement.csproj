@@ -242,6 +242,12 @@
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\FileRevision.cs" />
+    <Compile Include="Models\fileviewaccesstype.cs">
+      <DependentUpon>SOPEDM.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\fileviewer.cs">
+      <DependentUpon>SOPEDM.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\SOPClass.cs" />
     <Compile Include="Models\SOPEDM.Context.cs">
       <AutoGen>True</AutoGen>

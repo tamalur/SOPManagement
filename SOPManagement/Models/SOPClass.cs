@@ -34,6 +34,13 @@ namespace SOPManagement.Models
 
         public string SubFolderName { get; set; }
 
+        public string DepartmentName { get; set; }
+        public short DepartmentCode { get; set;}
+
+        public string ViewAccessType { get; set; }
+
+        public int  ViewAccessTypeID { get; set; }
+
         public string SOPNo { get; set; }
 
         public FileRevision[] FileRevisions { get; set; }
@@ -67,6 +74,9 @@ namespace SOPManagement.Models
 
         public string ErrorMessage { get; set; }
 
+        public string UserName { get; set; }
+        public string Password { get; set; }
+        
 
         public void AddFileReviewers()
         {
@@ -139,11 +149,91 @@ namespace SOPManagement.Models
 
         }
 
+        public void AddViewerAccessType()
+        {
+            using (var dbcontext = new RadiantSOPEntities())
+            {
 
+                //get old viewaccess records with the FIleID so we can add new viewers access 
+                var vwacctype = dbcontext.fileviewaccesstypes.SingleOrDefault(x => x.fileid == FileID);
+
+                if (vwacctype != null)
+                {
+                    ViewAccessTypeID = vwacctype.viewaccessid;
+
+                    dbcontext.fileviewaccesstypes.Remove(vwacctype);
+
+                    //    dbcontext.SaveChanges();
+
+                    //delete related viewers if any
+                    dbcontext.fileviewers.RemoveRange(dbcontext.fileviewers.Where(x => x.viewaccessid == ViewAccessTypeID));
+
+                    dbcontext.SaveChanges();
+                }
+                //now add new access type and related records
+
+                var fileviewacctype = new fileviewaccesstype()
+                {
+                    fileid = FileID,
+                    viewtypename = ViewAccessType,
+                   // departmentname=DepartmentName
+                   departmentcode=DepartmentCode
+
+                };
+                dbcontext.fileviewaccesstypes.Add(fileviewacctype);
+                dbcontext.SaveChanges();
+
+                ViewAccessTypeID = fileviewacctype.viewaccessid;
+
+                OperationSuccess = true;
+            }
+
+        }
+
+
+        public void AddFileViewers()
+        {
+
+            Employee emp = new Employee();
+
+            int vwrid;
+
+            OperationSuccess = false;
+
+            //delete all viewers with the file id that was deleted from ViewAccessType table
+
+
+            foreach (Employee vwr in Viewers)
+            {
+                emp.useremailaddress = vwr.useremailaddress;
+                emp.GetUserByEmail();
+                vwrid = emp.userid;
+
+                using (var dbcontext = new RadiantSOPEntities())
+                {
+
+                    var vwrtable = new  fileviewer
+                    {
+                        viewerid = vwrid,
+                        viewaccessid= ViewAccessTypeID
+                        
+
+                    };
+                    dbcontext.fileviewers.Add(vwrtable);
+
+                    dbcontext.SaveChanges();
+
+                    OperationSuccess = true;
+                }
+
+            }
+
+            emp = null;
+
+
+        }
 
         public void AddFileOwner()
-
-
 
         {
 
@@ -244,8 +334,6 @@ namespace SOPManagement.Models
                 Microsoft.Office.Interop.Word.Document wdoc = app.Documents.Open(ref path, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj);
 
 
-
-
                 //  add row in table and data in cell
 
                 Employee emp = new Employee();
@@ -261,11 +349,6 @@ namespace SOPManagement.Models
                 emp.GetUserByEmail();
                 approverfullname = emp.userfullname;
                 approvertitle = emp.userjobtitle;
-
-
-
-
-
 
                 int totalTables = wdoc.Tables.Count;
                 bool donotaddrow = false;
@@ -541,6 +624,38 @@ namespace SOPManagement.Models
             }
 
 
+        }
+
+
+        internal void DownloadFilesFromSharePoint(string tempLocation)
+        {
+
+            //DownloadFilesFromSharePoint("https://tenant.sharepoint.com", "/SharedDocuments", @"c:\downloads");
+
+            ClientContext ctx = new ClientContext(SiteUrl);
+
+            SecureString SecurePassword = GetSecureString(Password);
+            ctx.Credentials = new SharePointOnlineCredentials(UserName, SecurePassword);
+
+
+           // ctx.Credentials = new SharePointOnlineCredentials(UserName, Password);
+
+            FileCollection files = ctx.Web.GetFolderByServerRelativeUrl(FolderName).Files;
+
+            ctx.Load(files);
+            ctx.ExecuteQuery();
+
+            foreach (Microsoft.SharePoint.Client.File file in files)
+            {
+                FileInformation fileInfo = Microsoft.SharePoint.Client.File.OpenBinaryDirect(ctx, file.ServerRelativeUrl);
+                ctx.ExecuteQuery();
+
+                var filePath = tempLocation + file.Name;
+                using (var fileStream = new System.IO.FileStream(filePath, System.IO.FileMode.Create))
+                {
+                    fileInfo.Stream.CopyTo(fileStream);
+                }
+            }
         }
 
         private static SecureString GetSecureString(String Password)

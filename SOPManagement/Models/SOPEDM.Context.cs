@@ -48,6 +48,8 @@ namespace SOPManagement.Models
         public virtual DbSet<vwDepartmentSubFolder> vwDepartmentSubFolders { get; set; }
         public virtual DbSet<vwSOPReviewer> vwSOPReviewers { get; set; }
         public virtual DbSet<vwUser> vwUsers { get; set; }
+        public virtual DbSet<fileviewaccesstype> fileviewaccesstypes { get; set; }
+        public virtual DbSet<fileviewer> fileviewers { get; set; }
     
         public virtual ObjectResult<Nullable<int>> sp_getSOPNo(string deptfolder, string deptsubfolder)
         {

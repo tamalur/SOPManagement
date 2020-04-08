@@ -156,6 +156,23 @@ warning 6002: The table/view 'RadiantYYZ.sop.codesuserstatus' does not have a pr
           <Property Name="unitoffrequency" Type="nvarchar" MaxLength="50" />
           <Property Name="lastrevisionno" Type="nvarchar" MaxLength="50" />
         </EntityType>
+        <EntityType Name="fileviewaccesstype">
+          <Key>
+            <PropertyRef Name="viewaccessid" />
+          </Key>
+          <Property Name="viewaccessid" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="fileid" Type="int" Nullable="false" />
+          <Property Name="viewtypename" Type="varchar" MaxLength="60" Nullable="false" />
+          <Property Name="departmentcode" Type="smallint" />
+        </EntityType>
+        <EntityType Name="fileviewers">
+          <Key>
+            <PropertyRef Name="viewid" />
+          </Key>
+          <Property Name="viewid" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="viewerid" Type="int" Nullable="false" />
+          <Property Name="viewaccessid" Type="int" Nullable="false" />
+        </EntityType>
         <EntityType Name="users">
           <Key>
             <PropertyRef Name="userid" />
@@ -258,12 +275,6 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwSOPReviewers' does not have a pri
           <Property Name="departmentname" Type="nvarchar" MaxLength="100" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6013: The table/view 'RadiantYYZ.sop.vwSubFolders' does not have a primary key defined and no valid primary key could be inferred. This table/view has been excluded. To use the entity, you will need to review your schema, add the correct keys, and uncomment it.
-        <EntityType Name="vwSubFolders">
-          <Property Name="foldername" Type="varchar" MaxLength="8000" />
-          <Property Name="subfoldername" Type="varchar" MaxLength="255" />
-        </EntityType>-->
-        <!--Errors Found During Generation:
 warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="vwUsers">
           <Key>
@@ -304,6 +315,8 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           <EntitySet Name="filereviewers" EntityType="Self.filereviewers" Schema="sop" store:Type="Tables" />
           <EntitySet Name="filereviewersactivities" EntityType="Self.filereviewersactivities" Schema="sop" store:Type="Tables" />
           <EntitySet Name="fileupdateschedule" EntityType="Self.fileupdateschedule" Schema="sop" store:Type="Tables" />
+          <EntitySet Name="fileviewaccesstype" EntityType="Self.fileviewaccesstype" Schema="sop" store:Type="Tables" />
+          <EntitySet Name="fileviewers" EntityType="Self.fileviewers" Schema="sop" store:Type="Tables" />
           <EntitySet Name="users" EntityType="Self.users" Schema="sop" store:Type="Tables" />
           <EntitySet Name="codesapprovalstatus" EntityType="Self.codesapprovalstatus" store:Type="Tables" store:Schema="sop">
             <DefiningQuery>SELECT 
@@ -684,6 +697,8 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
             <Parameter Name="userid" Mode="In" Type="Int32" />
           </FunctionImport>
           <EntitySet Name="vwUsers" EntityType="RadiantYYZModel.vwUser" />
+          <EntitySet Name="fileviewaccesstypes" EntityType="RadiantYYZModel.fileviewaccesstype" />
+          <EntitySet Name="fileviewers" EntityType="RadiantYYZModel.fileviewer" />
         </EntityContainer>
         <EntityType Name="vwSOPReviewer">
           <Key>
@@ -712,6 +727,23 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           <Property Name="userstatuscode" Type="Int16" />
           <Property Name="jobtitle" Type="String" MaxLength="60" FixedLength="false" Unicode="false" />
           <Property Name="departmentname" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="fileviewaccesstype">
+          <Key>
+            <PropertyRef Name="viewaccessid" />
+          </Key>
+          <Property Name="viewaccessid" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="fileid" Type="Int32" Nullable="false" />
+          <Property Name="viewtypename" Type="String" Nullable="false" MaxLength="60" FixedLength="false" Unicode="false" />
+          <Property Name="departmentcode" Type="Int16" />
+        </EntityType>
+        <EntityType Name="fileviewer">
+          <Key>
+            <PropertyRef Name="viewid" />
+          </Key>
+          <Property Name="viewid" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="viewerid" Type="Int32" Nullable="false" />
+          <Property Name="viewaccessid" Type="Int32" Nullable="false" />
         </EntityType>
       </Schema>
     </edmx:ConceptualModels>
@@ -991,6 +1023,25 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
                 <ScalarProperty Name="departmentcode" ColumnName="departmentcode" />
                 <ScalarProperty Name="windowsusername" ColumnName="windowsusername" />
                 <ScalarProperty Name="userid" ColumnName="userid" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="fileviewaccesstypes">
+            <EntityTypeMapping TypeName="RadiantYYZModel.fileviewaccesstype">
+              <MappingFragment StoreEntitySet="fileviewaccesstype">
+                <ScalarProperty Name="departmentcode" ColumnName="departmentcode" />
+                <ScalarProperty Name="viewtypename" ColumnName="viewtypename" />
+                <ScalarProperty Name="fileid" ColumnName="fileid" />
+                <ScalarProperty Name="viewaccessid" ColumnName="viewaccessid" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="fileviewers">
+            <EntityTypeMapping TypeName="RadiantYYZModel.fileviewer">
+              <MappingFragment StoreEntitySet="fileviewers">
+                <ScalarProperty Name="viewaccessid" ColumnName="viewaccessid" />
+                <ScalarProperty Name="viewerid" ColumnName="viewerid" />
+                <ScalarProperty Name="viewid" ColumnName="viewid" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

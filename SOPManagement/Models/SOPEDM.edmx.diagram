@@ -26,6 +26,8 @@
         <EntityTypeShape EntityType="RadiantYYZModel.vwDepartmentSubFolder" Width="1.5" PointX="6.75" PointY="11.75" IsExpanded="true" />
         <EntityTypeShape EntityType="RadiantYYZModel.vwSOPReviewer" Width="1.5" PointX="9.375" PointY="11.75" />
         <EntityTypeShape EntityType="RadiantYYZModel.vwUser" Width="1.5" PointX="11.375" PointY="11.75" />
+        <EntityTypeShape EntityType="RadiantYYZModel.fileviewaccesstype" Width="1.5" PointX="0.75" PointY="12.75" />
+        <EntityTypeShape EntityType="RadiantYYZModel.fileviewer" Width="1.5" PointX="2.75" PointY="12.75" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
