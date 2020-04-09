@@ -16,6 +16,8 @@ namespace SOPManagement.Models
 
         public int FileID { get; set; }
 
+        public short? FileStatuscode { get; set;}
+
         public int FileOwnerID { get; set; }
 
         public int FileApproverID { get; set; }
@@ -250,13 +252,13 @@ namespace SOPManagement.Models
             using (var dbcontext = new RadiantSOPEntities())
             {
 
-                var aprvrtable = new fileapprover()
+                var ownertable = new  fileowner()
                 {
-                    approverid = apprvrid,
+                    ownerid = apprvrid,
                     fileid = FileID
 
                 };
-                dbcontext.fileapprovers.Add(aprvrtable);
+                dbcontext.fileowners.Add(ownertable);
 
                 dbcontext.SaveChanges();
                 OperationSuccess = true;
@@ -499,7 +501,6 @@ namespace SOPManagement.Models
 
                         if (selectedRow == 2 && filevercount == 1)
                         {
-                            //if (tab.Rows[tab.Rows.Count].Cells[1].Range.Text == "" || tab.Rows[tab.Rows.Count].Cells[1].Range.Text == "\r\a")
                             donotaddrow = true;
                         }
 

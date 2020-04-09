@@ -92,8 +92,10 @@ namespace SOPManagement.Controllers
                     FileName = x.DeptFileName,
                     FilePath = x.SPFilePath,
                     FileLink = x.SPFileLink,
-                    SOPNo = x.SOPNo
-                }).Where(s => s.FilePath == "SOP/");
+                    SOPNo = x.SOPNo,
+                    FileStatuscode=x.filestatuscode
+
+                }).Where(s => s.FilePath == "SOP/" && s.FileStatuscode==3);
 
 
                 folderlist = folders.ToList();
@@ -121,8 +123,9 @@ namespace SOPManagement.Controllers
                     FileName = x.DeptFileName,
                     FilePath = x.SPFilePath,
                     FileLink = x.SPFileLink,
-                    SOPNo = x.SOPNo
-                }).Where(s => s.FilePath == "SOP/" + foldername + "/" && !s.FileName.Contains(".docx"));
+                    SOPNo = x.SOPNo,
+                    FileStatuscode=x.filestatuscode
+                }).Where(s => s.FilePath == "SOP/" + foldername + "/" && !s.FileName.Contains(".docx") && s.FileStatuscode==3);
 
 
                 subfolderlist = subfolders.ToList();
@@ -183,7 +186,7 @@ namespace SOPManagement.Controllers
 
             //validate data first
 
-            if (deptsubfoldername== "Please select a subfolder")
+            if (deptsubfoldername== "--Select Subfolder--")
             {
 
                 deptsubfoldername = "";
@@ -210,7 +213,7 @@ namespace SOPManagement.Controllers
             bool fileloaded=false;
 
 
-            //load file first
+            //1. load file first
 
             string docpath = Server.MapPath("~/Content/DocFiles/");
 
@@ -260,27 +263,15 @@ namespace SOPManagement.Controllers
 
             
 
-            //if file is uploaded then update top sheet and revision history in newly upaloaded file
-            string filepath="";
-            string sopfilename;
-            string documentlistname;
-            int newfileid;
 
-
-
-            if (fileloaded == true)
+            if (fileloaded == true)  //file saved locally
             {
 
-                //once SOP top sheet and revision history is updated then generate name and upload the file with that name
+                //2. update coversheet and revision history 
 
-
-
-                //sopfilename = Path.GetFileName(postedFile.FileName);
-
-                // UpdateCoverRevhistPage(sopfilename, sopno, rvwrItems, owner, approver, sopeffdate);
+                //update top sheet and revision history first
 
                 short supdfreq = Convert.ToInt16(sopupdfreq);
-
 
                 oSop.FileApproverEmail = approver;
                 oSop.FileOwnerEmail = owner;
@@ -292,60 +283,47 @@ namespace SOPManagement.Controllers
             
                 oSop.FilePath = docpath + oSop.FileName;
 
-                FileRevision[] oRevarr= new FileRevision[2];
+                FileRevision[] oRevarr= new FileRevision[1];
 
                 FileRevision rev1 = new FileRevision();
 
                 rev1.RevisionNo = "1.0";
                 rev1.RevisionDate = DateTime.Now;
-                rev1.Description = "Newly Created";
+                rev1.Description = "New SOP";
 
                 oRevarr[0] = rev1;
 
-                FileRevision rev2 = new FileRevision();
+                //FileRevision rev2 = new FileRevision();
 
-                rev2.RevisionNo = "2.0";
-                rev2.RevisionDate = DateTime.Now;
-                rev2.Description = "Newly Created";
+                //rev2.RevisionNo = "2.0";
+                //rev2.RevisionDate = DateTime.Now;
+                //rev2.Description = "Newly Created";
 
-                oRevarr[1] = rev2;
+                //oRevarr[1] = rev2;
 
                 oSop.FileRevisions = oRevarr;
 
                 oSop.SiteUrl = siteurl;
-                oSop.FileCurrVersion = "2.0";
-
-                //versions[0]= oSop.FileVersions.
+                oSop.FileCurrVersion = "1.0";
 
                 oSop.UpdateCoverRevhistPage();
 
 
-                //upload the processed doc file to sharepoint
-
-               // filepath = path + sopno+" "+sopfilename;
-
-                //string documentlistUrl = "SOP/" + deptfoldername + "/" + deptsubfoldername + "/";
-                //string documentname = Path.ChangeExtension(sopfilename, null);   //"SOPFile";      // Title;
+                //3. upload the processed doc file to sharepoint online in SOP doc library
 
                 oSop.FolderName = deptfoldername;
                 oSop.SubFolderName = deptsubfoldername;
 
-                oSop.FileUrl = "SOP/" + oSop.FolderName + "/" + oSop.SubFolderName + "/";
-
-                // string filerpath = "/sites/watercooler/SOP/Quality Assurance & Regulatory Affairs (QRA)/QRA  (AIB)/OPS07-01 Training and Personnel.docx";
-
-                
-                //byte[] stream = System.IO.File.ReadAllBytes(filepath);
+                if  (oSop.SubFolderName=="")
+                    oSop.FileUrl = "SOP/" + oSop.FolderName + "/" ;
+                else
+                    oSop.FileUrl = "SOP/" + oSop.FolderName + "/" + oSop.SubFolderName + "/";
 
                 oSop.FileStream= System.IO.File.ReadAllBytes(oSop.FilePath);
 
                 oSop.UploadDocument();
 
-              //  newfileid =UploadDocument(siteurl, documentlistname, documentlistUrl, documentname, stream, sopno);
-
-
-
-                //update SQL Data table with reviewers, approver and owner
+                //4. update SQL Data table with reviewers, approver and owner
 
                 oSop.FileID = oSop.FileID;
 
@@ -355,21 +333,19 @@ namespace SOPManagement.Controllers
                 oSop.AddUpdateFreq();
 
 
-                //assign permission
+                //5. assign permissions to the uploaded SOP file in SP
 
-        
 
-                if (allvwrs.ToUpper() == "TRUE")
+                if (allvwrs.ToUpper() == "TRUE")   //by default all users have read permission
                 {
-                    //assgnpermcomplete = true;
-
+ 
                     oSop.ViewAccessType = "All Users";
 
-                    oSop.AddViewerAccessType();
+                    oSop.AddViewerAccessType();    // add new view type in SQL table 
                     
                 }
 
-                    if (allvwrs.ToUpper() == "FALSE")   //if All users are not permitted to view then customize the read permission according to either department or custom users
+               if (allvwrs.ToUpper() == "FALSE")   //if All users are not permitted to view then customize the read permission according to either department or custom users
 
                 {
                     //prepare viewers array
@@ -382,23 +358,21 @@ namespace SOPManagement.Controllers
 
                     if (vwrdptcode != "")  //if department is selected then preference is to get employees by department code
                     {
-                        //vwrItems=GetEmployeesByDeptCode(sdeptcode);
 
                        oEmp.GetEmployeesByDeptCode();
 
                         vwrItems = oEmp.employees;
 
-                        //  vwrItems
-
-                        //first remove existing permission from the file, default is Watercooler Visitors
+                       //first remove existing permission from the file, default is Watercooler Visitors
 
                         oSop.RemoveAllFilePermissions();
 
-                        //give read permission to all custom viewers
+                        //give read permission to all users who are in the selected department
 
                         oSop.AssignFilePermission("add", "read", vwrItems);
 
-                        //now add view access type "by department in SQL Table
+                        //now add view access info by department in SQL Table
+                        //we need this to retrieve and change in admin page
 
                         oSop.DepartmentCode = Convert.ToInt16(vwrdptcode);
                         oSop.ViewAccessType = "By Department";
@@ -407,7 +381,7 @@ namespace SOPManagement.Controllers
 
                     }
 
-                    else if (viewers.Count() > 0)   //get employees from added list
+                    else if (viewers.Count() > 0)   //get employees from custom user list
                     {
                         vwrItems = JsonConvert.DeserializeObject<Employee[]>(viewers[0]);
 
@@ -417,10 +391,10 @@ namespace SOPManagement.Controllers
 
                         //give read permission to all custom viewers
 
-
                         oSop.AssignFilePermission("add", "read", vwrItems);
 
-                        //now add view access type "by custom users in SQL table
+                        //now add view access info by custom users in SQL table
+                        //we need this to retrieve and change in admin page
 
                         oSop.Viewers = vwrItems;
                         oSop.ViewAccessType = "By Users";
