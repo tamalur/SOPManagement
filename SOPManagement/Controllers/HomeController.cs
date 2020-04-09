@@ -68,7 +68,7 @@ namespace SOPManagement.Controllers
 
             ViewBag.ddlDeptFolders = new SelectList(GetFolders(), "FileName", "FileName");
 
-            ViewBag.employees = (from c in ctx.users select new { c.useremailaddress, c.userfullname }).Distinct();
+            ViewBag.employees = (from c in ctx.users select new { c.useremailaddress, c.userfullname, c.userstatuscode}).Where(x=>x.userstatuscode==1).Distinct();
 
             ViewBag.departments = (from c in ctx.codesdepartments select new { c.departmentname, c.departmentcode }).Distinct();
 
