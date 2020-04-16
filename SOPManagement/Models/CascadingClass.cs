@@ -11,7 +11,10 @@ namespace SOPManagement.Models
         public int FileID { get; set; }
         public string DeptFileName { get; set; }
         public string SpFilePath { get; set; }
+
+      
         
 
+ 
     }
 }

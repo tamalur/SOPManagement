@@ -327,7 +327,9 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
-    <Content Include="Web.config" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </Content>
@@ -345,6 +347,8 @@
     <Content Include="Views\Home\UploadSOPFile.cshtml" />
     <Content Include="Views\Home\UploadFile.cshtml" />
     <Content Include="Views\Shared\DisplaySubfolders.cshtml" />
+    <Content Include="Views\Home\ApproveSOP.cshtml" />
+    <Content Include="Views\Home\Sessionouterr.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

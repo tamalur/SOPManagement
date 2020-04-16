@@ -16,8 +16,8 @@ namespace SOPManagement.Models
     {
         public int publisheractivityid { get; set; }
         public Nullable<int> changerequestid { get; set; }
-        public Nullable<int> publishid { get; set; }
         public Nullable<short> approvalstatuscode { get; set; }
         public Nullable<System.DateTime> statusdatetime { get; set; }
+        public Nullable<int> publisherid { get; set; }
     }
 }

@@ -20,6 +20,10 @@ namespace SOPManagement.Models
 
         public int FileOwnerID { get; set; }
 
+        public int FileChangeRqsterID { get; set; }
+
+        public int FileChangeRqstID { get; set; }
+
         public int FileApproverID { get; set; }
 
         public string FileApproverEmail { get; set; }
@@ -108,6 +112,10 @@ namespace SOPManagement.Models
 
                     dbcontext.SaveChanges();
 
+                    rvwrid = rvwrtable.reviewid;
+
+                    AddRvwractivities(rvwrid);
+
                     OperationSuccess = true;
                 }
 
@@ -118,6 +126,73 @@ namespace SOPManagement.Models
 
         }
 
+        private void AddRvwractivities(int previewid)
+        {
+            using (var dbcontex = new RadiantSOPEntities())
+            {
+                var rvwractvts = new filereviewersactivity()
+                {
+                    changerequestid= FileChangeRqstID,
+                    reviewid= previewid,
+                     approvalstatuscode=2,   //not signed
+                     statusdatetime=DateTime.Today
+                };
+                dbcontex.filereviewersactivities.Add(rvwractvts);
+                dbcontex.SaveChanges();
+            }
+        }
+
+        private void AddApproveractivities(int papproveid)
+        {
+            using (var dbcontext = new RadiantSOPEntities())
+            {
+                var apprvractvs = new fileapproversactivity()
+                {
+                    changerequestid = FileChangeRqstID,
+                    approveid = papproveid,
+                    approvalstatuscode = 2,   //not signed
+                    statusdatetime = DateTime.Today
+                };
+                dbcontext.fileapproversactivities.Add(apprvractvs);
+                dbcontext.SaveChanges();
+            }
+        }
+
+        private void AddPublisheractivities(int ppublisherid)
+        {
+            using (var dbcontext = new RadiantSOPEntities())
+            {
+                var pblsracvts = new filepublishersactivity()
+                {
+                    changerequestid= FileChangeRqstID,
+                    publisherid= ppublisherid,
+                    approvalstatuscode=8,  //8=not approved
+                    statusdatetime= DateTime.Today
+                };
+
+                dbcontext.filepublishersactivities.Add(pblsracvts);
+                dbcontext.SaveChanges();
+            }
+        }
+
+        private void AddOwneractivities(int pownershipid)
+        {
+            using (var dbcontext = new RadiantSOPEntities())
+            {
+                var owneractvts = new fileownersactivity()
+                {
+                    changerequestid = FileChangeRqstID,
+                    ownershipid = pownershipid,
+                    approvalstatuscode = 2,   //not signed
+                    statusdatetime = DateTime.Today
+
+                };
+                dbcontext.fileownersactivities.Add(owneractvts);
+                dbcontext.SaveChanges();
+            }
+
+        }
+
 
         public void AddFileApprover()
 
@@ -125,6 +200,7 @@ namespace SOPManagement.Models
             //now insert approver into approver table
             Employee emp = new Employee();
             int apprvrid;
+            int apprvid;
             OperationSuccess = false;
 
             emp.useremailaddress = FileApproverEmail;
@@ -143,6 +219,12 @@ namespace SOPManagement.Models
                 dbcontext.fileapprovers.Add(aprvrtable);
 
                 dbcontext.SaveChanges();
+
+                apprvid = aprvrtable.approveid;
+
+                AddApproveractivities(apprvid);
+
+                AddPublisheractivities(apprvrid);   //here publisher id
 
                 OperationSuccess = true;
 
@@ -242,31 +324,60 @@ namespace SOPManagement.Models
             //now insert file owner into owner table
 
             Employee emp = new Employee();
-            int apprvrid;
+            int ownerid;
+            int ownershipid;
             OperationSuccess = false;
 
             emp.useremailaddress = FileOwnerEmail;
             emp.GetUserByEmail();
-            apprvrid = emp.userid;
+            ownerid = emp.userid;
 
             using (var dbcontext = new RadiantSOPEntities())
             {
 
                 var ownertable = new  fileowner()
                 {
-                    ownerid = apprvrid,
+                    ownerid = ownerid,
                     fileid = FileID
 
                 };
                 dbcontext.fileowners.Add(ownertable);
 
                 dbcontext.SaveChanges();
+                ownershipid = ownertable.ownershipid;
+
+                AddOwneractivities(ownershipid);
+
                 OperationSuccess = true;
             }
 
 
 
 
+        }
+
+        public void AddChangeRequest()
+        {
+
+         
+
+            using (var dbcontex = new RadiantSOPEntities())
+            {
+
+                var chngtable = new filechangerequestactivity()
+                {
+                    fileid = FileID,
+                    approvalstatuscode = 2,   //2=not signed
+                    statusdatetime = DateTime.Today,
+                    requesterid=FileChangeRqsterID
+                };
+                dbcontex.filechangerequestactivities.Add(chngtable);
+                dbcontex.SaveChanges();
+
+                FileChangeRqstID = chngtable.changerequestid;
+
+                OperationSuccess = true;
+            }
         }
 
         public void AddUpdateFreq()

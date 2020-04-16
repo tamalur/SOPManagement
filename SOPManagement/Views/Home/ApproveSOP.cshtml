@@ -1,0 +1,81 @@
+﻿@model SOPManagement.Models.Employee
+
+<div>
+    <table id="tblReviewers" class="table" cellpadding="0" cellspacing="0">
+
+        <thead>
+            <tr><td colspan="4">File Reviewrs</td></tr>
+            <tr>
+
+                <th style="width:150px">Full Name</th>
+
+                <th style="width:150px">Email</th>
+
+                <th style="width:150px">Has Signed</th>
+
+
+                <th> Sign Date</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+            @{
+                var fileids = Url.RequestContext.RouteData.Values["id"].ToString();
+                var fileid = fileids.AsInt();
+            }
+            @using (var db = new SOPManagement.Models.RadiantSOPEntities())
+            {
+
+                
+
+                foreach (var usr in db.vwSOPReviewers.Where(x => x.fileid == fileid))
+
+                {
+                    //  if (usr.fileid == 63)
+
+                   
+                    
+
+                    <tr>
+
+                        @*<td>@ViewBag.FileID</td>*@
+
+                        <td> @usr.userfullname </td>
+
+                        <td> @usr.useremailaddress </td>
+
+                        <td>
+                            @*@Html.CheckBoxFor(x => x.HasSignedSOP)*@
+
+                            @Html.CheckBox("test",true)
+
+
+                        </td>
+
+                        <td> @DateTime.Today</td>
+
+   
+                    </tr>
+                    //   }
+
+                }
+            }
+
+        </tbody>
+
+        <tfoot>
+
+            <tr>
+
+                <td>
+
+                 </td>
+  
+            </tr>
+
+        </tfoot>
+
+    </table>
+</div>

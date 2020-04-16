@@ -23,7 +23,7 @@ namespace SOPManagement.Models
         public short userstatuscode { get; set; }
 
         public Employee[] employees { get; set; }
-
+        public bool HasSignedSOP { get; set; }
 
         public void GetUserInfoByEmail()
         {
@@ -122,6 +122,8 @@ namespace SOPManagement.Models
 
 
         }
+
+
 
     }
 }

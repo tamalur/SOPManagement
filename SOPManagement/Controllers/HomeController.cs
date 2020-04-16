@@ -32,6 +32,7 @@ namespace SOPManagement.Controllers
 
         string siteurl = "https://radiantdelivers.sharepoint.com/sites/watercooler";
 
+        RadiantSOPEntities ctx = new RadiantSOPEntities();
 
         public ActionResult Index()
         {
@@ -52,6 +53,38 @@ namespace SOPManagement.Controllers
             return View();
         }
 
+        public ActionResult LogOff()
+        {
+            Session["UserID"] = null; //it's my session variable
+            Session.Clear();
+            Session.Abandon();
+        //    FormsAuthentication.SignOut(); //you write this when you use FormsAuthentication
+            return RedirectToAction("Sessionouterr", "Home");
+        }
+
+        public ActionResult Sessionouterr()
+        {
+            if (Session["UserID"] == null)
+                ViewBag.SessionOutMsg = "Session timed out. Please enter data again!";
+
+            return View();
+
+        }
+        public ActionResult ApproveSOP(int? id)
+        {
+
+            ViewBag.employees = (from c in ctx.users select new { c.useremailaddress, c.userfullname, c.userstatuscode }).Where(x => x.userstatuscode == 1).Distinct();
+            Employee model = new Employee();
+
+            ViewBag.FileID = id;
+
+            model.HasSignedSOP = true;
+     
+            return View(model);
+
+            // return View();
+        }
+
         public ActionResult CreateFile()
         {
             ViewBag.Message = "Create File Page";
@@ -64,7 +97,7 @@ namespace SOPManagement.Controllers
         {
             ViewBag.Message = "Upload SOP File";
 
-            RadiantSOPEntities ctx = new RadiantSOPEntities();
+ 
 
             ViewBag.ddlDeptFolders = new SelectList(GetFolders(), "FileName", "FileName");
 
@@ -176,7 +209,9 @@ namespace SOPManagement.Controllers
             return value.All(char.IsNumber);
         }
 
+        //JsonResult
 
+        [HttpPost]
         public JsonResult UploadCreateFile(HttpPostedFileBase postedFile, string newfilename, string[] reviewers, string[] viewers, string sopno, 
             string approver, string owner, string allvwrs,string vwrdptcode, string deptfoldername,
             string deptsubfoldername, string sopeffdate,string sopupdfreq,string sopupdfrequnit)
@@ -185,6 +220,16 @@ namespace SOPManagement.Controllers
 
 
             //validate data first
+
+            string user="";
+            user= System.Web.HttpContext.Current.User.Identity.Name;
+
+            user= user.Split('\\').Last();
+
+            Session["UserID"] = user;
+
+           // var usr = System.Environment.UserName;
+
 
             if (deptsubfoldername== "--Select Subfolder--")
             {
@@ -203,6 +248,13 @@ namespace SOPManagement.Controllers
             SOPClass oSop = new SOPClass();
 
             Employee oEmp = new Employee();
+
+            if (user != "")
+                oEmp.useremailaddress = user.Trim() + "@radiantdelivers.com";
+
+            oEmp.GetUserByEmail();
+
+            oSop.FileChangeRqsterID = oEmp.userid;
 
             oSop.DocumentLibName = "SOP";
             oSop.SOPNo = sopno;
@@ -327,10 +379,12 @@ namespace SOPManagement.Controllers
 
                 oSop.FileID = oSop.FileID;
 
+                oSop.AddChangeRequest();
                 oSop.AddFileReviewers();
                 oSop.AddFileApprover();
                 oSop.AddFileOwner();
                 oSop.AddUpdateFreq();
+           
 
 
                 //5. assign permissions to the uploaded SOP file in SP
@@ -351,15 +405,17 @@ namespace SOPManagement.Controllers
                     //prepare viewers array
 
 
-                    short sdeptcode = Convert.ToInt16(vwrdptcode);
 
-                    oEmp.departmentcode = sdeptcode;
 
 
                     if (vwrdptcode != "")  //if department is selected then preference is to get employees by department code
                     {
 
-                       oEmp.GetEmployeesByDeptCode();
+                        short sdeptcode = Convert.ToInt16(vwrdptcode);
+                        oEmp.departmentcode = sdeptcode;
+
+
+                        oEmp.GetEmployeesByDeptCode();
 
                         vwrItems = oEmp.employees;
 

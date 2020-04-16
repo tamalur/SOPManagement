@@ -18,5 +18,6 @@ namespace SOPManagement.Models
         public Nullable<int> requesterid { get; set; }
         public Nullable<short> approvalstatuscode { get; set; }
         public Nullable<System.DateTime> statusdatetime { get; set; }
+        public Nullable<int> fileid { get; set; }
     }
 }

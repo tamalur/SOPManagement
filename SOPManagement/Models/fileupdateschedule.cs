@@ -16,11 +16,10 @@ namespace SOPManagement.Models
     {
         public short scheduleid { get; set; }
         public int fileid { get; set; }
-        public System.DateTime scheduledatetime { get; set; }
-        public Nullable<bool> updatecompleted { get; set; }
-        public Nullable<System.DateTime> actualupdatedatetime { get; set; }
         public Nullable<short> frequencyofrevision { get; set; }
         public string unitoffrequency { get; set; }
         public string lastrevisionno { get; set; }
+        public Nullable<System.DateTime> lastpublishdate { get; set; }
+        public Nullable<System.DateTime> scheduledatetime { get; set; }
     }
 }

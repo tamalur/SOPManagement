@@ -15,7 +15,6 @@
 {
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
-    //@Request.QueryString["fileid"]
 
 
     <div>
@@ -29,7 +28,7 @@
     </div>
 
     <br />
-    //class="form-group"
+        //class="form-group"
 
     <div>
         Enter New File Name to Create:
@@ -325,6 +324,9 @@
 
             $("#DeptFileName").change(function () {
 
+                //window.clearTimeout(window.timeoutHandle);
+                //window.timeoutHandle = window.setTimeout("SessionEnd()", window.sTimeout);
+
                 var ifoldername = $(this).val();
                 //debugger
 
@@ -403,6 +405,10 @@
 
             $("#FileID").change(function () {
 
+
+                window.clearTimeout(window.timeoutHandle);
+                window.timeoutHandle = window.setTimeout("SessionEnd()", window.sTimeout);
+
                 var ifoldername = $('#DeptFileName :selected').text()
                 var isubfoldername = $('#FileID :selected').text();
                 //debugger
@@ -475,7 +481,14 @@
 
         $("body").on("click", "#btnAdd", function () {
 
-            //Reference the Name and Country TextBoxes.
+
+            window.clearTimeout(window.timeoutHandle);
+            window.timeoutHandle = window.setTimeout("SessionEnd()", window.sTimeout);
+
+            //setTimeout(function SessionEnd() {
+            //    alert('upload');
+            //    window.location = "/Home/LogOff";
+            //}, window.sTimeout);
 
             var txtName = $("#txtName");
 
@@ -567,6 +580,9 @@
         $("body").on("click", "#btnAddUser", function () {
 
             //Reference the Name and Country TextBoxes.
+
+            window.clearTimeout(window.timeoutHandle);
+            window.timeoutHandle = window.setTimeout("SessionEnd()", window.sTimeout);            
 
             var txtName = $("#txtName");
 
@@ -684,6 +700,9 @@
 
             //Determine the reference of the Row using the Button.
 
+            window.clearTimeout(window.timeoutHandle);
+            window.timeoutHandle = window.setTimeout("SessionEnd()", window.sTimeout);               
+
             var row = $(button).closest("TR");
 
             var name = $("TD", row).eq(0).html();
@@ -713,6 +732,8 @@
 
             //Send the JSON array and other data to Controller using AJAX.
 
+            window.clearTimeout(window.timeoutHandle);
+            window.timeoutHandle = window.setTimeout("SessionEnd()", window.sTimeout);               
 
 
             var reviewerarr = new Array();
@@ -818,6 +839,8 @@
                 processData: false,
 
                 contentType: false,
+
+               // contentType: 'application/json; charset=utf-8',
 
                 dataType: "json",
 

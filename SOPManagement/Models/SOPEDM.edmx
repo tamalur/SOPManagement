@@ -83,6 +83,7 @@ warning 6002: The table/view 'RadiantYYZ.sop.codesuserstatus' does not have a pr
             <PropertyRef Name="changerequestid" />
           </Key>
           <Property Name="changerequestid" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="fileid" Type="int" />
           <Property Name="requesterid" Type="int" />
           <Property Name="approvalstatuscode" Type="smallint" />
           <Property Name="statusdatetime" Type="datetime" />
@@ -121,7 +122,7 @@ warning 6002: The table/view 'RadiantYYZ.sop.codesuserstatus' does not have a pr
           </Key>
           <Property Name="publisheractivityid" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="changerequestid" Type="int" />
-          <Property Name="publishid" Type="int" />
+          <Property Name="publisherid" Type="int" />
           <Property Name="approvalstatuscode" Type="smallint" />
           <Property Name="statusdatetime" Type="datetime" />
         </EntityType>
@@ -149,12 +150,11 @@ warning 6002: The table/view 'RadiantYYZ.sop.codesuserstatus' does not have a pr
           </Key>
           <Property Name="scheduleid" Type="smallint" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="fileid" Type="int" Nullable="false" />
-          <Property Name="scheduledatetime" Type="datetime" Nullable="false" />
-          <Property Name="updatecompleted" Type="bit" />
-          <Property Name="actualupdatedatetime" Type="datetime" />
+          <Property Name="lastpublishdate" Type="datetime" />
           <Property Name="frequencyofrevision" Type="smallint" />
           <Property Name="unitoffrequency" Type="nvarchar" MaxLength="50" />
           <Property Name="lastrevisionno" Type="nvarchar" MaxLength="50" />
+          <Property Name="scheduledatetime" Type="datetime" />
         </EntityType>
         <EntityType Name="fileviewaccesstype">
           <Key>
@@ -481,6 +481,7 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           <Property Name="requesterid" Type="Int32" />
           <Property Name="approvalstatuscode" Type="Int16" />
           <Property Name="statusdatetime" Type="DateTime" Precision="3" />
+          <Property Name="fileid" Type="Int32" />
         </EntityType>
         <EntityType Name="fileowner">
           <Key>
@@ -516,9 +517,9 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           </Key>
           <Property Name="publisheractivityid" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="changerequestid" Type="Int32" />
-          <Property Name="publishid" Type="Int32" />
           <Property Name="approvalstatuscode" Type="Int16" />
           <Property Name="statusdatetime" Type="DateTime" Precision="3" />
+          <Property Name="publisherid" Type="Int32" />
         </EntityType>
         <EntityType Name="filereviewer">
           <Key>
@@ -544,12 +545,11 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           </Key>
           <Property Name="scheduleid" Type="Int16" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="fileid" Type="Int32" Nullable="false" />
-          <Property Name="scheduledatetime" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="updatecompleted" Type="Boolean" />
-          <Property Name="actualupdatedatetime" Type="DateTime" Precision="3" />
           <Property Name="frequencyofrevision" Type="Int16" />
           <Property Name="unitoffrequency" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="lastrevisionno" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="lastpublishdate" Type="DateTime" Precision="3" />
+          <Property Name="scheduledatetime" Type="DateTime" Precision="3" />
         </EntityType>
         <EntityType Name="user">
           <Key>
@@ -804,6 +804,7 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           <EntitySetMapping Name="filechangerequestactivities">
             <EntityTypeMapping TypeName="RadiantYYZModel.filechangerequestactivity">
               <MappingFragment StoreEntitySet="filechangerequestactivities">
+                <ScalarProperty Name="fileid" ColumnName="fileid" />
                 <ScalarProperty Name="changerequestid" ColumnName="changerequestid" />
                 <ScalarProperty Name="requesterid" ColumnName="requesterid" />
                 <ScalarProperty Name="approvalstatuscode" ColumnName="approvalstatuscode" />
@@ -845,9 +846,9 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           <EntitySetMapping Name="filepublishersactivities">
             <EntityTypeMapping TypeName="RadiantYYZModel.filepublishersactivity">
               <MappingFragment StoreEntitySet="filepublishersactivities">
+                <ScalarProperty Name="publisherid" ColumnName="publisherid" />
                 <ScalarProperty Name="publisheractivityid" ColumnName="publisheractivityid" />
                 <ScalarProperty Name="changerequestid" ColumnName="changerequestid" />
-                <ScalarProperty Name="publishid" ColumnName="publishid" />
                 <ScalarProperty Name="approvalstatuscode" ColumnName="approvalstatuscode" />
                 <ScalarProperty Name="statusdatetime" ColumnName="statusdatetime" />
               </MappingFragment>
@@ -876,11 +877,10 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           <EntitySetMapping Name="fileupdateschedules">
             <EntityTypeMapping TypeName="RadiantYYZModel.fileupdateschedule">
               <MappingFragment StoreEntitySet="fileupdateschedule">
+                <ScalarProperty Name="scheduledatetime" ColumnName="scheduledatetime" />
+                <ScalarProperty Name="lastpublishdate" ColumnName="lastpublishdate" />
                 <ScalarProperty Name="scheduleid" ColumnName="scheduleid" />
                 <ScalarProperty Name="fileid" ColumnName="fileid" />
-                <ScalarProperty Name="scheduledatetime" ColumnName="scheduledatetime" />
-                <ScalarProperty Name="updatecompleted" ColumnName="updatecompleted" />
-                <ScalarProperty Name="actualupdatedatetime" ColumnName="actualupdatedatetime" />
                 <ScalarProperty Name="frequencyofrevision" ColumnName="frequencyofrevision" />
                 <ScalarProperty Name="unitoffrequency" ColumnName="unitoffrequency" />
                 <ScalarProperty Name="lastrevisionno" ColumnName="lastrevisionno" />
