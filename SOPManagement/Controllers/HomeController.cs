@@ -97,6 +97,22 @@ namespace SOPManagement.Controllers
         {
             ViewBag.Message = "Upload SOP File";
 
+
+
+            ViewBag.ddlDeptFolders = new SelectList(GetFolders(), "FileName", "FileName");
+
+            ViewBag.employees = (from c in ctx.users select new { c.useremailaddress, c.userfullname, c.userstatuscode }).Where(x => x.userstatuscode == 1).Distinct();
+
+            ViewBag.departments = (from c in ctx.codesdepartments select new { c.departmentname, c.departmentcode }).Distinct();
+
+            return View();
+        }
+
+
+        public ActionResult CreateUploadSOP()
+        {
+            ViewBag.Message = "Upload SOP File";
+
  
 
             ViewBag.ddlDeptFolders = new SelectList(GetFolders(), "FileName", "FileName");
@@ -107,6 +123,16 @@ namespace SOPManagement.Controllers
 
             return View();
         }
+
+        [HttpPost]
+        public ActionResult CreateUploadSOP(SOPClass sop)
+        {
+
+
+            return View();
+
+        }
+
 
 
         //https://www.entityframeworktutorial.net/Querying-with-EDM.aspx
@@ -176,17 +202,6 @@ namespace SOPManagement.Controllers
         {
 
             string lsopno = "";
-
-            //RadiantSOPEntities ctx = new RadiantSOPEntities();
-
-            //    //lsopno = foldername + "-001";
-
-            // lsopno = ctx.GetLastSOPNO(foldername, subfoldername).FirstOrDefault().ToString();
-
-            ////  lsopno = ctx.GetLastSOPNO(foldername, "").ToString();
-            ///
-
-
             SOPClass oSOP = new SOPClass();
             oSOP.FolderName = foldername;
             oSOP.SubFolderName = subfoldername;

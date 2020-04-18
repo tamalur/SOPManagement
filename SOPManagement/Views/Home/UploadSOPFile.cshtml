@@ -411,23 +411,17 @@
 
                 var ifoldername = $('#DeptFileName :selected').text()
                 var isubfoldername = $('#FileID :selected').text();
-                //debugger
-                //var newsopno;
 
                 $.ajax(
                     {
 
                         type: "post",
-                        //url: "/Home/GetSOPNO?foldername=" + foldername,
 
                         url: "/Home/GetSOPNO",
 
-                        @* url: '@Url.Action("GetSOPNO", "Home")',*@
 
-                contentType: 'application/json',
+                         contentType: 'application/json',
                     dataType: 'json',
-                        //data: JSON.stringify(foldername),
-                        //data: { foldername: foldername, foo: "bar", other: "otherValue" },
                         data: JSON.stringify({ foldername: ifoldername, subfoldername: isubfoldername }),
 
                             success: function (data) {
@@ -444,9 +438,6 @@
                                     var currsopno = parseInt(data.sopno) + 1;
 
                                     newsopno = sopcode +"-"+ zeroPad(currsopno,2);
-
-
-                                   // document.getElementById("sopno").value = data.sopno;
                                     document.getElementById("sopno").value = newsopno;
 
                                 }

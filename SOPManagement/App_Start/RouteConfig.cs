@@ -16,7 +16,7 @@ namespace SOPManagement
             routes.MapRoute(
                 name: "Default",
                 url: "{controller}/{action}/{id}",
-                defaults: new { controller = "Home", action = "UploadSOPFile", id = UrlParameter.Optional }
+                defaults: new { controller = "Home", action = "CreateUploadSOP", id = UrlParameter.Optional }
             );
         }
     }

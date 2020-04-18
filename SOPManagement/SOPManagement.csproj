@@ -349,6 +349,7 @@
     <Content Include="Views\Shared\DisplaySubfolders.cshtml" />
     <Content Include="Views\Home\ApproveSOP.cshtml" />
     <Content Include="Views\Home\Sessionouterr.cshtml" />
+    <Content Include="Views\Home\CreateUploadSOP.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

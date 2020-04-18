@@ -59,7 +59,14 @@
         function SessionEnd() {
             
         window.location = "/Home/LogOff";
-    }
+        }
+
+        function UpdateTimeoutTimer() {
+            clearTimeout(myTimeReminder);
+            clearTimeout(myTimeOut);
+            myTimeReminder = setTimeout('doReminder()', sessionTimeReminder);
+            myTimeOut = setTimeout('doRedirect()', sessionTimeout);
+        } 
     </script>
 
 </body>

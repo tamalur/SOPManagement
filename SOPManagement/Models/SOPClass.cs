@@ -13,10 +13,16 @@ namespace SOPManagement.Models
 {
     public class SOPClass
     {
-
+        
         public int FileID { get; set; }
 
+        public String[] Filereviewers { get; set; }
+
+        public String[] Fileviewers { get; set; }
+
         public short? FileStatuscode { get; set;}
+
+        public string FileOwnerEmail { get; set; }
 
         public int FileOwnerID { get; set; }
 
@@ -28,8 +34,7 @@ namespace SOPManagement.Models
 
         public string FileApproverEmail { get; set; }
 
-        public string FileOwnerEmail { get; set; }
-
+   
         public string FileTitle { get; set; }   //title is without sopno
 
         public string FileName { get; set; }  //with sopno in front SOPNO + " "+ FileTitle
