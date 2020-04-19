@@ -24,7 +24,6 @@ namespace SOPManagement.Models
         public Nullable<System.DateTime> LastModifiedDate { get; set; }
         public string ModifiedBy { get; set; }
         public string VersionNo { get; set; }
-        public string ApprovalStatus { get; set; }
         public string Approvedby { get; set; }
         public string DeptFileOwner { get; set; }
         public string SPFilePath { get; set; }
@@ -36,5 +35,26 @@ namespace SOPManagement.Models
         public Nullable<System.DateTime> scheduledatetime { get; set; }
         public Nullable<int> NumberOfDays { get; set; }
         public string SOPFileStatus { get; set; }
+        public string SOPNo { get; set; }
+        public string SharepointApprovalStatus { get; set; }
+        public Nullable<int> ApproverID { get; set; }
+        public Nullable<short> ApproverDeptCode { get; set; }
+        public string ApproverName { get; set; }
+        public Nullable<short> ApproverApprovalStatusCode { get; set; }
+        public string ApproverApprovalStatus { get; set; }
+        public Nullable<int> OwnerID { get; set; }
+        public Nullable<short> OwnerDeptCode { get; set; }
+        public string OwnerName { get; set; }
+        public Nullable<short> OwnerApprovalStatusCode { get; set; }
+        public string OwnerApprovalStatus { get; set; }
+        public Nullable<short> ReviewerApprovalStatusCode { get; set; }
+        public string Reviewers { get; set; }
+        public Nullable<int> publisherID { get; set; }
+        public Nullable<short> PublisherDeptCode { get; set; }
+        public string PublisherName { get; set; }
+        public Nullable<short> PublisherApprovalStatusCode { get; set; }
+        public string PublisherApprovalStatus { get; set; }
+        public Nullable<System.DateTime> EffectiveDate { get; set; }
+        public Nullable<System.DateTime> NextUpdateDate { get; set; }
     }
 }

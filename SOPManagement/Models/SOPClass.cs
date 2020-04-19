@@ -16,9 +16,9 @@ namespace SOPManagement.Models
         
         public int FileID { get; set; }
 
-        public String[] Filereviewers { get; set; }
+        public string[] FilereviewersArr { get; set; }
 
-        public String[] Fileviewers { get; set; }
+        public string[] FileviewersArr { get; set; }
 
         public short? FileStatuscode { get; set;}
 

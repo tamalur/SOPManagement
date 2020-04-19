@@ -1,7 +1,7 @@
 ﻿@model SOPManagement.Models.SOPClass
 
 
-@using (Html.BeginForm())
+@using (Html.BeginForm("CreateUploadSOP", "Home", FormMethod.Post))
 
 {
     @Html.AntiForgeryToken()
@@ -64,123 +64,16 @@
     <div class="form-group">
         @Html.LabelFor(model => model.SOPNo, htmlAttributes: new { @class = "control-label col-md-2" })
         <div class="col-md-10">
-            @Html.EditorFor(model => model.SOPNo, new { htmlAttributes = new { @class = "form-control",@id = "newsopno" } })
+            @Html.EditorFor(model => model.SOPNo, new { htmlAttributes = new { @class = "form-control", @id = "newsopno" } })
             @Html.ValidationMessageFor(model => model.SOPNo, "", new { @class = "text-danger" })
         </div>
-    </div> 
-
-    <div class="form-group">
-        @Html.LabelFor(model => model.FileID, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(model => model.FileID, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.FileID, "", new { @class = "text-danger" })
-        </div>
     </div>
 
     <div class="form-group">
-        @Html.LabelFor(model => model.FileStatuscode, htmlAttributes: new { @class = "control-label col-md-2" })
+        @Html.LabelFor(model => model.SOPEffectiveDate, htmlAttributes: new { @class = "control-label col-md-2" })
         <div class="col-md-10">
-            @Html.EditorFor(model => model.FileStatuscode, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.FileStatuscode, "", new { @class = "text-danger" })
-        </div>
-    </div>
-
-    <div class="form-group">
-        @Html.LabelFor(model => model.FileOwnerEmail, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(model => model.FileOwnerEmail, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.FileOwnerEmail, "", new { @class = "text-danger" })
-        </div>
-    </div>
-
-    <div class="form-group">
-        @Html.LabelFor(model => model.FileOwnerID, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(model => model.FileOwnerID, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.FileOwnerID, "", new { @class = "text-danger" })
-        </div>
-    </div>
-
-    <div class="form-group">
-        @Html.LabelFor(model => model.FileChangeRqsterID, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(model => model.FileChangeRqsterID, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.FileChangeRqsterID, "", new { @class = "text-danger" })
-        </div>
-    </div>
-
-    <div class="form-group">
-        @Html.LabelFor(model => model.FileChangeRqstID, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(model => model.FileChangeRqstID, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.FileChangeRqstID, "", new { @class = "text-danger" })
-        </div>
-    </div>
-
-    <div class="form-group">
-        @Html.LabelFor(model => model.FileApproverID, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(model => model.FileApproverID, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.FileApproverID, "", new { @class = "text-danger" })
-        </div>
-    </div>
-
-    <div class="form-group">
-        @Html.LabelFor(model => model.FileApproverEmail, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(model => model.FileApproverEmail, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.FileApproverEmail, "", new { @class = "text-danger" })
-        </div>
-    </div>
-
-    <div class="form-group">
-        @Html.LabelFor(model => model.FileTitle, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(model => model.FileTitle, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.FileTitle, "", new { @class = "text-danger" })
-        </div>
-    </div>
-
-
-
-
-    <div class="form-group">
-        @Html.LabelFor(model => model.DepartmentName, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(model => model.DepartmentName, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.DepartmentName, "", new { @class = "text-danger" })
-        </div>
-    </div>
-
-    <div class="form-group">
-        @Html.LabelFor(model => model.DepartmentCode, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(model => model.DepartmentCode, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.DepartmentCode, "", new { @class = "text-danger" })
-        </div>
-    </div>
-
-    <div class="form-group">
-        @Html.LabelFor(model => model.ViewAccessType, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(model => model.ViewAccessType, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.ViewAccessType, "", new { @class = "text-danger" })
-        </div>
-    </div>
-
-    <div class="form-group">
-        @Html.LabelFor(model => model.ViewAccessTypeID, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(model => model.ViewAccessTypeID, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.ViewAccessTypeID, "", new { @class = "text-danger" })
-        </div>
-    </div>
-
-    <div class="form-group">
-        @Html.LabelFor(model => model.FileCurrVersion, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(model => model.FileCurrVersion, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.FileCurrVersion, "", new { @class = "text-danger" })
+            @Html.EditorFor(model => model.SOPEffectiveDate, new { htmlAttributes = new { @class = "form-control", type = "date" } })
+            @Html.ValidationMessageFor(model => model.SOPEffectiveDate, "", new { @class = "text-danger" })
         </div>
     </div>
 
@@ -193,180 +86,215 @@
     </div>
 
     <div class="form-group">
+
         @Html.LabelFor(model => model.Updatefrequnit, htmlAttributes: new { @class = "control-label col-md-2" })
         <div class="col-md-10">
-            @Html.EditorFor(model => model.Updatefrequnit, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.Updatefrequnit, "", new { @class = "text-danger" })
+            @*@Html.EditorFor(model => model.Updatefrequnit, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Updatefrequnit, "", new { @class = "text-danger" })*@
+
+
+            @if (ViewBag.updfrequnits != null)
+            {
+                @Html.DropDownListFor(model => model.Updatefrequnit, new SelectList(ViewBag.updfrequnits, "unitcode", "Unitname"), "Please select freq. unit", new { @class = "form-control", @id = "ddlUpdFreqUnit" })
+            }
+
         </div>
     </div>
 
     <div class="form-group">
-        @Html.LabelFor(model => model.FileLink, htmlAttributes: new { @class = "control-label col-md-2" })
+        @Html.LabelFor(model => model.FileOwnerEmail, htmlAttributes: new { @class = "control-label col-md-2" })
         <div class="col-md-10">
-            @Html.EditorFor(model => model.FileLink, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.FileLink, "", new { @class = "text-danger" })
+            @*@Html.EditorFor(model => model.FileOwnerEmail, new { htmlAttributes = new { @class = "form-control" } })*@
+
+            @Html.DropDownListFor(model => model.Updatefrequnit, new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select owner", new { @class = "form-control", @id = "ddlSOPOwners" })
+            @Html.ValidationMessageFor(model => model.FileOwnerEmail, "", new { @class = "text-danger" })
         </div>
     </div>
 
     <div class="form-group">
-        @Html.LabelFor(model => model.FilePath, htmlAttributes: new { @class = "control-label col-md-2" })
+        @Html.LabelFor(model => model.FileApproverEmail, htmlAttributes: new { @class = "control-label col-md-2" })
         <div class="col-md-10">
-            @Html.EditorFor(model => model.FilePath, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.FilePath, "", new { @class = "text-danger" })
+            @Html.EditorFor(model => model.FileApproverEmail, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.FileApproverEmail, "", new { @class = "text-danger" })
         </div>
     </div>
 
+
     <div class="form-group">
-        @Html.LabelFor(model => model.OperationSuccess, htmlAttributes: new { @class = "control-label col-md-2" })
+
+        @Html.Label("Add Reviewers", htmlAttributes: new { @class = "control-label col-md-2" })
         <div class="col-md-10">
-            <div class="checkbox">
-                @Html.EditorFor(model => model.OperationSuccess)
-                @Html.ValidationMessageFor(model => model.OperationSuccess, "", new { @class = "text-danger" })
-            </div>
+            <table id="tblReviewers" class="table" cellpadding="0" cellspacing="0">
+
+                <thead>
+
+                    <tr>
+
+                        <th style="width:150px">Full Name</th>
+
+                        <th style="width:150px">Email</th>
+
+                        @*<th style="width:150px">Job Title</th>*@
+
+                        <th></th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @using (var db = new SOPManagement.Models.RadiantSOPEntities())
+                    {
+
+                        foreach (var usr in db.vwSOPReviewers.Where(x => x.fileid == -1))
+
+                        {
+                            //  if (usr.fileid == 63)
+
+                            // {
+
+
+                            <tr>
+
+                                <td> @usr.userfullname </td>
+
+                                <td> @usr.useremailaddress </td>
+
+                                @*<td> @usr.jobtitle </td>*@
+
+                                <td><input type="button" value="Remove" onclick="Remove(this,'#tblReviewers')" /></td>
+
+
+
+                            </tr>
+                            //   }
+
+                        }
+                    }
+
+                </tbody>
+
+                <tfoot>
+
+                    <tr>
+
+                        <td>
+
+                            @Html.DropDownList("userid", new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select", new { @id = "ddlEmployees" })
+                        </td>
+
+
+
+
+                        <td colspan="2"><input type="button" id="btnAddRvwer" value="Add" /></td>
+
+                    </tr>
+
+                </tfoot>
+
+            </table>
+
         </div>
     </div>
 
+
+
     <div class="form-group">
-        @Html.LabelFor(model => model.DocumentLibName, htmlAttributes: new { @class = "control-label col-md-2" })
+        @Html.LabelFor(model => model.DepartmentName, htmlAttributes: new { @class = "control-label col-md-2" })
         <div class="col-md-10">
-            @Html.EditorFor(model => model.DocumentLibName, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.DocumentLibName, "", new { @class = "text-danger" })
+            @Html.EditorFor(model => model.DepartmentName, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.DepartmentName, "", new { @class = "text-danger" })
         </div>
     </div>
 
+ 
     <div class="form-group">
-        @Html.LabelFor(model => model.FileUrl, htmlAttributes: new { @class = "control-label col-md-2" })
+        @Html.LabelFor(model => model.ViewAccessType, htmlAttributes: new { @class = "control-label col-md-2" })
         <div class="col-md-10">
-            @Html.EditorFor(model => model.FileUrl, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.FileUrl, "", new { @class = "text-danger" })
+            @Html.EditorFor(model => model.ViewAccessType, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.ViewAccessType, "", new { @class = "text-danger" })
         </div>
     </div>
 
-    <div class="form-group">
-        @Html.LabelFor(model => model.SiteUrl, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(model => model.SiteUrl, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.SiteUrl, "", new { @class = "text-danger" })
-        </div>
-    </div>
-
-    <div class="form-group">
-        @Html.LabelFor(model => model.SOPEffectiveDate, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(model => model.SOPEffectiveDate, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.SOPEffectiveDate, "", new { @class = "text-danger" })
-        </div>
-    </div>
-
-    <div class="form-group">
-        @Html.LabelFor(model => model.FileUploaded, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            <div class="checkbox">
-                @Html.EditorFor(model => model.FileUploaded)
-                @Html.ValidationMessageFor(model => model.FileUploaded, "", new { @class = "text-danger" })
-            </div>
-        </div>
-    </div>
-
-    <div class="form-group">
-        @Html.LabelFor(model => model.ErrorMessage, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(model => model.ErrorMessage, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.ErrorMessage, "", new { @class = "text-danger" })
-        </div>
-    </div>
-
-    <div class="form-group">
-        @Html.LabelFor(model => model.UserName, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(model => model.UserName, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.UserName, "", new { @class = "text-danger" })
-        </div>
-    </div>
-
-    <div class="form-group">
-        @Html.LabelFor(model => model.Password, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(model => model.Password, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
-        </div>
-    </div>
 
     <div class="form-group">
         <div class="col-md-offset-2 col-md-10">
-            <input type="submit" value="Create" class="btn btn-default" />
+            <input type="submit" value="Create" id="btnSubmit" onclick="submit();" class="btn btn-default" />
         </div>
     </div>
 </div>
-}
-
-<div>
-    @Html.ActionLink("Back to List", "Index")
-</div>
+    }
 
 
+    <div>
+        @Html.ActionLink("Back to List", "Index")
+    </div>
+
+<div><button onclick="submit()">Submit Form</button></div>
+
+    @*javascript codes*@
+
+    <script src="~/Scripts/jquery-3.3.1.min.js"></script>
+
+    @section Scripts {
+        @Scripts.Render("~/bundles/jqueryval")
 
 
-<script src="~/Scripts/jquery-3.3.1.min.js"></script>
+    }
 
-@section Scripts {
-    @Scripts.Render("~/bundles/jqueryval")
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 
-
-}
-
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-
-<script type="text/javascript" src="http://ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js"></script>
+    <script type="text/javascript" src="http://ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js"></script>
 
 
-<script>
+    <script>
 
 
-    $(document).ready(function () {
+        $(document).ready(function () {
 
 
-        $("#FolderName").change(function () {
+            $("#FolderName").change(function () {
 
-            var ifoldername = $(this).val();
+                var ifoldername = $(this).val();
 
-            $.ajax(
-                {
+                $.ajax(
+                    {
 
-                    type: "post",
-                    url: "/Home/GetSubFolderList?foldername=" + ifoldername,
-                    contentType: "html",
-                    success: function (response) {
-                        //  debugger
-                        $("#SubFolderName").empty();
-                        $("#SubFolderName").append(response);
+                        type: "post",
+                        url: "/Home/GetSubFolderList?foldername=" + ifoldername,
+                        contentType: "html",
+                        success: function (response) {
+                            //  debugger
+                            $("#SubFolderName").empty();
+                            $("#SubFolderName").append(response);
 
-                    }  //end success
+                        }  //end success
 
-                })    //end ajax call function for getting subfolders by selected folder
+                    })    //end ajax call function for getting subfolders by selected folder
 
 
-            $.ajax(
-                {
+                $.ajax(
+                    {
 
-                   type: "post",
-                    url: "/Home/GetSOPNO",
-                    contentType: 'application/json',
-                    dataType: 'json',
-                    data: JSON.stringify({ foldername: ifoldername, subfoldername: "" }),
+                        type: "post",
+                        url: "/Home/GetSOPNO",
+                        contentType: 'application/json',
+                        dataType: 'json',
+                        data: JSON.stringify({ foldername: ifoldername, subfoldername: "" }),
 
                         success: function (data) {
                             //  debugger
                             if (data.success) {
 
-                              //  document.getElementById("newsopno").value = data.sopno;
+                                //  document.getElementById("newsopno").value = data.sopno;
 
 
                                 var n1 = ifoldername.indexOf("(");
 
                                 var n2 = ifoldername.indexOf(")");
 
-               
+
                                 var sopcode = ifoldername.substring(n1 + 1, n2);
 
                                 var currsopno = parseInt(data.sopno) + 1;
@@ -382,55 +310,367 @@
                         }
                     })  //end ajax call for getting new SOPNo by folder name
 
-        })   //end folder change function
+            })   //end folder change function
 
-        $("#SubFolderName").change(function () {
+            $("#SubFolderName").change(function () {
 
-            var ifoldername = $('#FolderName :selected').text()
-            var isubfoldername = $('#SubFolderName :selected').text();
+                var ifoldername = $('#FolderName :selected').text()
+                var isubfoldername = $('#SubFolderName :selected').text();
 
-            $.ajax(
-                {
-                    type: "post",
-                    url: "/Home/GetSOPNO",
-                    contentType: 'application/json',
-                    dataType: 'json',
-                    data: JSON.stringify({ foldername: ifoldername, subfoldername: isubfoldername }),
+                $.ajax(
+                    {
+                        type: "post",
+                        url: "/Home/GetSOPNO",
+                        contentType: 'application/json',
+                        dataType: 'json',
+                        data: JSON.stringify({ foldername: ifoldername, subfoldername: isubfoldername }),
 
-                    success: function (data) {
-                        //  debugger
+                        success: function (data) {
+                            //  debugger
 
-                        if (data.success) {
+                            if (data.success) {
 
-                            var n1 = isubfoldername.indexOf("(");
+                                var n1 = isubfoldername.indexOf("(");
 
-                            var n2 = isubfoldername.indexOf(")");
+                                var n2 = isubfoldername.indexOf(")");
 
-                            var sopcode = isubfoldername.substring(n1 + 1, n2);
+                                var sopcode = isubfoldername.substring(n1 + 1, n2);
 
-                            var currsopno = parseInt(data.sopno) + 1;
+                                var currsopno = parseInt(data.sopno) + 1;
 
-                            newsopno = sopcode + "-" + zeroPad(currsopno, 2);
-                            document.getElementById("newsopno").value = newsopno;
+                                newsopno = sopcode + "-" + zeroPad(currsopno, 2);
+                                document.getElementById("newsopno").value = newsopno;
 
-                        }
-                        else {
-                            alert('invalid SOP' + data.success);
-                        }
+                            }
+                            else {
+                                alert('invalid SOP' + data.success);
+                            }
 
-                    }  //end success
-                }) //end ajax call to get new sopno by subfolder
-
-
-
-        })  //end Change event of sunfolder to get new sop no 
-
-    });    //end document.ready function
+                        }  //end success
+                    }) //end ajax call to get new sopno by subfolder
 
 
-    function zeroPad(num, places) {
-        var zero = places - num.toString().length + 1;
-        return Array(+(zero > 0 && zero)).join("0") + num;
-    }
 
-</script>
+            })  //end Change event of sunfolder to get new sop no
+
+        });    //end document.ready function
+
+
+        function zeroPad(num, places) {
+            var zero = places - num.toString().length + 1;
+            return Array(+(zero > 0 && zero)).join("0") + num;
+        }
+
+
+
+        $("body").on("click", "#btnAddRvwer", function () {
+
+
+            //Get the reference of the Table's TBODY element.
+
+            var tBody = $("#tblReviewers > TBODY")[0];
+
+
+            var eml = $('#ddlEmployees').val();
+
+            var f = searchtable(eml, 'tblReviewers');
+
+
+            if (f != '') {
+
+                alert('already added');
+                return;
+
+            }
+
+            //Add Row.
+
+            var row = tBody.insertRow(-1);
+
+
+
+            //Add Name cell.
+
+            var cell = $(row.insertCell(-1));
+
+
+            cell.html($('#ddlEmployees :selected').text());
+
+
+            //Add Country cell.
+
+            cell = $(row.insertCell(-1));
+
+            //cell.html(txtEmail.val());
+
+            cell.html($('#ddlEmployees').val());
+
+
+
+            //Add Button cell.
+
+            cell = $(row.insertCell(-1));
+
+            var btnRemoveRvr = $("<input />");
+
+            btnRemoveRvr.attr("type", "button");
+
+            btnRemoveRvr.attr("onclick", "Remove(this,'#tblReviewers');");
+
+            btnRemoveRvr.val("Remove");
+
+            cell.append(btnRemoveRvr);
+
+
+        });
+
+
+        $("body").on("click", "#btnAddUser", function () {
+
+            //Reference the Name and Country TextBoxes.
+
+
+            var txtName = $("#txtName");
+
+            var txtEmail = $("#txtEmail");
+
+            var txtEmail = $('#ddlViewers').val();
+
+
+            //To get the currently selected text:
+            // $('#dropDownId :selected').text();
+
+
+
+            //Get the reference of the Table's TBODY element.
+
+            var tBody = $("#tblViewers > TBODY")[0];
+
+
+            var eml = $('#ddlViewers').val();
+
+            var f = searchtable(eml, 'tblViewers');
+
+
+            //alert(f);
+
+            // document.getElementById("ddlEmployees").contains(eml);
+
+            if (f != '') {
+
+                alert('already added');
+                return;
+
+            }
+
+            //Add Row.
+
+            var row = tBody.insertRow(-1);
+
+
+
+            //Add Name cell.
+
+            var cell = $(row.insertCell(-1));
+
+            //cell.html(txtName.val());
+
+            cell.html($('#ddlViewers :selected').text());
+
+            //$('#ddlEmployees :selected').text();
+
+
+
+            //Add Country cell.
+
+            cell = $(row.insertCell(-1));
+
+            //cell.html(txtEmail.val());
+
+            cell.html($('#ddlViewers').val());
+
+
+
+            //Add Button cell.
+
+            cell = $(row.insertCell(-1));
+
+            var btnRemoveVwr = $("<input />");
+
+            btnRemoveVwr.attr("type", "button");
+
+            //btnRemove.attr("onclick", "Remove(this);");
+            btnRemoveVwr.attr("onclick", "Remove(this,'#tblViewers');");
+
+            btnRemoveVwr.val("Remove");
+
+            cell.append(btnRemoveVwr);
+
+
+
+            //Clear the TextBoxes.
+
+            txtName.val("");
+
+            // txtEmail.val("");famnb1932
+
+
+        });
+
+
+        function searchtable(eml, tblname) {
+
+            var tab = document.getElementById(tblname);
+            var l = tab.rows.length;
+            var s = '';
+            for (var i = 0; i < l; i++) {
+                var tr = tab.rows[i];
+                var cll = tr.cells[1];
+
+                if (cll.innerText.indexOf(eml) != -1) {
+                    //document.write(i + 1);
+
+                    s = 'found';
+                    break;
+                }
+            }
+
+            return s;
+
+        }
+
+         function Remove(button, tableid) {
+
+            //Determine the reference of the Row using the Button.
+
+            window.clearTimeout(window.timeoutHandle);
+            window.timeoutHandle = window.setTimeout("SessionEnd()", window.sTimeout);
+
+            var row = $(button).closest("TR");
+
+            var name = $("TD", row).eq(0).html();
+
+            if (confirm("Do you want to delete: " + name)) {
+
+                //Get the reference of the Table.
+
+                // var table = $("#tblReviewers")[0];
+
+                var table = $(tableid)[0];
+
+
+
+                //Delete the Table row using it's Index.
+
+                table.deleteRow(row[0].rowIndex);
+
+            }
+
+        };
+
+
+
+
+        $("body").on("click", "#btnSubmit", function () {
+
+
+            //Send the JSON array and other data to Controller using AJAX.
+
+
+            var reviewerarr = new Array();
+
+            var viewersarr = new Array();
+
+            //Loop through the Table rows and build a JSON array.
+
+            //$("#tblReviewers TBODY TR").each(function () {
+
+            //    var row = $(this);
+
+            //    var reviewer = {};
+
+            //    reviewer.userfullname = row.find("TD").eq(0).html();
+
+            //    reviewer.useremailaddress = row.find("TD").eq(1).html();
+
+            //    reviewerarr.push(reviewer);
+
+
+            //});
+
+
+            $("#tblViewers TBODY TR").each(function () {
+
+                var row = $(this);
+
+                var viewer = {};
+
+                viewer.userfullname = row.find("TD").eq(0).html();
+
+                viewer.useremailaddress = row.find("TD").eq(1).html();
+
+                viewersarr.push(viewer);
+
+
+            });
+
+
+  
+            var formData = new FormData();
+
+            var rvwrarr = JSON.stringify(reviewerarr);
+
+            var vwrarr = JSON.stringify(viewersarr);
+
+            
+            //Upon success of the first request to upload file or create file, initiate the second request to process the uploaded file
+
+         //   submit(rvwrarr);
+
+
+        });
+
+
+
+        function submit() {
+
+            var reviewerarr = new Array();
+
+            var viewersarr = new Array();
+
+            //Loop through the Table rows and build a JSON array.
+
+            $("#tblReviewers TBODY TR").each(function () {
+
+                var row = $(this);
+
+                var reviewer = {};
+
+                reviewer.userfullname = row.find("TD").eq(0).html();
+
+                reviewer.useremailaddress = row.find("TD").eq(1).html();
+
+                reviewerarr.push(reviewer);
+
+
+            });
+
+            var rvwrarr = JSON.stringify(reviewerarr);
+
+            alert(rvwrarr);
+            alert($('#newsopno').val());
+
+            var data = {
+
+                FileCurrVersion: $('#newsopno').val(),
+                FilereviewersArr: rvwrarr
+
+            };
+
+            alert(data);
+
+            
+
+            $.post("/Home/CreateUploadSOP", { sop: data }, function () { alert('Successfully Saved') });
+        }
+    </script>

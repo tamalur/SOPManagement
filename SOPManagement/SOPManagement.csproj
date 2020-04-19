@@ -204,6 +204,9 @@
     <Compile Include="Models\codesfilestatu.cs">
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\codesUnit.cs">
+      <DependentUpon>SOPEDM.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\codesuserstatu.cs">
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
