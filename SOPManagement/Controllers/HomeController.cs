@@ -136,9 +136,33 @@ namespace SOPManagement.Controllers
         public ActionResult CreateUploadSOP(SOPManagement.Models.SOPClass sop)
         {
             String test;
-            test = sop.FolderName;
+            ViewBag.employees = (from c in ctx.users select new { c.useremailaddress, c.userfullname, c.userstatuscode, c.jobtitle }).Where(x => x.userstatuscode == 1).Distinct();
 
-            return View();
+
+            if (ModelState.IsValid)
+                test = sop.FolderName;
+
+            // return View();
+           // sop.ErrorMessage = DateTime.Now;
+
+            //return Json(sop);
+
+            if (!ModelState.IsValid)
+            {
+                //  Send "false"
+                sop.ErrorMessage = "failed to uploade!";
+                //return Json(new { success = false, sop  }, JsonRequestBehavior.AllowGet);
+
+                return Json(new { success = false, responseText="failed to upload" }, JsonRequestBehavior.AllowGet);
+
+                //return Json(sop);
+            }
+            else
+            {
+                //  Send "Success"
+                sop.ErrorMessage = "successfuly uploaded!";
+                return Json(new { success = true, sop }, JsonRequestBehavior.AllowGet);
+            }
 
         }
 
@@ -175,6 +199,28 @@ namespace SOPManagement.Controllers
 
 
         }
+
+        [HttpGet]
+        public JsonResult CheckIfExists(string FileName)
+        {
+            bool isExist = false;
+            if (FileName.Equals("abc@gmail.com"))
+            {
+                isExist = true;
+            }
+            return Json(isExist, JsonRequestBehavior.AllowGet);
+        }
+
+        //public JsonResult CheckIfInt(string Updatefreq)
+        //{
+        //    bool isExist = false;
+        //    if (IsNumeric(Updatefreq))
+        //    {
+        //        isExist = true;
+        //    }
+        //    return Json(isExist, JsonRequestBehavior.AllowGet);
+        //}
+
 
 
         public ActionResult GetSubFolderList(string foldername)

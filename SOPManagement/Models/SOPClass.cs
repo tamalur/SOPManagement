@@ -9,8 +9,15 @@ using System.Collections;
 using Microsoft.SharePoint.Client;
 using System.Security;
 
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel;
+using System.Web.Mvc;
+
 namespace SOPManagement.Models
 {
+
+    [Bind(Exclude = "Id")]
+
     public class SOPClass
     {
         
@@ -20,8 +27,11 @@ namespace SOPManagement.Models
 
         public string[] FileviewersArr { get; set; }
 
+        public bool AllUsersReadAcc { get; set; }
+
         public short? FileStatuscode { get; set;}
 
+        //[Required(ErrorMessage = "File Owner is Required")]
         public string FileOwnerEmail { get; set; }
 
         public int FileOwnerID { get; set; }
@@ -37,10 +47,12 @@ namespace SOPManagement.Models
    
         public string FileTitle { get; set; }   //title is without sopno
 
+        //[System.Web.Mvc.Remote("CheckIfExists", "Home", ErrorMessage = "Valid File name needed")]
         public string FileName { get; set; }  //with sopno in front SOPNO + " "+ FileTitle
 
         public byte[] FileStream { get; set; }  //with sopno in front SOPNO + " "+ FileTitle
 
+        [Required(ErrorMessage = "Folder name is Required")]
         public string FolderName { get; set; }
 
         public string SubFolderName { get; set; }
@@ -52,6 +64,7 @@ namespace SOPManagement.Models
 
         public int  ViewAccessTypeID { get; set; }
 
+       
         public string SOPNo { get; set; }
 
         public FileRevision[] FileRevisions { get; set; }

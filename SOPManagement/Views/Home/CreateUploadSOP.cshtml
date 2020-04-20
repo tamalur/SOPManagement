@@ -14,7 +14,8 @@
     <div class="form-group">
         @Html.LabelFor(model => model.UploadedFile, htmlAttributes: new { @class = "control-label col-md-2" })
         <div class="col-md-10">
-            @Html.TextBoxFor(model => model.UploadedFile, null, new { type = "file", @class = "input-file" })
+            @Html.TextBoxFor(model => model.UploadedFile, null, new { type = "file", @class = "form-control" })
+      
         </div>
     </div>
 
@@ -64,7 +65,7 @@
     <div class="form-group">
         @Html.LabelFor(model => model.SOPNo, htmlAttributes: new { @class = "control-label col-md-2" })
         <div class="col-md-10">
-            @Html.EditorFor(model => model.SOPNo, new { htmlAttributes = new { @class = "form-control", @id = "newsopno" } })
+            @Html.EditorFor(model => model.SOPNo, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly" } })
             @Html.ValidationMessageFor(model => model.SOPNo, "", new { @class = "text-danger" })
         </div>
     </div>
@@ -95,26 +96,26 @@
 
             @if (ViewBag.updfrequnits != null)
             {
-                @Html.DropDownListFor(model => model.Updatefrequnit, new SelectList(ViewBag.updfrequnits, "unitcode", "Unitname"), "Please select freq. unit", new { @class = "form-control", @id = "ddlUpdFreqUnit" })
+                @Html.DropDownListFor(model => model.Updatefrequnit, new SelectList(ViewBag.updfrequnits, "unitcode", "Unitname"), "Please select freq. unit", new { @class = "form-control" })
             }
 
         </div>
     </div>
 
     <div class="form-group">
-        @Html.LabelFor(model => model.FileOwnerEmail, htmlAttributes: new { @class = "control-label col-md-2" })
+        @Html.Label("SOP Owner", htmlAttributes: new { @class = "control-label col-md-2" })
         <div class="col-md-10">
             @*@Html.EditorFor(model => model.FileOwnerEmail, new { htmlAttributes = new { @class = "form-control" } })*@
 
-            @Html.DropDownListFor(model => model.Updatefrequnit, new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select owner", new { @class = "form-control", @id = "ddlSOPOwners" })
+            @Html.DropDownListFor(model => model.FileOwnerEmail, new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select SOP owner", new { @class = "form-control"})
             @Html.ValidationMessageFor(model => model.FileOwnerEmail, "", new { @class = "text-danger" })
         </div>
     </div>
 
     <div class="form-group">
-        @Html.LabelFor(model => model.FileApproverEmail, htmlAttributes: new { @class = "control-label col-md-2" })
+        @Html.Label("SOP Approver", htmlAttributes: new { @class = "control-label col-md-2" })
         <div class="col-md-10">
-            @Html.EditorFor(model => model.FileApproverEmail, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.DropDownListFor(model => model.FileApproverEmail, new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select SOP approver", new { @class = "form-control"})
             @Html.ValidationMessageFor(model => model.FileApproverEmail, "", new { @class = "text-danger" })
         </div>
     </div>
@@ -199,39 +200,125 @@
     </div>
 
 
-
     <div class="form-group">
-        @Html.LabelFor(model => model.DepartmentName, htmlAttributes: new { @class = "control-label col-md-2" })
+        @Html.Label("Read Access to All", htmlAttributes: new { @class = "control-label col-md-2" })
+
         <div class="col-md-10">
-            @Html.EditorFor(model => model.DepartmentName, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.DepartmentName, "", new { @class = "text-danger" })
+            @Html.CheckBoxFor(model => model.AllUsersReadAcc, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.AllUsersReadAcc, "", new { @class = "text-danger" })
         </div>
     </div>
 
- 
     <div class="form-group">
-        @Html.LabelFor(model => model.ViewAccessType, htmlAttributes: new { @class = "control-label col-md-2" })
+        @Html.Label("Read Access to a Department", htmlAttributes: new { @class = "control-label col-md-2" })
+
         <div class="col-md-10">
-            @Html.EditorFor(model => model.ViewAccessType, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.ViewAccessType, "", new { @class = "text-danger" })
+            @Html.DropDownListFor(model => model.DepartmentCode, new SelectList(ViewBag.departments, "departmentcode", "departmentname"), "Select a department", new { @class = "form-control" })
+            @Html.ValidationMessageFor(model => model.DepartmentCode, "", new { @class = "text-danger" })
         </div>
     </div>
 
+
+    <div class="form-group">
+
+        @Html.Label("Add Viewers", htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            <table id="tblViewers" class="table" cellpadding="0" cellspacing="0">
+
+                <thead>
+
+                    <tr>
+
+                        <th style="width:150px">Full Name</th>
+
+                        <th style="width:150px">Email</th>
+
+                        @*<th style="width:150px">Job Title</th>*@
+
+                        <th></th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @using (var db = new SOPManagement.Models.RadiantSOPEntities())
+                    {
+
+                        foreach (var usr in db.vwSOPReviewers.Where(x => x.fileid == -1))
+
+                        {
+                            //  if (usr.fileid == 63)
+
+                            // {
+
+
+                            <tr>
+
+                                <td> @usr.userfullname </td>
+
+                                <td> @usr.useremailaddress </td>
+
+                                @*<td> @usr.jobtitle </td>*@
+
+                                <td><input type="button" value="Remove" onclick="Remove(this,'#tblViewers')" /></td>
+
+
+
+                            </tr>
+                            //   }
+
+                        }
+                    }
+
+                </tbody>
+
+                <tfoot>
+
+                    <tr>
+
+                        <td>
+
+                            @Html.DropDownList("userid", new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select a viewer", new { @id = "ddlViewers" })
+                        </td>
+
+
+
+
+                        <td colspan="2"><input type="button" id="btnAddVwer" value="Add" /></td>
+
+                    </tr>
+
+                </tfoot>
+
+            </table>
+
+        </div>
+    </div>
 
     <div class="form-group">
         <div class="col-md-offset-2 col-md-10">
-            <input type="submit" value="Create" id="btnSubmit" onclick="submit();" class="btn btn-default" />
+            @*<input type="submit" value="Create" id="btnSubmit" onclick="submit();" class="btn btn-default" />*@
+        
+          
         </div>
     </div>
+
 </div>
     }
 
+<div class="container">
+    <div class="col-md-12">  <button onclick="submit()">Submit Form</button> </div>
 
-    <div>
+</div>
+
+
+    @*<div>
         @Html.ActionLink("Back to List", "Index")
-    </div>
+    </div>*@
+ 
 
-<div><button onclick="submit()">Submit Form</button></div>
 
     @*javascript codes*@
 
@@ -300,7 +387,7 @@
                                 var currsopno = parseInt(data.sopno) + 1;
 
                                 newsopno = sopcode + "-" + zeroPad(currsopno, 2);
-                                document.getElementById("newsopno").value = newsopno;
+                                document.getElementById("SOPNo").value = newsopno;
 
 
                             }
@@ -339,7 +426,7 @@
                                 var currsopno = parseInt(data.sopno) + 1;
 
                                 newsopno = sopcode + "-" + zeroPad(currsopno, 2);
-                                document.getElementById("newsopno").value = newsopno;
+                                document.getElementById("SOPNo").value = newsopno;
 
                             }
                             else {
@@ -425,7 +512,7 @@
         });
 
 
-        $("body").on("click", "#btnAddUser", function () {
+        $("body").on("click", "#btnAddVwer", function () {
 
             //Reference the Name and Country TextBoxes.
 
@@ -568,77 +655,101 @@
 
         };
 
-
-
-
-        $("body").on("click", "#btnSubmit", function () {
-
-
-            //Send the JSON array and other data to Controller using AJAX.
-
-
-            var reviewerarr = new Array();
-
-            var viewersarr = new Array();
-
-            //Loop through the Table rows and build a JSON array.
-
-            //$("#tblReviewers TBODY TR").each(function () {
-
-            //    var row = $(this);
-
-            //    var reviewer = {};
-
-            //    reviewer.userfullname = row.find("TD").eq(0).html();
-
-            //    reviewer.useremailaddress = row.find("TD").eq(1).html();
-
-            //    reviewerarr.push(reviewer);
-
-
-            //});
-
-
-            $("#tblViewers TBODY TR").each(function () {
-
-                var row = $(this);
-
-                var viewer = {};
-
-                viewer.userfullname = row.find("TD").eq(0).html();
-
-                viewer.useremailaddress = row.find("TD").eq(1).html();
-
-                viewersarr.push(viewer);
-
-
-            });
-
-
-  
-            var formData = new FormData();
-
-            var rvwrarr = JSON.stringify(reviewerarr);
-
-            var vwrarr = JSON.stringify(viewersarr);
-
-            
-            //Upon success of the first request to upload file or create file, initiate the second request to process the uploaded file
-
-         //   submit(rvwrarr);
-
-
-        });
-
-
-
+                         
         function submit() {
 
+            //extract and validate all fields by id for submitting to controller model through ajax
+            //we are using ajax becuase we need to send array that is difficult through submit type without javascript array
+            //code wriiten by Tamalur on April 19, 2020
+
+            var fileuploaded = document.getElementById("UploadedFile").files[0];
+
+            alert(fileuploaded);
+
+            var filenamenew = $("#FileName").val()
+
+            if (document.getElementById("UploadedFile").files.length > 0 && filenamenew != "")
+            {
+            alert("Please either upload a file or enter new file name, not both!");
+            return true;
+            }
+
+            if (document.getElementById("UploadedFile").files.length == 0 && filenamenew == "") {
+                alert("Please upload a file or enter new file name!");
+                return true;
+            }
+
+            var deptfoldernm = $('#FolderName :selected').text();
+            var deptsubfoldernm = $('#SubFolderName :selected').text();
+
+           
+            if (deptfoldernm == "Please select a folder" || deptfoldernm == "" ) {
+                alert("Folder name is required!")
+                return true;
+            }
+
+            var sopnonew = $('#SOPNo').val();     //document.getElementById("SOPNo").value;
+
+            if (sopnonew == "") {
+                alert("SOP No is required!")
+                return true;
+
+            }
+
+            var sopeffdate = $('#SOPEffectiveDate').val();
+
+             if (sopeffdate == "") {
+                alert("SOP Effective date is required!")
+                return true;
+            }
+
+            var updfreq = $('#Updatefreq').val();
+
+         
+            if (updfreq == "") {
+                alert("Update frequency is required!")
+                return true;
+            }
+
+            if (updfreq != "" && isNaN(updfreq) == true) {
+                alert("Update frequency must be numeric!")
+                return true;
+
+            }
+
+            var upfrequnit = $('#Updatefrequnit :selected').text();
+
+            if (upfrequnit == "Please select freq. unit" || upfrequnit == "") {
+                alert("Update frequency unit is required!")
+                return true;
+            }
+
+           // var owneremail = $('#ddlSOPOwners').val();
+
+            var owneremail = $('#FileOwnerEmail :selected').val();
+
+           // var owneremail = $('[id$=FileOwnerEmail] option:selected').val();  //it also works
+
+
+            if (owneremail == "") {
+                alert("SOP Owner is required!")
+                return true;
+
+            }
+
+            var apporveremail = $('#FileApproverEmail :selected').val();
+
+
+            if (apporveremail == "") {
+                alert("SOP Approver is required!")
+                return true;
+
+            }
+           
+
+            //collect reviewers and viewers from html tables in array 
             var reviewerarr = new Array();
-
-            var viewersarr = new Array();
-
-            //Loop through the Table rows and build a JSON array.
+            //Loop through the Table rows and build a reviewers JSON array.
 
             $("#tblReviewers TBODY TR").each(function () {
 
@@ -655,22 +766,134 @@
 
             });
 
+            if (reviewerarr === undefined || reviewerarr.length == 0) {
+                // array empty or does not exist
+                alert("Reviewers are required, plesae add at least one reviewer!");
+                return true;
+            }
+
             var rvwrarr = JSON.stringify(reviewerarr);
 
-            alert(rvwrarr);
-            alert($('#newsopno').val());
+            //get read access fields
 
-            var data = {
+            var chkAllVwrs = document.getElementById("AllUsersReadAcc").checked;
 
-                FileCurrVersion: $('#newsopno').val(),
-                FilereviewersArr: rvwrarr
+            var vwrdeptcode =$('#DepartmentCode :selected').val();
 
-            };
+            //Loop through the viewers Table rows and build a viewers JSON array.
 
-            alert(data);
+            var viewersarr = new Array();
 
-            
+            $("#tblViewers TBODY TR").each(function () {
 
-            $.post("/Home/CreateUploadSOP", { sop: data }, function () { alert('Successfully Saved') });
+                var row = $(this);
+
+                var viewer = {};
+
+                viewer.userfullname = row.find("TD").eq(0).html();
+
+                viewer.useremailaddress = row.find("TD").eq(1).html();
+
+                viewersarr.push(viewer);
+
+
+            });
+
+            //alert(chkAllVwrs);
+            //alert(vwrdeptcode);
+            //alert(viewersarr);
+            //alert(viewersarr.length);
+
+            if (chkAllVwrs == false) {
+
+                if (vwrdeptcode == "" && (viewersarr === undefined || viewersarr.length == 0)) {
+                    // array empty or does not exist
+                    alert("Plesae add at least one viewer!");
+                    return true;
+                }
+
+
+            }
+      
+            var vwrarr = JSON.stringify(viewersarr);
+
+          //  alert(vwrarr);
+
+
+            //posting data to model through $.post method
+            //var data = {
+
+            //    FileCurrVersion: $('#newsopno').val(),
+            //    FilereviewersArr: rvwrarr
+
+            //};
+
+    
+         //   $.post("/Home/CreateUploadSOP", { sop: data }, function () { alert('Successfully Saved') });
+
+
+            //map all values to model field to pass to controller. we did not need this if we did not use ajax call
+            // we used ajax becuase sending reviewers and viewers arrays without ajax is very difficult
+            //var sop = {};
+
+            //sop.UploadedFile = fileuploaded;
+            //sop.FileName = filenamenew;
+            //sop.FolderName = deptfoldernm;
+            //sop.SubFolderName = deptsubfoldernm;
+            //sop.SOPNo = sopnonew;
+            //sop.SOPEffectiveDate = sopeffdate;
+            //sop.Updatefreq = updfreq;
+            //sop.Updatefrequnit = upfrequnit;
+            //sop.FileOwnerEmail = owneremail;
+            //sop.FileApproverEmail = apporveremail;
+            //sop.FilereviewersArr = rvwrarr;
+            //sop.AllUsersReadAcc = chkAllVwrs;
+            //sop.DepartmentCode = vwrdeptcode;
+            //sop.FileviewersArr = vwrarr;
+
+
+            var sop = new FormData();   //to send upload file bytes we need to use Formdata object
+
+            sop.append("UploadedFile", fileuploaded);
+            sop.append("FileName", filenamenew);
+            sop.append("FolderName", deptfoldernm);
+            sop.append("SubFolderName", deptsubfoldernm);
+            sop.append("SOPNo", sopnonew);
+            sop.append("SOPEffectiveDate", sopeffdate);
+            sop.append("Updatefreq", updfreq);
+            sop.append("Updatefrequnit", upfrequnit);
+            sop.append("FileOwnerEmail", owneremail);
+            sop.append("FileApproverEmail", apporveremail);
+            sop.append("FilereviewersArr", rvwrarr);
+            sop.append("AllUsersReadAcc", chkAllVwrs);
+            sop.append("DepartmentCode", vwrdeptcode);
+            sop.append("FileviewersArr", vwrarr);
+
+
+            $.ajax({
+                type: "POST",
+                url: "/Home/CreateUploadSOP",
+                //data: '{sop: ' + JSON.stringify(sop) + '}',
+                data: sop,
+                //contentType: "application/json; charset=utf-8",
+
+                processData: false, //do not want jQuery to automatically convert the data to a query string so I'm setting processData to false.
+
+                contentType: false, 
+
+                dataType: "json",
+                success: function (response) {
+                    alert("Hello: test test" + response.success + response.responseText);
+                },
+                failure: function (response) {
+                    alert(response.responseText);
+                },
+                error: function (response) {
+                    alert(response.responseText);
+                    //Codes other than Http Success codes(e.g. 200[OK]) will trigger the function in front of error: in client side(ajax).
+                }
+            });
+
+
         }
     </script>
