@@ -194,7 +194,6 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Models\CascadingClass.cs" />
     <Compile Include="Models\codesapprovalstatu.cs">
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
@@ -251,6 +250,7 @@
     <Compile Include="Models\fileviewer.cs">
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\Logger.cs" />
     <Compile Include="Models\SOPClass.cs" />
     <Compile Include="Models\SOPEDM.Context.cs">
       <AutoGen>True</AutoGen>
@@ -292,6 +292,7 @@
     <Content Include="Content\bootstrap-theme.min.css" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\LogFile\ProcessLog.txt" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
@@ -346,13 +347,13 @@
     <Content Include="Views\Home\About.cshtml" />
     <Content Include="Views\Home\Contact.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
-    <Content Include="Views\Home\CreateFile.cshtml" />
     <Content Include="Views\Home\UploadSOPFile.cshtml" />
     <Content Include="Views\Home\UploadFile.cshtml" />
     <Content Include="Views\Shared\DisplaySubfolders.cshtml" />
     <Content Include="Views\Home\ApproveSOP.cshtml" />
-    <Content Include="Views\Home\Sessionouterr.cshtml" />
     <Content Include="Views\Home\CreateUploadSOP.cshtml" />
+    <Content Include="Views\Home\RedirectForErr.cshtml" />
+    <Content Include="Views\Home\CreateUploadSOPAuth.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

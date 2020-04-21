@@ -340,6 +340,8 @@
 
         $(document).ready(function () {
 
+            @*window.location.href = '@Url.Action("CreateUploadSOPAuth", "Home")';*@
+
 
             $("#FolderName").change(function () {
 
@@ -448,7 +450,7 @@
             return Array(+(zero > 0 && zero)).join("0") + num;
         }
 
-
+      
 
         $("body").on("click", "#btnAddRvwer", function () {
 
@@ -664,8 +666,6 @@
 
             var fileuploaded = document.getElementById("UploadedFile").files[0];
 
-            alert(fileuploaded);
-
             var filenamenew = $("#FileName").val()
 
             if (document.getElementById("UploadedFile").files.length > 0 && filenamenew != "")
@@ -834,24 +834,7 @@
 
             //map all values to model field to pass to controller. we did not need this if we did not use ajax call
             // we used ajax becuase sending reviewers and viewers arrays without ajax is very difficult
-            //var sop = {};
-
-            //sop.UploadedFile = fileuploaded;
-            //sop.FileName = filenamenew;
-            //sop.FolderName = deptfoldernm;
-            //sop.SubFolderName = deptsubfoldernm;
-            //sop.SOPNo = sopnonew;
-            //sop.SOPEffectiveDate = sopeffdate;
-            //sop.Updatefreq = updfreq;
-            //sop.Updatefrequnit = upfrequnit;
-            //sop.FileOwnerEmail = owneremail;
-            //sop.FileApproverEmail = apporveremail;
-            //sop.FilereviewersArr = rvwrarr;
-            //sop.AllUsersReadAcc = chkAllVwrs;
-            //sop.DepartmentCode = vwrdeptcode;
-            //sop.FileviewersArr = vwrarr;
-
-
+   
             var sop = new FormData();   //to send upload file bytes we need to use Formdata object
 
             sop.append("UploadedFile", fileuploaded);
@@ -882,16 +865,31 @@
                 contentType: false, 
 
                 dataType: "json",
-                success: function (response) {
-                    alert("Hello: test test" + response.success + response.responseText);
+                success: function (response) {  //server sends OK 200 response to the client
+                    
+                    //alert(response.redirecturl);
+
+                    if (response.redirecturl != null && response.redirecturl!="")
+                        window.location.href = response.redirecturl;
+                    else 
+                        alert(response.responseText);
                 },
                 failure: function (response) {
                     alert(response.responseText);
+
                 },
                 error: function (response) {
-                    alert(response.responseText);
-                    //Codes other than Http Success codes(e.g. 200[OK]) will trigger the function in front of error: in client side(ajax).
+
+                  //  window.location.href = response.redirect;
+                    
+                     alert(response.responseText);
+                    //Codes other than Http Success codes(200[OK]) will trigger the function in front of error: in client side(ajax).
                 }
+
+                //error: function (httpRequest, textStatus, errorThrown) {  // detailed error messsage 
+                //    alert("Error: " + textStatus + " " + errorThrown + " " + httpRequest);
+                //}
+
             });
 
 

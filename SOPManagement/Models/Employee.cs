@@ -25,6 +25,30 @@ namespace SOPManagement.Models
         public Employee[] employees { get; set; }
         public bool HasSignedSOP { get; set; }
 
+
+        //public bool AuthenticateUser(string authtype, string useremail)
+        //{
+        //    bool bAuthenticate = false;
+
+        //    //check user database sopadminuser if authtype=admin
+        //    if (authtype.ToLower().Trim() == "admin")
+        //    {
+        //        using (var ctx = new RadiantSOPEntities())
+        //        {
+        //            var admnu = ctx.users.Where(u => u.sopadminuser == true && u.useremailaddress == useremail).Select(u => u.userid).FirstOrDefault();
+
+        //            if (admnu >0)
+        //            {
+        //                bAuthenticate = true;
+
+        //            }
+
+        //        }
+        //    }
+            
+                    
+        //    return bAuthenticate;
+        //}
         public void GetUserInfoByEmail()
         {
 
