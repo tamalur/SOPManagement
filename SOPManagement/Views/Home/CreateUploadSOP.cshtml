@@ -1,12 +1,14 @@
 ﻿@model SOPManagement.Models.SOPClass
 
 
-@using (Html.BeginForm("CreateUploadSOP", "Home", FormMethod.Post))
+    @using (Html.BeginForm("CreateUploadSOP", "Home", FormMethod.Post))
 
-{
-    @Html.AntiForgeryToken()
+    {
+        @Html.AntiForgeryToken()
 
 <div class="form-horizontal">
+    <br />
+    
     <h4>Upload or Create SOP</h4>
     <hr />
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
@@ -15,7 +17,7 @@
         @Html.LabelFor(model => model.UploadedFile, htmlAttributes: new { @class = "control-label col-md-2" })
         <div class="col-md-10">
             @Html.TextBoxFor(model => model.UploadedFile, null, new { type = "file", @class = "form-control" })
-      
+
         </div>
     </div>
 
@@ -96,7 +98,7 @@
 
             @if (ViewBag.updfrequnits != null)
             {
-                @Html.DropDownListFor(model => model.Updatefrequnit, new SelectList(ViewBag.updfrequnits, "unitcode", "Unitname"), "Please select freq. unit", new { @class = "form-control" })
+                @Html.DropDownListFor(model => model.Updatefrequnit, new SelectList(ViewBag.updfrequnits, "unitcode", "Unitname", 1), "Please select freq. unit", new { @class = "form-control" })
             }
 
         </div>
@@ -107,7 +109,7 @@
         <div class="col-md-10">
             @*@Html.EditorFor(model => model.FileOwnerEmail, new { htmlAttributes = new { @class = "form-control" } })*@
 
-            @Html.DropDownListFor(model => model.FileOwnerEmail, new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select SOP owner", new { @class = "form-control"})
+            @Html.DropDownListFor(model => model.FileOwnerEmail, new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select SOP owner", new { @class = "form-control" })
             @Html.ValidationMessageFor(model => model.FileOwnerEmail, "", new { @class = "text-danger" })
         </div>
     </div>
@@ -115,7 +117,7 @@
     <div class="form-group">
         @Html.Label("SOP Approver", htmlAttributes: new { @class = "control-label col-md-2" })
         <div class="col-md-10">
-            @Html.DropDownListFor(model => model.FileApproverEmail, new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select SOP approver", new { @class = "form-control"})
+            @Html.DropDownListFor(model => model.FileApproverEmail, new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select SOP approver", new { @class = "form-control" })
             @Html.ValidationMessageFor(model => model.FileApproverEmail, "", new { @class = "text-danger" })
         </div>
     </div>
@@ -300,18 +302,19 @@
     <div class="form-group">
         <div class="col-md-offset-2 col-md-10">
             @*<input type="submit" value="Create" id="btnSubmit" onclick="submit();" class="btn btn-default" />*@
-        
-          
+
+
         </div>
     </div>
 
 </div>
     }
 
-<div class="container">
-    <div class="col-md-12">  <button onclick="submit()">Submit Form</button> </div>
+        <div class="container" style="text-align:center">
 
-</div>
+            <div class="col-md-12">  <button onclick="submit()" id="btnsubmit">Submit Form</button> </div>
+
+        </div>
 
 
     @*<div>
@@ -320,9 +323,13 @@
  
 
 
-    @*javascript codes*@
+<div class="submit-progress hidden" id="progessdiv">
+    <i class="fa fa-2x fa-spinner fa-spin"></i>
+    <label>Please wait while submitting SOP...</label>
+</div>
 
-    <script src="~/Scripts/jquery-3.3.1.min.js"></script>
+
+<script src="~/Scripts/jquery-3.3.1.min.js"></script>
 
     @section Scripts {
         @Scripts.Render("~/bundles/jqueryval")
@@ -342,6 +349,8 @@
 
             @*window.location.href = '@Url.Action("CreateUploadSOPAuth", "Home")';*@
 
+            $("#Updatefreq").val(1);
+                  
 
             $("#FolderName").change(function () {
 
@@ -657,8 +666,10 @@
 
         };
 
-                         
-        function submit() {
+
+        function submit()
+        {
+
 
             //extract and validate all fields by id for submitting to controller model through ajax
             //we are using ajax becuase we need to send array that is difficult through submit type without javascript array
@@ -718,6 +729,7 @@
             }
 
             var upfrequnit = $('#Updatefrequnit :selected').text();
+            var updfrequcode= $('#Updatefrequnit :selected').val();
 
             if (upfrequnit == "Please select freq. unit" || upfrequnit == "") {
                 alert("Update frequency unit is required!")
@@ -835,6 +847,14 @@
             //map all values to model field to pass to controller. we did not need this if we did not use ajax call
             // we used ajax becuase sending reviewers and viewers arrays without ajax is very difficult
    
+
+            //check duplicate sop, I did not implement it as SOP no as well as SOP file name get changed with every upload 
+          //  chekcDuplicateSOP(); 
+
+            //if all data entries are valid theb show progress bar
+            DisplayProgressMessage(document.getElementById('btnsubmit'), "Processing SOP");
+
+
             var sop = new FormData();   //to send upload file bytes we need to use Formdata object
 
             sop.append("UploadedFile", fileuploaded);
@@ -845,6 +865,7 @@
             sop.append("SOPEffectiveDate", sopeffdate);
             sop.append("Updatefreq", updfreq);
             sop.append("Updatefrequnit", upfrequnit);
+            sop.append("Updfrequnitcode", updfrequcode);
             sop.append("FileOwnerEmail", owneremail);
             sop.append("FileApproverEmail", apporveremail);
             sop.append("FilereviewersArr", rvwrarr);
@@ -869,15 +890,22 @@
                     
                     //alert(response.redirecturl);
 
-                    if (response.redirecturl != null && response.redirecturl!="")
+                    if (response.redirecturl != null && response.redirecturl != "")
                         window.location.href = response.redirecturl;
-                    else 
-                        alert(response.responseText);
+                    else {
+                        //alert(response.responseText);
+
+                        @*window.location.href = '@Url.Action("SOPMessage", "Home")/' + id;*@
+
+                        window.location.href = '@Url.Action("SOPMessage", "Home")';
+      
+                    }
                 },
                 failure: function (response) {
                     alert(response.responseText);
 
                 },
+
                 error: function (response) {
 
                   //  window.location.href = response.redirect;
@@ -894,4 +922,31 @@
 
 
         }
+
+        function chekcDuplicateSOP(sopno) {
+
+            var dupsop = "found";
+
+            if (dupsop != "")
+                return false;
+            else
+                return true;
+
+
+            
+        }
+
+        function DisplayProgressMessage(ctl, msg) {
+
+            $(ctl).prop("disabled", true).text(msg);
+            $(".submit-progress").removeClass("hidden");
+            $("body").addClass("submit-progress-bg");
+            setTimeout(function () {
+                $(".submit-progress").removeClass("hidden");
+            }, 1);
+
+            return true;
+        }
+
+
     </script>

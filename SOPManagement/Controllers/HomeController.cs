@@ -23,6 +23,7 @@ using System.Text.RegularExpressions;
 using Group = Microsoft.SharePoint.Client.Group;
 using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Core.Objects;
+using System.Threading;
 
 namespace SOPManagement.Controllers
 {
@@ -65,14 +66,14 @@ namespace SOPManagement.Controllers
         public ActionResult CreateUploadSOPAuth()
         {
 
-            Session["ErrorMsg"] = "";
+            Session["SOPMsg"] = "";
 
             if (IsSessionExpired())
             {
 
                 ViewBag.ErrorMessage = "SOP Application: Session not Timed out";
-                Session["ErrorMsg"] = "SOP Application: Session not Timed out";
-                return RedirectToAction("RedirectForErr");
+                Session["SOPMsg"] = "SOP Application: Session not Timed out";
+                return RedirectToAction("SOPMessage");
 
 
             }
@@ -124,6 +125,11 @@ namespace SOPManagement.Controllers
             // return View();
         }
 
+        public ActionResult SOPDashboard()
+        {
+            // do your logging here
+            return Redirect("http://camis1-bioasp01/Reports/Pages/Report.aspx?ItemPath=%2fSOP+Reports%2fSOP+Dashboard");
+        }
 
         public ActionResult UploadSOPFile()
         {
@@ -142,16 +148,15 @@ namespace SOPManagement.Controllers
             return View();
         }
 
-
         [Authorize(Roles = "TransfloWheelsAdmnUsers")]
         //[Authorize(Roles = "TransfloARUsers")]
         //  [RoleFilter] with form authentication in web.cofig use this custom filter to redirect to custom page. make sure you don't use any role in authorize 
         [HttpGet]
         public ActionResult CreateUploadSOP()
         {
-            ViewBag.Message = "Upload SOP File";
+            //ViewBag.Message = "Upload or Create SOP";
 
- 
+            ViewBag.Title = "Upload or Create SOP";
 
             ViewBag.ddlDeptFolders = new SelectList(GetFolders(), "FileName", "FileName");
 
@@ -198,7 +203,7 @@ namespace SOPManagement.Controllers
             return false;
         }
 
-        public ActionResult RedirectForErr()
+        public ActionResult SOPMessage()
         {
             
             return View();
@@ -209,7 +214,8 @@ namespace SOPManagement.Controllers
         [HttpPost]
         public ActionResult CreateUploadSOP(SOPManagement.Models.SOPClass sop)
         {
-            
+        
+
             ViewBag.employees = (from c in ctx.users select new { c.useremailaddress, c.userfullname, c.userstatuscode, c.jobtitle }).Where(x => x.userstatuscode == 1).Distinct();
 
 
@@ -221,9 +227,17 @@ namespace SOPManagement.Controllers
 
             bool bProcessCompleted = false;
 
+            if (sop.SubFolderName.Trim() == "Please select a subfolder")
+            {
+
+                sop.SubFolderName = "";
+
+            }
+
+
             //1. [Authorized] attribute at the top of action authorizes the user by sopadmin role in domain 
             // then check if session is expired, if so redirect to session timeout page. 
-           
+
 
             Session["ErrorMsg"] = "";
 
@@ -360,6 +374,7 @@ namespace SOPManagement.Controllers
                 oSop.Reviewers = rvwrItems; 
                 oSop.Updatefreq = supdfreq;
                 oSop.Updatefrequnit = sop.Updatefrequnit;
+                oSop.Updfrequnitcode = sop.Updfrequnitcode;
                 oSop.SOPEffectiveDate = Convert.ToDateTime(sop.SOPEffectiveDate);
 
 
@@ -414,6 +429,8 @@ namespace SOPManagement.Controllers
                 //DateTime:sop.SOPNo:that successfully updated coversheet and rev history
 
                 //DateTime:sop.SOPNo:start uploading file in sharepoint online SOP doc library
+
+                Thread.Sleep(6000);
 
                 oSop.FolderName =sop.FolderName;
                 oSop.SubFolderName =sop.SubFolderName;
@@ -610,6 +627,8 @@ namespace SOPManagement.Controllers
 
                 //  Send "Success" to ajax call back in view
 
+                Session["SOPMsg"] = "Successfully processed SOP " + sop.FileName + "!";
+
                 return Json(new { success = true, responseText = "Successfully processed SOP " + sop.FileName + "!" }, JsonRequestBehavior.AllowGet);
 
             }
@@ -620,8 +639,10 @@ namespace SOPManagement.Controllers
 
                 //Send failed
 
-               // sop.ErrorMessage = "Failed to process SOP with error:" + sop.ErrorMessage + ". Please try again or Contact IT";
-                return Json(new { success = false, responseText = "failed processing SOP, please contact IT" + sop.FileName + "!" }, JsonRequestBehavior.AllowGet);
+                Session["SOPMsg"] = "Failed processing SOP " + sop.FileName + " , please contact IT!";
+
+                // sop.ErrorMessage = "Failed to process SOP with error:" + sop.ErrorMessage + ". Please try again or Contact IT";
+                return Json(new { success = false, responseText = "Failed processing SOP " + sop.FileName + " , please contact IT!" }, JsonRequestBehavior.AllowGet);
             }
 
             //if any server failutre to send requested response other than OK 200 code then ajax will raise error event

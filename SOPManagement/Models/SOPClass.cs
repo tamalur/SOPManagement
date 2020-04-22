@@ -31,7 +31,8 @@ namespace SOPManagement.Models
 
         public short? FileStatuscode { get; set;}
 
-        //[Required(ErrorMessage = "File Owner is Required")]
+        [Required(ErrorMessage = "File Owner is Required")]
+        [Display(Name = "Select SOP Owner")]
         public string FileOwnerEmail { get; set; }
 
         public int FileOwnerID { get; set; }
@@ -42,19 +43,23 @@ namespace SOPManagement.Models
 
         public int FileApproverID { get; set; }
 
+        [Required(ErrorMessage = "File Approver is Required")]
+        [Display(Name = "Select SOP Approver")]
         public string FileApproverEmail { get; set; }
 
    
         public string FileTitle { get; set; }   //title is without sopno
 
-        //[System.Web.Mvc.Remote("CheckIfExists", "Home", ErrorMessage = "Valid File name needed")]
-        public string FileName { get; set; }  //with sopno in front SOPNO + " "+ FileTitle
+        [Display(Name = "SOP File Name")]
+        public string FileName { get; set; }   //with sopno in front SOPNO + " "+ FileTitle
 
         public byte[] FileStream { get; set; }  //with sopno in front SOPNO + " "+ FileTitle
 
+        [Display(Name = "Select Folder")]
         [Required(ErrorMessage = "Folder name is Required")]
         public string FolderName { get; set; }
 
+        [Display(Name = "Select Subfolder")]
         public string SubFolderName { get; set; }
 
         public string DepartmentName { get; set; }
@@ -64,16 +69,22 @@ namespace SOPManagement.Models
 
         public int  ViewAccessTypeID { get; set; }
 
-       
+          
         public string SOPNo { get; set; }
 
         public FileRevision[] FileRevisions { get; set; }
 
         public string FileCurrVersion { get; set; }
 
+    
+        [Required(ErrorMessage = "Frequency Required")]
+        [Display(Name = "Update Frequency")]
         public short Updatefreq { get; set; }
 
+        [Display(Name = "Select Frequency Unit")]
         public string Updatefrequnit { get; set; }
+
+        public short Updfrequnitcode { get; set; }
 
         public string FileLink { get; set; }
 
@@ -89,9 +100,11 @@ namespace SOPManagement.Models
 
         public string FileUrl { get; set; }
         public string SiteUrl { get; set; }
-
+        [Display(Name = "SOP Effective Date")]
         public DateTime SOPEffectiveDate { get; set; }
 
+        [Display(Name = "Select File to Upload")]
+        //[System.Web.Mvc.Remote("CheckIfExists", "Home", ErrorMessage = "Duplicate File Found")]
         public HttpPostedFileBase UploadedFile { get; set; }
 
         public bool FileUploaded { get; set; }
@@ -152,8 +165,8 @@ namespace SOPManagement.Models
                 {
                     changerequestid= FileChangeRqstID,
                     reviewid= previewid,
-                     approvalstatuscode=2,   //not signed
-                     statusdatetime=DateTime.Today
+                     approvalstatuscode=2   //not signed
+                    // statusdatetime=DateTime.Today   //no sign no date
                 };
                 dbcontex.filereviewersactivities.Add(rvwractvts);
                 dbcontex.SaveChanges();
@@ -168,8 +181,8 @@ namespace SOPManagement.Models
                 {
                     changerequestid = FileChangeRqstID,
                     approveid = papproveid,
-                    approvalstatuscode = 2,   //not signed
-                    statusdatetime = DateTime.Today
+                    approvalstatuscode = 2   //not signed
+                    //statusdatetime = DateTime.Today    // no date should be assigned
                 };
                 dbcontext.fileapproversactivities.Add(apprvractvs);
                 dbcontext.SaveChanges();
@@ -184,8 +197,8 @@ namespace SOPManagement.Models
                 {
                     changerequestid= FileChangeRqstID,
                     publisherid= ppublisherid,
-                    approvalstatuscode=8,  //8=not approved
-                    statusdatetime= DateTime.Today
+                    approvalstatuscode=8  //8=not approved
+                    //statusdatetime= DateTime.Today
                 };
 
                 dbcontext.filepublishersactivities.Add(pblsracvts);
@@ -201,8 +214,8 @@ namespace SOPManagement.Models
                 {
                     changerequestid = FileChangeRqstID,
                     ownershipid = pownershipid,
-                    approvalstatuscode = 2,   //not signed
-                    statusdatetime = DateTime.Today
+                    approvalstatuscode = 2  //not signed
+                  //  statusdatetime = DateTime.Today   //no sign no date
 
                 };
                 dbcontext.fileownersactivities.Add(owneractvts);
@@ -405,15 +418,30 @@ namespace SOPManagement.Models
             OperationSuccess = false;
             DateTime freqschdl = DateTime.Now;
 
-            switch (Updatefrequnit)
+            //switch (Updatefrequnit.Trim().ToLower())
+            //{
+            //    case "yearly":
+            //        freqschdl = freqschdl.AddYears(Updatefreq);
+            //        break;
+            //    case "monthly":
+            //        freqschdl = freqschdl.AddMonths(Updatefreq);
+            //        break;
+            //    case "weekly":
+            //        freqschdl = freqschdl.AddDays(Updatefreq);
+            //        break;
+
+            //}
+
+
+            switch (Updfrequnitcode)
             {
-                case "Yearly":
+                case 1:    //yearly
                     freqschdl = freqschdl.AddYears(Updatefreq);
                     break;
-                case "Monthly":
+                case 2:    //monthly
                     freqschdl = freqschdl.AddMonths(Updatefreq);
                     break;
-                case "Weekly":
+                case 3:    //weekly
                     freqschdl = freqschdl.AddDays(Updatefreq);
                     break;
 
@@ -428,6 +456,7 @@ namespace SOPManagement.Models
                     fileid = FileID,
                     frequencyofrevision = Updatefreq,
                     unitoffrequency = Updatefrequnit,
+                    unitcodeupdfreq= Updfrequnitcode,
                     lastrevisionno = "1.0",
                     scheduledatetime = freqschdl
 

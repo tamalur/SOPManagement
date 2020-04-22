@@ -21,5 +21,6 @@ namespace SOPManagement.Models
         public string lastrevisionno { get; set; }
         public Nullable<System.DateTime> lastpublishdate { get; set; }
         public Nullable<System.DateTime> scheduledatetime { get; set; }
+        public Nullable<short> unitcodeupdfreq { get; set; }
     }
 }
