@@ -456,12 +456,16 @@ namespace SOPManagement.Controllers
             if (sop.FileName!=null && sop.FileName.Trim() != "")
             {
 
-                //for new file copy from template to temp file
-                System.IO.File.Copy(Server.MapPath("~/Content/docfiles/SOPTemplate.docx"), Server.MapPath("~/Content/docfiles/SOPTemp.docx"), true);
 
                 oSop.FileName = sop.SOPNo + " " + sop.FileName.Trim() + ".docx";
 
                 oSop.FileTitle = sop.FileName.Trim();
+
+
+                //for new file copy from template to temp file
+                //    System.IO.File.Copy(Server.MapPath("~/Content/docfiles/SOPTemplate.docx"), Server.MapPath("~/Content/docfiles/SOPTemp.docx"), true);
+
+                System.IO.File.Copy(Server.MapPath("~/Content/docfiles/SOPTemplate.docx"), Server.MapPath("~/Content/docfiles/"+ oSop.FileName), true);
 
                 bProcessCompleted = true;
             }
@@ -487,7 +491,9 @@ namespace SOPManagement.Controllers
 
                 }
 
-                sop.UploadedFile.SaveAs(docpath + "SOPTemp.docx");
+                //  sop.UploadedFile.SaveAs(docpath + "SOPTemp.docx");
+
+                sop.UploadedFile.SaveAs(docpath + oSop.FileName);
 
                 bProcessCompleted = true;
 
