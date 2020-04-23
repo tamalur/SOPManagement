@@ -25,6 +25,7 @@ using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Core.Objects;
 using System.Threading;
 
+//this controller was developed by Tamalur from April 10 to April 22, 2020
 namespace SOPManagement.Controllers
 {
     [Authorize]
@@ -125,6 +126,143 @@ namespace SOPManagement.Controllers
             // return View();
         }
 
+        
+        public ActionResult PublishFile(int? id)
+        {
+            //give this url to Elhadj 
+           // http://localhost:58639/Home/PublishFile/293?chngreqid=18
+
+
+            string changereqid = Request.QueryString["chngreqid"];
+
+
+            int sopfileid = 0;
+            int validchngreq = 0;
+
+            Session["ErrorMsg"] = "";
+
+            Session["Dashboardlink"] = "http://camis1-bioasp01/Reports/Pages/Report.aspx?ItemPath=%2fSOP+Reports%2fSOP+Dashboard";
+
+
+            if (IsSessionExpired())
+            {
+
+               // ViewBag.ErrorMessage = "SOP Application: Session not Timed out";
+
+                Session["ErrorMsg"] = "SOP Application: Session not Timed out";
+
+                return RedirectToAction("SOPMessage");
+
+            }
+
+
+
+            if (id == null || changereqid == null || changereqid == "" || !IsNumeric(changereqid))     //no file provided
+            {
+
+                Session["ErrorMsg"] = "Error: Valid File ID and Cahneg Request ID is required to publish the file!";
+
+                return RedirectToAction("SOPMessage");
+
+            }
+
+            else
+            {
+                validchngreq = Convert.ToInt32(changereqid);
+                sopfileid = Convert.ToInt16(id);
+
+                
+            }
+
+
+            Employee oEmp = new Employee();
+
+            string loggedinuser = "";
+
+            // var usr = System.Environment.UserName;
+
+            loggedinuser = System.Web.HttpContext.Current.User.Identity.Name;
+
+            loggedinuser = loggedinuser.Split('\\').Last();
+
+            Session["UserID"] = loggedinuser;
+
+            oEmp.useremailaddress = loggedinuser + "@radiantdelivers.com";
+
+    
+            if (oEmp.AuthenticateUser("approver", sopfileid))
+
+            {
+
+                SOPClass oSOP = new SOPClass();
+
+                oSOP.SiteUrl = siteurl;
+
+                oSOP.FileID = sopfileid;
+
+                oSOP.FileChangeRqstID = validchngreq;
+
+                oSOP.GetSOPInfoByFileID();  //get file path, name etc.
+
+
+                if (oSOP.PublishFile())
+                {
+
+
+                    Session["SOPMsg"] = "SOP "+oSOP.FileName +" has been successfully published!";
+
+                    return RedirectToAction("SOPMessage");
+
+                }
+
+                else
+                {
+                    Session["SOPMsg"] = "Failed to publish SOP " + oSOP.FileName + oSOP.ErrorMessage+ ".Please contact IT!";
+                    return RedirectToAction("SOPMessage");
+                }
+
+
+            }
+            else  //failed to authenticate logged in user as approver
+            {
+                Session["SOPMsg"] = "Failed to authenticate user as an approver of the file.Please contact IT!";
+                return RedirectToAction("SOPMessage");
+            }
+
+        
+
+            //return View();
+        }
+
+        [HttpPost]
+        //public ActionResult PublishFile(SOPManagement.Models.SOPClass sopmodel)
+        //{
+
+        //    SOPClass sop = new SOPClass();
+
+        //    sop.SiteUrl = siteurl;
+
+        //  // sop.FileID = fileid;
+
+        //    if (sop.PublishFile())
+
+        //    {
+        //        Session["SOPMsg"] = "SOP File " + sop.FileName + " was successfully published!";
+
+        //    }
+        //    else
+        //        Session["SOPMsg"] = "Failed to publis SOP File " + sop.FileName + ".Please contact IT!";
+
+
+        //    sop = null;
+
+        //    //return RedirectToAction("SOPMessage");
+
+        //    return View();
+
+
+        //}
+
         public ActionResult SOPDashboard()
         {
             // do your logging here
@@ -154,9 +292,8 @@ namespace SOPManagement.Controllers
         [HttpGet]
         public ActionResult CreateUploadSOP()
         {
-            //ViewBag.Message = "Upload or Create SOP";
 
-            ViewBag.Title = "Upload or Create SOP";
+           // ViewBag.Title = "Upload or Create SOP";  //I assigned in cshtml file
 
             ViewBag.ddlDeptFolders = new SelectList(GetFolders(), "FileName", "FileName");
 
@@ -238,6 +375,8 @@ namespace SOPManagement.Controllers
             //1. [Authorized] attribute at the top of action authorizes the user by sopadmin role in domain 
             // then check if session is expired, if so redirect to session timeout page. 
 
+            string user = "";
+            string loggedinusereml = "";
 
             Session["ErrorMsg"] = "";
 
@@ -250,11 +389,6 @@ namespace SOPManagement.Controllers
 
             }
 
-
-
-            string user = "";
-            string loggedinusereml = "";
-            Employee emp = new Employee();
 
             // var usr = System.Environment.UserName;
 
@@ -288,6 +422,9 @@ namespace SOPManagement.Controllers
             //file into project folder
 
             //log DateTime:sop.SOPNO: start collecting user email
+
+
+            Employee emp = new Employee();
 
             Employee[] rvwrItems = JsonConvert.DeserializeObject<Employee[]>(sop.FilereviewersArr[0]);
 
@@ -627,9 +764,9 @@ namespace SOPManagement.Controllers
 
                 //  Send "Success" to ajax call back in view
 
-                Session["SOPMsg"] = "Successfully processed SOP " + sop.FileName + "!";
+                Session["SOPMsg"] = "The SOP " + sop.FileName + " has been successfully processed!";
 
-                return Json(new { success = true, responseText = "Successfully processed SOP " + sop.FileName + "!" }, JsonRequestBehavior.AllowGet);
+                return Json(new { success = true, responseText = "The SOP " + sop.FileName + " has been successfully processed!" }, JsonRequestBehavior.AllowGet);
 
             }
             else

@@ -244,6 +244,27 @@ warning 6002: The table/view 'RadiantYYZ.sop.v_sopreport' does not have a primar
           <Property Name="NextUpdateDate" Type="date" />
         </EntityType>
         <!--Errors Found During Generation:
+warning 6002: The table/view 'RadiantYYZ.sop.vwApprvrsSignatures' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="vwApprvrsSignatures">
+          <Key>
+            <PropertyRef Name="fileid" />
+            <PropertyRef Name="changerequestid" />
+            <PropertyRef Name="approverid" />
+            <PropertyRef Name="approvername" />
+            <PropertyRef Name="AprvrSignedStatCode" />
+          </Key>
+          <Property Name="fileid" Type="int" Nullable="false" />
+          <Property Name="changerequestid" Type="int" Nullable="false" />
+          <Property Name="requesterid" Type="int" />
+          <Property Name="approverid" Type="int" Nullable="false" />
+          <Property Name="approveremail" Type="nvarchar" MaxLength="50" />
+          <Property Name="approvername" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="approvertitle" Type="varchar" MaxLength="60" />
+          <Property Name="AprvrSignedStatus" Type="varchar" MaxLength="50" />
+          <Property Name="AprvrSignedStatCode" Type="smallint" Nullable="false" />
+          <Property Name="Aprvrsigneddate" Type="datetime" />
+        </EntityType>
+        <!--Errors Found During Generation:
 warning 6002: The table/view 'RadiantYYZ.sop.vwDepartmentFolders' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="vwDepartmentFolders">
           <Key>
@@ -286,6 +307,48 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwDepartmentSubFolders' does not ha
           <Property Name="SPFilePath" Type="varchar" MaxLength="350" />
           <Property Name="prioritycode" Type="smallint" />
           <Property Name="filestatuscode" Type="smallint" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'RadiantYYZ.sop.vwOwnerSignatures' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="vwOwnerSignatures">
+          <Key>
+            <PropertyRef Name="fileid" />
+            <PropertyRef Name="changerequestid" />
+            <PropertyRef Name="ownerid" />
+            <PropertyRef Name="ownerrname" />
+            <PropertyRef Name="ownerSignedStatCode" />
+          </Key>
+          <Property Name="fileid" Type="int" Nullable="false" />
+          <Property Name="changerequestid" Type="int" Nullable="false" />
+          <Property Name="requesterid" Type="int" />
+          <Property Name="ownerid" Type="int" Nullable="false" />
+          <Property Name="owneremail" Type="nvarchar" MaxLength="50" />
+          <Property Name="ownerrname" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="ownertitle" Type="varchar" MaxLength="60" />
+          <Property Name="ownerSignedStatus" Type="varchar" MaxLength="50" />
+          <Property Name="ownerSignedStatCode" Type="smallint" Nullable="false" />
+          <Property Name="ownersigneddate" Type="datetime" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'RadiantYYZ.sop.vwRvwrsSignatures' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="vwRvwrsSignatures">
+          <Key>
+            <PropertyRef Name="fileid" />
+            <PropertyRef Name="changerequestid" />
+            <PropertyRef Name="reviewerid" />
+            <PropertyRef Name="reviewername" />
+            <PropertyRef Name="SignStatusCode" />
+          </Key>
+          <Property Name="fileid" Type="int" Nullable="false" />
+          <Property Name="changerequestid" Type="int" Nullable="false" />
+          <Property Name="requesterid" Type="int" />
+          <Property Name="reviewerid" Type="int" Nullable="false" />
+          <Property Name="revieweremail" Type="nvarchar" MaxLength="50" />
+          <Property Name="reviewername" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="reviewertitle" Type="varchar" MaxLength="60" />
+          <Property Name="SignedStatus" Type="varchar" MaxLength="50" />
+          <Property Name="SignStatusCode" Type="smallint" Nullable="false" />
+          <Property Name="signeddate" Type="datetime" />
         </EntityType>
         <!--Errors Found During Generation:
 warning 6002: The table/view 'RadiantYYZ.sop.vwSOPReviewers' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
@@ -413,6 +476,20 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
     [v_sopreport].[NextUpdateDate] AS [NextUpdateDate]
     FROM [sop].[v_sopreport] AS [v_sopreport]</DefiningQuery>
           </EntitySet>
+          <EntitySet Name="vwApprvrsSignatures" EntityType="Self.vwApprvrsSignatures" store:Type="Views" store:Schema="sop">
+            <DefiningQuery>SELECT 
+    [vwApprvrsSignatures].[fileid] AS [fileid], 
+    [vwApprvrsSignatures].[changerequestid] AS [changerequestid], 
+    [vwApprvrsSignatures].[requesterid] AS [requesterid], 
+    [vwApprvrsSignatures].[approverid] AS [approverid], 
+    [vwApprvrsSignatures].[approveremail] AS [approveremail], 
+    [vwApprvrsSignatures].[approvername] AS [approvername], 
+    [vwApprvrsSignatures].[approvertitle] AS [approvertitle], 
+    [vwApprvrsSignatures].[AprvrSignedStatus] AS [AprvrSignedStatus], 
+    [vwApprvrsSignatures].[AprvrSignedStatCode] AS [AprvrSignedStatCode], 
+    [vwApprvrsSignatures].[Aprvrsigneddate] AS [Aprvrsigneddate]
+    FROM [sop].[vwApprvrsSignatures] AS [vwApprvrsSignatures]</DefiningQuery>
+          </EntitySet>
           <EntitySet Name="vwDepartmentFolders" EntityType="Self.vwDepartmentFolders" store:Type="Views" store:Schema="sop">
             <DefiningQuery>SELECT 
     [vwDepartmentFolders].[FileID] AS [FileID], 
@@ -450,6 +527,34 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
     [vwDepartmentSubFolders].[prioritycode] AS [prioritycode], 
     [vwDepartmentSubFolders].[filestatuscode] AS [filestatuscode]
     FROM [sop].[vwDepartmentSubFolders] AS [vwDepartmentSubFolders]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="vwOwnerSignatures" EntityType="Self.vwOwnerSignatures" store:Type="Views" store:Schema="sop">
+            <DefiningQuery>SELECT 
+    [vwOwnerSignatures].[fileid] AS [fileid], 
+    [vwOwnerSignatures].[changerequestid] AS [changerequestid], 
+    [vwOwnerSignatures].[requesterid] AS [requesterid], 
+    [vwOwnerSignatures].[ownerid] AS [ownerid], 
+    [vwOwnerSignatures].[owneremail] AS [owneremail], 
+    [vwOwnerSignatures].[ownerrname] AS [ownerrname], 
+    [vwOwnerSignatures].[ownertitle] AS [ownertitle], 
+    [vwOwnerSignatures].[ownerSignedStatus] AS [ownerSignedStatus], 
+    [vwOwnerSignatures].[ownerSignedStatCode] AS [ownerSignedStatCode], 
+    [vwOwnerSignatures].[ownersigneddate] AS [ownersigneddate]
+    FROM [sop].[vwOwnerSignatures] AS [vwOwnerSignatures]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="vwRvwrsSignatures" EntityType="Self.vwRvwrsSignatures" store:Type="Views" store:Schema="sop">
+            <DefiningQuery>SELECT 
+    [vwRvwrsSignatures].[fileid] AS [fileid], 
+    [vwRvwrsSignatures].[changerequestid] AS [changerequestid], 
+    [vwRvwrsSignatures].[requesterid] AS [requesterid], 
+    [vwRvwrsSignatures].[reviewerid] AS [reviewerid], 
+    [vwRvwrsSignatures].[revieweremail] AS [revieweremail], 
+    [vwRvwrsSignatures].[reviewername] AS [reviewername], 
+    [vwRvwrsSignatures].[reviewertitle] AS [reviewertitle], 
+    [vwRvwrsSignatures].[SignedStatus] AS [SignedStatus], 
+    [vwRvwrsSignatures].[SignStatusCode] AS [SignStatusCode], 
+    [vwRvwrsSignatures].[signeddate] AS [signeddate]
+    FROM [sop].[vwRvwrsSignatures] AS [vwRvwrsSignatures]</DefiningQuery>
           </EntitySet>
           <EntitySet Name="vwSOPReviewers" EntityType="Self.vwSOPReviewers" store:Type="Views" store:Schema="sop">
             <DefiningQuery>SELECT 
@@ -773,6 +878,9 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           <EntitySet Name="fileviewaccesstypes" EntityType="RadiantYYZModel.fileviewaccesstype" />
           <EntitySet Name="fileviewers" EntityType="RadiantYYZModel.fileviewer" />
           <EntitySet Name="codesUnits" EntityType="RadiantYYZModel.codesUnit" />
+          <EntitySet Name="vwApprvrsSignatures" EntityType="RadiantYYZModel.vwApprvrsSignature" />
+          <EntitySet Name="vwOwnerSignatures" EntityType="RadiantYYZModel.vwOwnerSignature" />
+          <EntitySet Name="vwRvwrsSignatures" EntityType="RadiantYYZModel.vwRvwrsSignature" />
         </EntityContainer>
         <EntityType Name="vwSOPReviewer">
           <Key>
@@ -827,6 +935,63 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           <Property Name="unitcode" Type="Int16" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="Unitname" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
           <Property Name="UnitType" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="vwApprvrsSignature">
+          <Key>
+            <PropertyRef Name="fileid" />
+            <PropertyRef Name="changerequestid" />
+            <PropertyRef Name="approvername" />
+            <PropertyRef Name="AprvrSignedStatCode" />
+            <PropertyRef Name="approverid" />
+          </Key>
+          <Property Name="fileid" Type="Int32" Nullable="false" />
+          <Property Name="changerequestid" Type="Int32" Nullable="false" />
+          <Property Name="requesterid" Type="Int32" />
+          <Property Name="approvername" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="approvertitle" Type="String" MaxLength="60" FixedLength="false" Unicode="false" />
+          <Property Name="AprvrSignedStatus" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="AprvrSignedStatCode" Type="Int16" Nullable="false" />
+          <Property Name="Aprvrsigneddate" Type="DateTime" Precision="3" />
+          <Property Name="approverid" Type="Int32" Nullable="false" />
+          <Property Name="approveremail" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="vwOwnerSignature">
+          <Key>
+            <PropertyRef Name="fileid" />
+            <PropertyRef Name="changerequestid" />
+            <PropertyRef Name="ownerrname" />
+            <PropertyRef Name="ownerSignedStatCode" />
+            <PropertyRef Name="ownerid" />
+          </Key>
+          <Property Name="fileid" Type="Int32" Nullable="false" />
+          <Property Name="changerequestid" Type="Int32" Nullable="false" />
+          <Property Name="requesterid" Type="Int32" />
+          <Property Name="ownerrname" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="ownertitle" Type="String" MaxLength="60" FixedLength="false" Unicode="false" />
+          <Property Name="ownerSignedStatus" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ownerSignedStatCode" Type="Int16" Nullable="false" />
+          <Property Name="ownersigneddate" Type="DateTime" Precision="3" />
+          <Property Name="ownerid" Type="Int32" Nullable="false" />
+          <Property Name="owneremail" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="vwRvwrsSignature">
+          <Key>
+            <PropertyRef Name="fileid" />
+            <PropertyRef Name="changerequestid" />
+            <PropertyRef Name="reviewername" />
+            <PropertyRef Name="SignStatusCode" />
+            <PropertyRef Name="reviewerid" />
+          </Key>
+          <Property Name="fileid" Type="Int32" Nullable="false" />
+          <Property Name="changerequestid" Type="Int32" Nullable="false" />
+          <Property Name="requesterid" Type="Int32" />
+          <Property Name="reviewername" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="reviewertitle" Type="String" MaxLength="60" FixedLength="false" Unicode="false" />
+          <Property Name="SignedStatus" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="SignStatusCode" Type="Int16" Nullable="false" />
+          <Property Name="signeddate" Type="DateTime" Precision="3" />
+          <Property Name="reviewerid" Type="Int32" Nullable="false" />
+          <Property Name="revieweremail" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
         </EntityType>
       </Schema>
     </edmx:ConceptualModels>
@@ -1156,6 +1321,54 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
                 <ScalarProperty Name="UnitType" ColumnName="UnitType" />
                 <ScalarProperty Name="Unitname" ColumnName="Unitname" />
                 <ScalarProperty Name="unitcode" ColumnName="unitcode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="vwApprvrsSignatures">
+            <EntityTypeMapping TypeName="RadiantYYZModel.vwApprvrsSignature">
+              <MappingFragment StoreEntitySet="vwApprvrsSignatures">
+                <ScalarProperty Name="approveremail" ColumnName="approveremail" />
+                <ScalarProperty Name="approverid" ColumnName="approverid" />
+                <ScalarProperty Name="Aprvrsigneddate" ColumnName="Aprvrsigneddate" />
+                <ScalarProperty Name="AprvrSignedStatCode" ColumnName="AprvrSignedStatCode" />
+                <ScalarProperty Name="AprvrSignedStatus" ColumnName="AprvrSignedStatus" />
+                <ScalarProperty Name="approvertitle" ColumnName="approvertitle" />
+                <ScalarProperty Name="approvername" ColumnName="approvername" />
+                <ScalarProperty Name="requesterid" ColumnName="requesterid" />
+                <ScalarProperty Name="changerequestid" ColumnName="changerequestid" />
+                <ScalarProperty Name="fileid" ColumnName="fileid" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="vwOwnerSignatures">
+            <EntityTypeMapping TypeName="RadiantYYZModel.vwOwnerSignature">
+              <MappingFragment StoreEntitySet="vwOwnerSignatures">
+                <ScalarProperty Name="owneremail" ColumnName="owneremail" />
+                <ScalarProperty Name="ownerid" ColumnName="ownerid" />
+                <ScalarProperty Name="ownersigneddate" ColumnName="ownersigneddate" />
+                <ScalarProperty Name="ownerSignedStatCode" ColumnName="ownerSignedStatCode" />
+                <ScalarProperty Name="ownerSignedStatus" ColumnName="ownerSignedStatus" />
+                <ScalarProperty Name="ownertitle" ColumnName="ownertitle" />
+                <ScalarProperty Name="ownerrname" ColumnName="ownerrname" />
+                <ScalarProperty Name="requesterid" ColumnName="requesterid" />
+                <ScalarProperty Name="changerequestid" ColumnName="changerequestid" />
+                <ScalarProperty Name="fileid" ColumnName="fileid" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="vwRvwrsSignatures">
+            <EntityTypeMapping TypeName="RadiantYYZModel.vwRvwrsSignature">
+              <MappingFragment StoreEntitySet="vwRvwrsSignatures">
+                <ScalarProperty Name="revieweremail" ColumnName="revieweremail" />
+                <ScalarProperty Name="reviewerid" ColumnName="reviewerid" />
+                <ScalarProperty Name="signeddate" ColumnName="signeddate" />
+                <ScalarProperty Name="SignStatusCode" ColumnName="SignStatusCode" />
+                <ScalarProperty Name="SignedStatus" ColumnName="SignedStatus" />
+                <ScalarProperty Name="reviewertitle" ColumnName="reviewertitle" />
+                <ScalarProperty Name="reviewername" ColumnName="reviewername" />
+                <ScalarProperty Name="requesterid" ColumnName="requesterid" />
+                <ScalarProperty Name="changerequestid" ColumnName="changerequestid" />
+                <ScalarProperty Name="fileid" ColumnName="fileid" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

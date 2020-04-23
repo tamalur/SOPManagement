@@ -9,7 +9,7 @@
         <div class="col-md-12">
             @*@ViewBag.ErrorMessage*@
 
-            @if ((Session["SOPMsg"].ToString().ToLower().Contains("failed")) 
+            @if ((Session["SOPMsg"].ToString().ToLower().Contains("failed"))
                 || (Session["SOPMsg"].ToString().ToLower().Contains("error")))
             {
 
@@ -22,6 +22,20 @@
             }
 
         </div>
+
+        @if (Session["Dashboardlink"]!=null && Session["Dashboardlink"].ToString()!="")
+        {
+
+            <div class="col-md-12">
+                <p>
+                    <a href=@Session["Dashboardlink"].ToString() target="_blank">Click here to go back to SOP Dashboard</a>
+                </p>
+
+            </div>
+            
+            <br />
+            
+        }
 
 
     </div>

@@ -26,6 +26,71 @@ namespace SOPManagement.Models
         public bool HasSignedSOP { get; set; }
 
 
+        public bool AuthenticateUser(string pAuthtype, int pFileid)
+        {
+            bool bAuthenticate = false;
+
+            GetUserByEmail();
+
+       
+            //check activities database to find him/her as this file approver 
+            if (pAuthtype.ToLower().Trim() == "approver")
+            {
+                using (var ctx = new RadiantSOPEntities())
+                {
+                    var aprvr = ctx.vwApprvrsSignatures.Where(u => u.fileid == pFileid 
+                    && u.approverid == userid).Select(u => u.approverid).FirstOrDefault();
+
+                    if (aprvr > 0)
+                    {
+                        bAuthenticate = true;
+
+                    }
+
+                }
+            }
+
+
+            //check activities database to find him/her as reviewer 
+            if (pAuthtype.ToLower().Trim() == "reviewer")
+            {
+                using (var ctx = new RadiantSOPEntities())
+                {
+                    var rvwr = ctx.vwRvwrsSignatures.Where(u => u.fileid == pFileid && 
+                    u.reviewerid == userid).Select(u => u.reviewerid).FirstOrDefault();
+
+                    if (rvwr > 0)
+                    {
+                        bAuthenticate = true;
+
+                    }
+
+                }
+            }
+
+
+            //check activities database to find him/her as owner 
+            if (pAuthtype.ToLower().Trim() == "owner")
+            {
+                using (var ctx = new RadiantSOPEntities())
+                {
+                    var ownr = ctx.vwOwnerSignatures.Where(u => u.fileid == pFileid &&
+                    u.ownerid == userid).Select(u => u.ownerid).FirstOrDefault();
+
+                    if (ownr > 0)
+                    {
+                        bAuthenticate = true;
+
+                    }
+
+                }
+            }
+
+
+            return bAuthenticate;
+        }
+
+
         //public bool AuthenticateUser(string authtype, string useremail)
         //{
         //    bool bAuthenticate = false;
@@ -45,8 +110,8 @@ namespace SOPManagement.Models
 
         //        }
         //    }
-            
-                    
+
+
         //    return bAuthenticate;
         //}
         public void GetUserInfoByEmail()
@@ -118,6 +183,7 @@ namespace SOPManagement.Models
             using (var ctx = new RadiantSOPEntities())
             {
 
+                //first LINQ query through class
                 var employee = ctx.vwUsers.Select(x => new Employee()
                 {
 
@@ -131,6 +197,7 @@ namespace SOPManagement.Models
                 }).Where(q => q.useremailaddress == useremailaddress);
 
 
+                //assign property from returned object from linq above
                 foreach (Employee emp in employee)
                 {
                     userid = emp.userid;

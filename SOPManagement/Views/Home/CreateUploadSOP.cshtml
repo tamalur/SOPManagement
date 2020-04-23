@@ -1,326 +1,330 @@
 ﻿@model SOPManagement.Models.SOPClass
 
 
-    @using (Html.BeginForm("CreateUploadSOP", "Home", FormMethod.Post))
+@{
+    ViewBag.Title = "Upload or Create SOP";
+}
 
-    {
-        @Html.AntiForgeryToken()
+@using (Html.BeginForm("CreateUploadSOP", "Home", FormMethod.Post))
 
-<div class="form-horizontal">
-    <br />
-    
-    <h4>Upload or Create SOP</h4>
-    <hr />
-    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+{
+    @Html.AntiForgeryToken()
 
-    <div class="form-group">
-        @Html.LabelFor(model => model.UploadedFile, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.TextBoxFor(model => model.UploadedFile, null, new { type = "file", @class = "form-control" })
+    <div class="form-horizontal">
+        <br />
 
+        <h4>Upload or Create SOP</h4>
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.UploadedFile, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(model => model.UploadedFile, null, new { type = "file", @class = "form-control" })
+
+            </div>
         </div>
-    </div>
 
-    <div class="form-group">
+        <div class="form-group">
 
-        @*@HtmlFor.Label(model => model.FileName, htmlAttributes: new { @class = "control-label col-md-2" })*@
-        @Html.Label("New File Name", htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
+            @*@HtmlFor.Label(model => model.FileName, htmlAttributes: new { @class = "control-label col-md-2" })*@
+            @Html.Label("New File Name", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
 
-            @Html.EditorFor(model => model.FileName, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.FileName, "", new { @class = "text-danger" })
+                @Html.EditorFor(model => model.FileName, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.FileName, "", new { @class = "text-danger" })
 
 
+            </div>
         </div>
-    </div>
 
 
-    <div class="form-group">
-        @Html.LabelFor(model => model.FolderName, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
+        <div class="form-group">
+            @Html.LabelFor(model => model.FolderName, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
 
-            @*@Html.EditorFor(model => model.FolderName, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.FolderName, "", new { @class = "text-danger" })*@
+                @*@Html.EditorFor(model => model.FolderName, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.FolderName, "", new { @class = "text-danger" })*@
 
-            @if (ViewBag.ddlDeptFolders != null)
-            {
-                @Html.DropDownListFor(model => model.FolderName, ViewBag.ddlDeptFolders as SelectList, "Please select a folder", new { @class = "form-control" })
-            }
+                @if (ViewBag.ddlDeptFolders != null)
+                {
+                    @Html.DropDownListFor(model => model.FolderName, ViewBag.ddlDeptFolders as SelectList, "Please select a folder", new { @class = "form-control" })
+                }
 
 
+            </div>
         </div>
-    </div>
 
 
-    <div class="form-group">
-        @Html.LabelFor(model => model.SubFolderName, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
+        <div class="form-group">
+            @Html.LabelFor(model => model.SubFolderName, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
 
-            @*@Html.EditorFor(model => model.SubFolderName, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.SubFolderName, "", new { @class = "text-danger" })*@
+                @*@Html.EditorFor(model => model.SubFolderName, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.SubFolderName, "", new { @class = "text-danger" })*@
 
-            @Html.DropDownListFor(model => model.SubFolderName, new SelectList(""), "Please select a subfolder", new { @class = "form-control" })
+                @Html.DropDownListFor(model => model.SubFolderName, new SelectList(""), "Please select a subfolder", new { @class = "form-control" })
 
+            </div>
         </div>
-    </div>
 
-    <div class="form-group">
-        @Html.LabelFor(model => model.SOPNo, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(model => model.SOPNo, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly" } })
-            @Html.ValidationMessageFor(model => model.SOPNo, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.SOPNo, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.SOPNo, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly" } })
+                @Html.ValidationMessageFor(model => model.SOPNo, "", new { @class = "text-danger" })
+            </div>
         </div>
-    </div>
 
-    <div class="form-group">
-        @Html.LabelFor(model => model.SOPEffectiveDate, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(model => model.SOPEffectiveDate, new { htmlAttributes = new { @class = "form-control", type = "date" } })
-            @Html.ValidationMessageFor(model => model.SOPEffectiveDate, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.SOPEffectiveDate, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.SOPEffectiveDate, new { htmlAttributes = new { @class = "form-control", type = "date" } })
+                @Html.ValidationMessageFor(model => model.SOPEffectiveDate, "", new { @class = "text-danger" })
+            </div>
         </div>
-    </div>
 
-    <div class="form-group">
-        @Html.LabelFor(model => model.Updatefreq, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.EditorFor(model => model.Updatefreq, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.Updatefreq, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.Updatefreq, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Updatefreq, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Updatefreq, "", new { @class = "text-danger" })
+            </div>
         </div>
-    </div>
 
-    <div class="form-group">
+        <div class="form-group">
 
-        @Html.LabelFor(model => model.Updatefrequnit, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @*@Html.EditorFor(model => model.Updatefrequnit, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.Updatefrequnit, "", new { @class = "text-danger" })*@
+            @Html.LabelFor(model => model.Updatefrequnit, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @*@Html.EditorFor(model => model.Updatefrequnit, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Updatefrequnit, "", new { @class = "text-danger" })*@
 
 
-            @if (ViewBag.updfrequnits != null)
-            {
-                @Html.DropDownListFor(model => model.Updatefrequnit, new SelectList(ViewBag.updfrequnits, "unitcode", "Unitname", 1), "Please select freq. unit", new { @class = "form-control" })
-            }
+                @if (ViewBag.updfrequnits != null)
+                {
+                    @Html.DropDownListFor(model => model.Updatefrequnit, new SelectList(ViewBag.updfrequnits, "unitcode", "Unitname", 1), "Please select freq. unit", new { @class = "form-control" })
+                }
 
+            </div>
         </div>
-    </div>
 
-    <div class="form-group">
-        @Html.Label("SOP Owner", htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @*@Html.EditorFor(model => model.FileOwnerEmail, new { htmlAttributes = new { @class = "form-control" } })*@
+        <div class="form-group">
+            @Html.Label("SOP Owner", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @*@Html.EditorFor(model => model.FileOwnerEmail, new { htmlAttributes = new { @class = "form-control" } })*@
 
-            @Html.DropDownListFor(model => model.FileOwnerEmail, new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select SOP owner", new { @class = "form-control" })
-            @Html.ValidationMessageFor(model => model.FileOwnerEmail, "", new { @class = "text-danger" })
+                @Html.DropDownListFor(model => model.FileOwnerEmail, new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select SOP owner", new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.FileOwnerEmail, "", new { @class = "text-danger" })
+            </div>
         </div>
-    </div>
 
-    <div class="form-group">
-        @Html.Label("SOP Approver", htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.DropDownListFor(model => model.FileApproverEmail, new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select SOP approver", new { @class = "form-control" })
-            @Html.ValidationMessageFor(model => model.FileApproverEmail, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.Label("SOP Approver", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownListFor(model => model.FileApproverEmail, new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select SOP approver", new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.FileApproverEmail, "", new { @class = "text-danger" })
+            </div>
         </div>
-    </div>
 
 
-    <div class="form-group">
+        <div class="form-group">
 
-        @Html.Label("Add Reviewers", htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            <table id="tblReviewers" class="table" cellpadding="0" cellspacing="0">
+            @Html.Label("Add Reviewers", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                <table id="tblReviewers" class="table" cellpadding="0" cellspacing="0">
 
-                <thead>
+                    <thead>
 
-                    <tr>
+                        <tr>
 
-                        <th style="width:150px">Full Name</th>
+                            <th style="width:150px">Full Name</th>
 
-                        <th style="width:150px">Email</th>
+                            <th style="width:150px">Email</th>
 
-                        @*<th style="width:150px">Job Title</th>*@
+                            @*<th style="width:150px">Job Title</th>*@
 
-                        <th></th>
+                            <th></th>
 
-                    </tr>
+                        </tr>
 
-                </thead>
+                    </thead>
 
-                <tbody>
+                    <tbody>
 
-                    @using (var db = new SOPManagement.Models.RadiantSOPEntities())
-                    {
-
-                        foreach (var usr in db.vwSOPReviewers.Where(x => x.fileid == -1))
-
+                        @using (var db = new SOPManagement.Models.RadiantSOPEntities())
                         {
-                            //  if (usr.fileid == 63)
 
-                            // {
+                            foreach (var usr in db.vwSOPReviewers.Where(x => x.fileid == -1))
 
+                            {
+                                //  if (usr.fileid == 63)
 
-                            <tr>
-
-                                <td> @usr.userfullname </td>
-
-                                <td> @usr.useremailaddress </td>
-
-                                @*<td> @usr.jobtitle </td>*@
-
-                                <td><input type="button" value="Remove" onclick="Remove(this,'#tblReviewers')" /></td>
+                                // {
 
 
+                                <tr>
 
-                            </tr>
-                            //   }
+                                    <td> @usr.userfullname </td>
 
+                                    <td> @usr.useremailaddress </td>
+
+                                    @*<td> @usr.jobtitle </td>*@
+
+                                    <td><input type="button" value="Remove" onclick="Remove(this,'#tblReviewers')" /></td>
+
+
+
+                                </tr>
+                                //   }
+
+                            }
                         }
-                    }
 
-                </tbody>
+                    </tbody>
 
-                <tfoot>
+                    <tfoot>
 
-                    <tr>
+                        <tr>
 
-                        <td>
+                            <td>
 
-                            @Html.DropDownList("userid", new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select", new { @id = "ddlEmployees" })
-                        </td>
-
+                                @Html.DropDownList("userid", new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select", new { @id = "ddlEmployees" })
+                            </td>
 
 
 
-                        <td colspan="2"><input type="button" id="btnAddRvwer" value="Add" /></td>
 
-                    </tr>
+                            <td colspan="2"><input type="button" id="btnAddRvwer" value="Add" /></td>
 
-                </tfoot>
+                        </tr>
 
-            </table>
+                    </tfoot>
 
+                </table>
+
+            </div>
         </div>
-    </div>
 
 
-    <div class="form-group">
-        @Html.Label("Read Access to All", htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="form-group">
+            @Html.Label("Read Access to All", htmlAttributes: new { @class = "control-label col-md-2" })
 
-        <div class="col-md-10">
-            @Html.CheckBoxFor(model => model.AllUsersReadAcc, new { htmlAttributes = new { @class = "form-control" } })
-            @Html.ValidationMessageFor(model => model.AllUsersReadAcc, "", new { @class = "text-danger" })
+            <div class="col-md-10">
+                @Html.CheckBoxFor(model => model.AllUsersReadAcc, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.AllUsersReadAcc, "", new { @class = "text-danger" })
+            </div>
         </div>
-    </div>
 
-    <div class="form-group">
-        @Html.Label("Read Access to a Department", htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="form-group">
+            @Html.Label("Read Access to a Department", htmlAttributes: new { @class = "control-label col-md-2" })
 
-        <div class="col-md-10">
-            @Html.DropDownListFor(model => model.DepartmentCode, new SelectList(ViewBag.departments, "departmentcode", "departmentname"), "Select a department", new { @class = "form-control" })
-            @Html.ValidationMessageFor(model => model.DepartmentCode, "", new { @class = "text-danger" })
+            <div class="col-md-10">
+                @Html.DropDownListFor(model => model.DepartmentCode, new SelectList(ViewBag.departments, "departmentcode", "departmentname"), "Select a department", new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.DepartmentCode, "", new { @class = "text-danger" })
+            </div>
         </div>
-    </div>
 
 
-    <div class="form-group">
+        <div class="form-group">
 
-        @Html.Label("Add Viewers", htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            <table id="tblViewers" class="table" cellpadding="0" cellspacing="0">
+            @Html.Label("Add Viewers", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                <table id="tblViewers" class="table" cellpadding="0" cellspacing="0">
 
-                <thead>
+                    <thead>
 
-                    <tr>
+                        <tr>
 
-                        <th style="width:150px">Full Name</th>
+                            <th style="width:150px">Full Name</th>
 
-                        <th style="width:150px">Email</th>
+                            <th style="width:150px">Email</th>
 
-                        @*<th style="width:150px">Job Title</th>*@
+                            @*<th style="width:150px">Job Title</th>*@
 
-                        <th></th>
+                            <th></th>
 
-                    </tr>
+                        </tr>
 
-                </thead>
+                    </thead>
 
-                <tbody>
+                    <tbody>
 
-                    @using (var db = new SOPManagement.Models.RadiantSOPEntities())
-                    {
-
-                        foreach (var usr in db.vwSOPReviewers.Where(x => x.fileid == -1))
-
+                        @using (var db = new SOPManagement.Models.RadiantSOPEntities())
                         {
-                            //  if (usr.fileid == 63)
 
-                            // {
+                            foreach (var usr in db.vwSOPReviewers.Where(x => x.fileid == -1))
 
+                            {
+                                //  if (usr.fileid == 63)
 
-                            <tr>
-
-                                <td> @usr.userfullname </td>
-
-                                <td> @usr.useremailaddress </td>
-
-                                @*<td> @usr.jobtitle </td>*@
-
-                                <td><input type="button" value="Remove" onclick="Remove(this,'#tblViewers')" /></td>
+                                // {
 
 
+                                <tr>
 
-                            </tr>
-                            //   }
+                                    <td> @usr.userfullname </td>
 
+                                    <td> @usr.useremailaddress </td>
+
+                                    @*<td> @usr.jobtitle </td>*@
+
+                                    <td><input type="button" value="Remove" onclick="Remove(this,'#tblViewers')" /></td>
+
+
+
+                                </tr>
+                                //   }
+
+                            }
                         }
-                    }
 
-                </tbody>
+                    </tbody>
 
-                <tfoot>
+                    <tfoot>
 
-                    <tr>
+                        <tr>
 
-                        <td>
+                            <td>
 
-                            @Html.DropDownList("userid", new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select a viewer", new { @id = "ddlViewers" })
-                        </td>
-
+                                @Html.DropDownList("userid", new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select a viewer", new { @id = "ddlViewers" })
+                            </td>
 
 
 
-                        <td colspan="2"><input type="button" id="btnAddVwer" value="Add" /></td>
 
-                    </tr>
+                            <td colspan="2"><input type="button" id="btnAddVwer" value="Add" /></td>
 
-                </tfoot>
+                        </tr>
 
-            </table>
+                    </tfoot>
 
+                </table>
+
+            </div>
         </div>
-    </div>
 
-    <div class="form-group">
-        <div class="col-md-offset-2 col-md-10">
-            @*<input type="submit" value="Create" id="btnSubmit" onclick="submit();" class="btn btn-default" />*@
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                @*<input type="submit" value="Create" id="btnSubmit" onclick="submit();" class="btn btn-default" />*@
 
 
+            </div>
         </div>
+
     </div>
+}
+
+<div class="container" style="text-align:center">
+
+    <div class="col-md-12">  <button onclick="submit()" id="btnsubmit">Submit Form</button> </div>
 
 </div>
-    }
-
-        <div class="container" style="text-align:center">
-
-            <div class="col-md-12">  <button onclick="submit()" id="btnsubmit">Submit Form</button> </div>
-
-        </div>
 
 
-    @*<div>
+@*<div>
         @Html.ActionLink("Back to List", "Index")
     </div>*@
- 
+
 
 
 <div class="submit-progress hidden" id="progessdiv">
@@ -331,18 +335,18 @@
 
 <script src="~/Scripts/jquery-3.3.1.min.js"></script>
 
-    @section Scripts {
-        @Scripts.Render("~/bundles/jqueryval")
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
 
 
-    }
+}
 
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 
-    <script type="text/javascript" src="http://ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js"></script>
+<script type="text/javascript" src="http://ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js"></script>
 
 
-    <script>
+<script>
 
 
         $(document).ready(function () {
@@ -350,7 +354,7 @@
             @*window.location.href = '@Url.Action("CreateUploadSOPAuth", "Home")';*@
 
             $("#Updatefreq").val(1);
-                  
+
 
             $("#FolderName").change(function () {
 
@@ -459,7 +463,7 @@
             return Array(+(zero > 0 && zero)).join("0") + num;
         }
 
-      
+
 
         $("body").on("click", "#btnAddRvwer", function () {
 
@@ -693,7 +697,7 @@
             var deptfoldernm = $('#FolderName :selected').text();
             var deptsubfoldernm = $('#SubFolderName :selected').text();
 
-           
+
             if (deptfoldernm == "Please select a folder" || deptfoldernm == "" ) {
                 alert("Folder name is required!")
                 return true;
@@ -716,7 +720,7 @@
 
             var updfreq = $('#Updatefreq').val();
 
-         
+
             if (updfreq == "") {
                 alert("Update frequency is required!")
                 return true;
@@ -757,9 +761,9 @@
                 return true;
 
             }
-           
 
-            //collect reviewers and viewers from html tables in array 
+
+            //collect reviewers and viewers from html tables in array
             var reviewerarr = new Array();
             //Loop through the Table rows and build a reviewers JSON array.
 
@@ -826,7 +830,7 @@
 
 
             }
-      
+
             var vwrarr = JSON.stringify(viewersarr);
 
           //  alert(vwrarr);
@@ -840,16 +844,16 @@
 
             //};
 
-    
+
          //   $.post("/Home/CreateUploadSOP", { sop: data }, function () { alert('Successfully Saved') });
 
 
             //map all values to model field to pass to controller. we did not need this if we did not use ajax call
             // we used ajax becuase sending reviewers and viewers arrays without ajax is very difficult
-   
 
-            //check duplicate sop, I did not implement it as SOP no as well as SOP file name get changed with every upload 
-          //  chekcDuplicateSOP(); 
+
+            //check duplicate sop, I did not implement it as SOP no as well as SOP file name get changed with every upload
+          //  chekcDuplicateSOP();
 
             //if all data entries are valid theb show progress bar
             DisplayProgressMessage(document.getElementById('btnsubmit'), "Processing SOP");
@@ -883,11 +887,11 @@
 
                 processData: false, //do not want jQuery to automatically convert the data to a query string so I'm setting processData to false.
 
-                contentType: false, 
+                contentType: false,
 
                 dataType: "json",
                 success: function (response) {  //server sends OK 200 response to the client
-                    
+
                     //alert(response.redirecturl);
 
                     if (response.redirecturl != null && response.redirecturl != "")
@@ -898,7 +902,7 @@
                         @*window.location.href = '@Url.Action("SOPMessage", "Home")/' + id;*@
 
                         window.location.href = '@Url.Action("SOPMessage", "Home")';
-      
+
                     }
                 },
                 failure: function (response) {
@@ -909,12 +913,12 @@
                 error: function (response) {
 
                   //  window.location.href = response.redirect;
-                    
+
                      alert(response.responseText);
                     //Codes other than Http Success codes(200[OK]) will trigger the function in front of error: in client side(ajax).
                 }
 
-                //error: function (httpRequest, textStatus, errorThrown) {  // detailed error messsage 
+                //error: function (httpRequest, textStatus, errorThrown) {  // detailed error messsage
                 //    alert("Error: " + textStatus + " " + errorThrown + " " + httpRequest);
                 //}
 
@@ -933,7 +937,7 @@
                 return true;
 
 
-            
+
         }
 
         function DisplayProgressMessage(ctl, msg) {
@@ -949,4 +953,4 @@
         }
 
 
-    </script>
+</script>

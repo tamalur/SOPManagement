@@ -115,6 +115,23 @@ namespace SOPManagement.Models
         public string Password { get; set; }
         
 
+        public void UpdateChangeReqID(short statuscode)
+        {
+
+            using (var dbcontext = new RadiantSOPEntities())
+            {
+                var result = dbcontext.filechangerequestactivities.SingleOrDefault(b => b.changerequestid == FileChangeRqstID && b.fileid==FileID);
+                if (result != null)
+                {
+                    result.approvalstatuscode = statuscode;
+                    result.statusdatetime = DateTime.Today;
+
+                    dbcontext.SaveChanges();
+                }
+            }
+        }
+
+
         public void AddFileReviewers()
         {
 
@@ -1125,6 +1142,7 @@ namespace SOPManagement.Models
                         user = clientContext.Web.EnsureUser(emp.useremailaddress);
                         item.BreakRoleInheritance(false, false);
 
+                        
                         if (operation == "add")
                         {
                             item.RoleAssignments.Add(user, rd);
@@ -1133,7 +1151,7 @@ namespace SOPManagement.Models
                         {
 
                             item.RoleAssignments.GetByPrincipal(user).DeleteObject();
-
+                            
                         }
 
                     }
@@ -1159,6 +1177,100 @@ namespace SOPManagement.Models
 
 
         }
+
+
+        public void GetSOPInfoByFileID()
+        {
+
+            using (var ctx = new RadiantSOPEntities())
+            {
+                FolderName = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SPFilePath).FirstOrDefault();
+                FileName = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.DeptFileName).FirstOrDefault();
+                SOPNo = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SOPNo).FirstOrDefault();
+                FileLink= ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SPFileLink).FirstOrDefault();
+            }
+
+
+        }
+
+        public bool PublishFile()
+        {
+
+            bool pdone = false;
+            ErrorMessage = "";
+
+            ClientContext ctx = new ClientContext(SiteUrl);
+
+            string userName = "tshaikh@radiantdelivers.com";
+            string password = "bdkbg88#";
+
+
+            SecureString spassword = GetSecureString(password);
+
+            ctx.Credentials = new SharePointOnlineCredentials(userName, spassword);
+                        
+            ctx.Load(ctx.Web);
+
+            Web web = ctx.Web;
+
+            //The ServerRelativeUrl property returns a string in the following form, which excludes the name of
+            //    the server or root folder: / Site_Name / Subsite_Name / Folder_Name / File_Name.
+
+            ctx.Load(web, wb => wb.ServerRelativeUrl);
+            ctx.ExecuteQuery();
+
+            // string filerelurl = web.ServerRelativeUrl + "/SOP/Information Technology (IT)/" + "IT-07 OperationTestFile.docx";
+
+            string filerelurl = web.ServerRelativeUrl + "/"+FolderName.Trim() +FileName;
+
+            Microsoft.SharePoint.Client.File file = web.GetFileByServerRelativeUrl(filerelurl);
+
+            //CheckIn the file
+            // file.CheckIn(String.Concat("File CheckingIn at ", DateTime.Now.ToLongDateString()), SP.CheckinType.MajorCheckIn);
+
+            //CheckOut the File
+            // file.CheckOut();
+
+            //Publish the file
+
+            ctx.Load(file);
+            ctx.ExecuteQuery();
+
+            if (file.Level.ToString() == "Draft")    //level enum Published=1, Draft=2, Checkout=255 
+            {
+                file.Approve(String.Concat("File Publishing at ", DateTime.Now.ToLongDateString()));
+                ctx.ExecuteQuery();
+
+
+                //update change request table with published status code 3 
+                // we need this because when user will request a change we need to check whether previous
+                //request was published or not. if not published, then during change request we will advise
+                //user to wait until the current request is approved.
+
+                UpdateChangeReqID(3);
+
+                pdone = true;
+            }
+
+            if (file.Level.ToString() == "Published")
+
+            {
+                pdone = false;
+                ErrorMessage = ".It is already published";
+
+            }
+
+
+                //UnPublish the file
+                // file.UnPublish(String.Concat("File UnPublishing at ", DateTime.Now.ToLongDateString()));
+
+
+
+                return pdone;
+        }
+
+
+
         public void GetSOPNo()
         {
 
@@ -1168,6 +1280,9 @@ namespace SOPManagement.Models
 
 
         }
+
+
+
 
     } //end of class
 }  //end of namespace

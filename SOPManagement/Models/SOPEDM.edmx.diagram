@@ -29,6 +29,9 @@
         <EntityTypeShape EntityType="RadiantYYZModel.fileviewaccesstype" Width="1.5" PointX="0.75" PointY="12.75" />
         <EntityTypeShape EntityType="RadiantYYZModel.fileviewer" Width="1.5" PointX="2.75" PointY="12.75" />
         <EntityTypeShape EntityType="RadiantYYZModel.codesUnit" Width="1.5" PointX="13.375" PointY="0.75" />
+        <EntityTypeShape EntityType="RadiantYYZModel.vwApprvrsSignature" Width="1.5" PointX="13.375" PointY="3.75" />
+        <EntityTypeShape EntityType="RadiantYYZModel.vwOwnerSignature" Width="1.5" PointX="13.375" PointY="7.75" />
+        <EntityTypeShape EntityType="RadiantYYZModel.vwRvwrsSignature" Width="1.5" PointX="13.375" PointY="11.75" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

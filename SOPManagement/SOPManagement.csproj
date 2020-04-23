@@ -270,10 +270,19 @@
     <Compile Include="Models\user.cs">
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\vwApprvrsSignature.cs">
+      <DependentUpon>SOPEDM.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\vwDepartmentFolder.cs">
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\vwDepartmentSubFolder.cs">
+      <DependentUpon>SOPEDM.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\vwOwnerSignature.cs">
+      <DependentUpon>SOPEDM.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\vwRvwrsSignature.cs">
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\vwSOPReviewer.cs">
@@ -397,6 +406,7 @@
     <Content Include="webfonts\fa-brands-400.woff" />
     <Content Include="webfonts\fa-brands-400.ttf" />
     <Content Include="webfonts\fa-brands-400.eot" />
+    <Content Include="Views\Home\PublishFile.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -51,6 +51,9 @@ namespace SOPManagement.Models
         public virtual DbSet<fileviewaccesstype> fileviewaccesstypes { get; set; }
         public virtual DbSet<fileviewer> fileviewers { get; set; }
         public virtual DbSet<codesUnit> codesUnits { get; set; }
+        public virtual DbSet<vwApprvrsSignature> vwApprvrsSignatures { get; set; }
+        public virtual DbSet<vwOwnerSignature> vwOwnerSignatures { get; set; }
+        public virtual DbSet<vwRvwrsSignature> vwRvwrsSignatures { get; set; }
     
         public virtual ObjectResult<Nullable<int>> sp_getSOPNo(string deptfolder, string deptsubfolder)
         {
