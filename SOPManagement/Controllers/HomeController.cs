@@ -127,113 +127,6 @@ namespace SOPManagement.Controllers
         }
 
         
-        public ActionResult PublishFile(int? id)
-        {
-            //give this url to Elhadj 
-           // http://localhost:58639/Home/PublishFile/293?chngreqid=18
-
-
-            string changereqid = Request.QueryString["chngreqid"];
-
-
-            int sopfileid = 0;
-            int validchngreq = 0;
-
-            Session["ErrorMsg"] = "";
-
-            Session["Dashboardlink"] = "http://camis1-bioasp01/Reports/Pages/Report.aspx?ItemPath=%2fSOP+Reports%2fSOP+Dashboard";
-
-
-            if (IsSessionExpired())
-            {
-
-               // ViewBag.ErrorMessage = "SOP Application: Session not Timed out";
-
-                Session["ErrorMsg"] = "SOP Application: Session not Timed out";
-
-                return RedirectToAction("SOPMessage");
-
-            }
-
-
-
-            if (id == null || changereqid == null || changereqid == "" || !IsNumeric(changereqid))     //no file provided
-            {
-
-                Session["ErrorMsg"] = "Error: Valid File ID and Cahneg Request ID is required to publish the file!";
-
-                return RedirectToAction("SOPMessage");
-
-            }
-
-            else
-            {
-                validchngreq = Convert.ToInt32(changereqid);
-                sopfileid = Convert.ToInt16(id);
-
-                
-            }
-
-
-            Employee oEmp = new Employee();
-
-            string loggedinuser = "";
-
-            // var usr = System.Environment.UserName;
-
-            loggedinuser = System.Web.HttpContext.Current.User.Identity.Name;
-
-            loggedinuser = loggedinuser.Split('\\').Last();
-
-            Session["UserID"] = loggedinuser;
-
-            oEmp.useremailaddress = loggedinuser + "@radiantdelivers.com";
-
-    
-            if (oEmp.AuthenticateUser("approver", sopfileid))
-
-            {
-
-                SOPClass oSOP = new SOPClass();
-
-                oSOP.SiteUrl = siteurl;
-
-                oSOP.FileID = sopfileid;
-
-                oSOP.FileChangeRqstID = validchngreq;
-
-                oSOP.GetSOPInfoByFileID();  //get file path, name etc.
-
-
-                if (oSOP.PublishFile())
-                {
-
-
-                    Session["SOPMsg"] = "SOP "+oSOP.FileName +" has been successfully published!";
-
-                    return RedirectToAction("SOPMessage");
-
-                }
-
-                else
-                {
-                    Session["SOPMsg"] = "Failed to publish SOP " + oSOP.FileName + oSOP.ErrorMessage+ ".Please contact IT!";
-                    return RedirectToAction("SOPMessage");
-                }
-
-
-            }
-            else  //failed to authenticate logged in user as approver
-            {
-                Session["SOPMsg"] = "Failed to authenticate user as an approver of the file.Please contact IT!";
-                return RedirectToAction("SOPMessage");
-            }
-
-        
-
-            //return View();
-        }
-
         [HttpPost]
         //public ActionResult PublishFile(SOPManagement.Models.SOPClass sopmodel)
         //{
@@ -521,30 +414,23 @@ namespace SOPManagement.Controllers
                 oSop.SOPEffectiveDate = Convert.ToDateTime(sop.SOPEffectiveDate);
 
 
-                oSop.FilePath = docpath + oSop.FileName;
+                oSop.FileLocalPath = docpath + oSop.FileName;
 
-                FileRevision[] oRevarr = new FileRevision[1];
+                //FileRevision[] oRevarr = new FileRevision[1];
 
-                FileRevision rev1 = new FileRevision();
+                //FileRevision rev1 = new FileRevision();
 
-                rev1.RevisionNo = "1.0";
-                rev1.RevisionDate = DateTime.Now;
-                rev1.Description = "New SOP";
+                //rev1.RevisionNo = "";
+                //rev1.RevisionDate = DateTime.Now;
+                //rev1.Description = "";
 
-                oRevarr[0] = rev1;
+                //oRevarr[0] = rev1;
 
-                //FileRevision rev2 = new FileRevision();
+                //oSop.FileRevisions = oRevarr;
 
-                //rev2.RevisionNo = "2.0";
-                //rev2.RevisionDate = DateTime.Now;
-                //rev2.Description = "Newly Created";
-
-                //oRevarr[1] = rev2;
-
-                oSop.FileRevisions = oRevarr;
 
                 oSop.SiteUrl = siteurl;
-                oSop.FileCurrVersion = "1.0";
+                oSop.FileCurrVersion = "1";
 
                 oSop.UpdateCoverRevhistPage();
 
@@ -579,11 +465,11 @@ namespace SOPManagement.Controllers
                 oSop.SubFolderName =sop.SubFolderName;
 
                 if (oSop.SubFolderName == "")
-                    oSop.FileUrl = "SOP/" + oSop.FolderName + "/";
+                    oSop.FilePath = "SOP/" + oSop.FolderName + "/";
                 else
-                    oSop.FileUrl = "SOP/" + oSop.FolderName + "/" + oSop.SubFolderName + "/";
+                    oSop.FilePath = "SOP/" + oSop.FolderName + "/" + oSop.SubFolderName + "/";
 
-                oSop.FileStream = System.IO.File.ReadAllBytes(oSop.FilePath);
+                oSop.FileStream = System.IO.File.ReadAllBytes(oSop.FileLocalPath);
 
                 oSop.UploadDocument();
 
@@ -795,6 +681,163 @@ namespace SOPManagement.Controllers
             //return Json(sop);
 
         }
+
+        public ActionResult PublishFile(int? id)
+        {
+            //give this url to Elhadj 
+            // http://localhost:58639/Home/PublishFile/293?chngreqid=18
+
+
+            string changereqid = Request.QueryString["chngreqid"];
+
+
+            int sopfileid = 0;
+            int validchngreq = 0;
+
+            Session["ErrorMsg"] = "";
+
+            Session["Dashboardlink"] = "http://camis1-bioasp01/Reports/Pages/Report.aspx?ItemPath=%2fSOP+Reports%2fSOP+Dashboard";
+
+
+            if (IsSessionExpired())
+            {
+
+                // ViewBag.ErrorMessage = "SOP Application: Session not Timed out";
+
+                Session["ErrorMsg"] = "SOP Application: Session not Timed out";
+
+                return RedirectToAction("SOPMessage");
+
+            }
+
+
+
+            if (id == null || changereqid == null || changereqid == "" || !IsNumeric(changereqid))     //no file provided
+            {
+
+                Session["ErrorMsg"] = "Error: Valid File ID and Cahneg Request ID is required to publish the file!";
+
+                return RedirectToAction("SOPMessage");
+
+            }
+
+            else
+            {
+                validchngreq = Convert.ToInt32(changereqid);
+                sopfileid = Convert.ToInt16(id);
+
+
+            }
+
+
+            Employee oEmp = new Employee();
+
+            string loggedinuser = "";
+
+            // var usr = System.Environment.UserName;
+
+            loggedinuser = System.Web.HttpContext.Current.User.Identity.Name;
+
+            loggedinuser = loggedinuser.Split('\\').Last();
+
+            Session["UserID"] = loggedinuser;
+
+            oEmp.useremailaddress = loggedinuser + "@radiantdelivers.com";
+
+
+            if (!oEmp.AuthenticateUser("approver", sopfileid))   //only approver can publish a signed SOP
+
+            {
+
+                Session["SOPMsg"] = "Failed to authenticate user as an approver of the file.Please contact IT!";
+                return RedirectToAction("SOPMessage");
+            }
+
+            SOPClass oSOP = new SOPClass();
+
+            oSOP.SiteUrl = siteurl;
+
+            oSOP.FileID = sopfileid;
+            oSOP.DocumentLibName = "SOP";
+            
+
+            oSOP.FileChangeRqstID = validchngreq;
+
+
+            oSOP.GetSOPInfoByFileID();  //get file path, name etc.
+
+            oSOP.FileTitle = Path.ChangeExtension(oSOP.FileName, null);
+
+            //We need to check whether the SOP is signed by all parties (approver, reviewer, owner)
+            //we will check signed status code in changeactivities table, it must be 1 to publish the sop
+
+            if (oSOP.FileStatuscode == 2)  //not signed
+            {
+                Session["SOPMsg"] = "Error: SOP " + oSOP.FileName + " has not been signed by all signatories!";
+
+                return RedirectToAction("SOPMessage");
+
+
+            }
+
+
+            if (oSOP.FileStatuscode == 3)  //published 
+            {
+                Session["SOPMsg"] = "Error: SOP " + oSOP.FileName + " has already been publsihed!";
+
+                return RedirectToAction("SOPMessage");
+
+
+            }
+
+
+            //just before publishing we need to update the coversheet with signed status of reviewers, approver
+            //and owner as well as update version no, revision history etc.
+            //1. first download the file
+
+            string templocalpath = Server.MapPath("~/Content/DocFiles/ ");
+
+            if (oSOP.FileStatuscode == 1)  //signed and ready to publish
+            {
+
+                oSOP.DownloadFileFromSharePoint(templocalpath);
+
+                //2. update the file 
+
+                oSOP.GetFileRevisions();
+
+                oSOP.UpdateCoverRevhistPage(true);
+
+                //3. upload again
+                oSOP.FileLocalPath = templocalpath + oSOP.FileName;
+
+                oSOP.FileStream = System.IO.File.ReadAllBytes(oSOP.FileLocalPath);
+
+                oSOP.UploadDocument();
+
+
+                if (oSOP.PublishFile())
+                {
+
+                    Session["SOPMsg"] = "SOP " + oSOP.FileName + " has been successfully published!";
+
+                    return RedirectToAction("SOPMessage");
+
+                }
+
+                else
+                {
+                    Session["SOPMsg"] = "Failed to publish SOP " + oSOP.FileName + oSOP.ErrorMessage + ".Please contact IT!";
+                    return RedirectToAction("SOPMessage");
+                }
+
+
+            } //end checking signed status
+
+
+            return View();
+        }
+
 
 
         //https://www.entityframeworktutorial.net/Querying-with-EDM.aspx

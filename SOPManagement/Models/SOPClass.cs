@@ -90,6 +90,8 @@ namespace SOPManagement.Models
 
         public string FilePath { get; set; }
 
+        public string FileLocalPath { get; set; }
+
         public bool OperationSuccess { get; set; }
 
         public Employee[] Reviewers { get; set; }
@@ -108,6 +110,13 @@ namespace SOPManagement.Models
         public HttpPostedFileBase UploadedFile { get; set; }
 
         public bool FileUploaded { get; set; }
+
+        public string ApprovalStatus { get; set; }
+
+        public string AuthorName { get; set; }
+
+        public DateTime SOPCreateDate { get; set; }
+
 
         public string ErrorMessage { get; set; }
 
@@ -667,40 +676,357 @@ namespace SOPManagement.Models
                     range.Copy();
 
 
+                    //donotaddrow = false;
+
+                    //int filevercount = 1;
+
+                    //if (FileRevisions!=null)
+                    //     foreach (FileRevision rev in FileRevisions)
+                    //     {
+
+                    //    if (selectedRow == 2 && filevercount == 1)
+                    //    {
+                    //        donotaddrow = true;
+                    //    }
+
+                    //    else
+                    //        donotaddrow = false;
+
+                    //    if (!donotaddrow)
+                    //        tab.Rows.Add(ref missObj);
+
+                    //    // Moves the cursor to the first cell of target row.
+                    //    range.Start = tab.Rows[tab.Rows.Count].Cells[1].Range.Start;
+                    //    range.End = range.Start;
+
+                    //// Paste values to target row.
+                    //    range.Paste();
+
+
+                    //    // Write new vaules to each cell.
+                    //    tab.Rows[tab.Rows.Count].Cells[1].Range.Text = rev.RevisionNo;
+                    //    tab.Rows[tab.Rows.Count].Cells[2].Range.Text = rev.RevisionDate.ToString("M/d/yyyy");
+                    //    tab.Rows[tab.Rows.Count].Cells[3].Range.Text = rev.Description;
+
+                    //    filevercount = filevercount + 1;
+
+                    //}
+
+                }
+
+
+                // Set footers
+                foreach (Microsoft.Office.Interop.Word.Section wordSection in wdoc.Sections)
+                {
+                    Microsoft.Office.Interop.Word.Range footerRange = wordSection.Footers[Microsoft.Office.Interop.Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].Range;
+
+                    footerRange.Tables[1].Cell(1, 1).Range.Text = FileTitle;
+
+
+
+                }
+
+                wdoc.SaveAs2(savePath);   //save in actual file from tempalte
+
+
+            }
+
+            catch (Exception ex)
+            {
+                ErrorMessage = ex.Message;
+
+            }
+
+            finally
+            {
+                app.Application.Quit();
+
+            }
+
+
+
+
+
+        }
+
+
+        public void UpdateCoverRevhistPage(bool pUpdSignatureRev)
+        {
+
+
+            //  string newfilename = SOPNo + " " + SOPFileTitle;
+
+
+            string savePath = HttpContext.Current.Server.MapPath("~/Content/docfiles/" + FileName);
+            object missObj = System.Reflection.Missing.Value;
+            object path = savePath;
+            Microsoft.Office.Interop.Word.Application app = new Microsoft.Office.Interop.Word.Application();
+
+            try
+            {
+
+
+                //  System.IO.File.Copy(HttpContext.Current.Server.MapPath("~/Content/docfiles/SOPTemp.docx"), HttpContext.Current.Server.MapPath("~/Content/docfiles/" + FileName), true);
+
+                Microsoft.Office.Interop.Word.Document wdoc = app.Documents.Open(ref path, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj);
+
+
+                //  add row in table and data in cell
+
+                // Employee emp = new Employee();
+
+                string ownerfullname;
+                string ownertitle;
+                string ownrsigstatus;
+                DateTime ownrsigndate;
+
+
+                string approverfullname;
+                string approvertitle;
+                string approversignstat;
+                DateTime apprvsigndate;
+
+
+                using (var ctx = new RadiantSOPEntities())
+                {
+                    approverfullname = ctx.vwApprvrsSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.approvername).FirstOrDefault();
+                    approvertitle = ctx.vwApprvrsSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.approvertitle).FirstOrDefault();
+                    approversignstat= ctx.vwApprvrsSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.AprvrSignedStatus).FirstOrDefault();
+                    apprvsigndate= Convert.ToDateTime(ctx.vwApprvrsSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.Aprvrsigneddate).FirstOrDefault());
+
+                    ownerfullname = ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.ownerrname).FirstOrDefault();
+                    ownertitle = ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.ownertitle).FirstOrDefault();
+                    ownrsigstatus= ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.ownerSignedStatus).FirstOrDefault();
+                    ownrsigndate= Convert.ToDateTime(ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.ownersigneddate).FirstOrDefault());
+
+                }
+
+
+                int totalTables = wdoc.Tables.Count;
+                bool donotaddrow = false;
+
+
+                //Add data into reviewer table  - 2nd table in the cover page
+
+                if (totalTables > 0)
+                {
+
+
+                    //update 1st table in cover page, file title, SOP #, Rev #, Eff date, owner
+
+                    Microsoft.Office.Interop.Word.Table tab1 = wdoc.Tables[1];
+                    Microsoft.Office.Interop.Word.Range range1 = tab1.Range;
+
+                    // Select the last row as source row.
+                    int selectedRow1 = tab1.Rows.Count;
+                    int filecurversion=1;
+                    //if FileCurrVersion
+
+                     decimal fd=0 ;
+                    
+                    bool result = decimal.TryParse(FileCurrVersion, out fd); //i now = 108  
+
+                    if (result)
+                    {
+                        filecurversion = Convert.ToInt16(Math.Ceiling(fd));
+                    }
+
+        
+
+                    // Write new vaules to each cell.
+                    tab1.Rows[1].Cells[2].Range.Text = FileTitle;
+                    tab1.Rows[2].Cells[2].Range.Text = SOPNo;
+                    tab1.Rows[2].Cells[4].Range.Text = filecurversion.ToString();
+                    tab1.Rows[3].Cells[2].Range.Text = DateTime.Today.ToShortDateString(); //current bcs it will publish now
+                    //SOPEffectiveDate.ToShortDateString();
+                    tab1.Rows[4].Cells[2].Range.Text = ownerfullname;
+
+
+                    //update 2nd table in  cover page for updating reviewers
+
+                    Microsoft.Office.Interop.Word.Table tab2 = wdoc.Tables[2];
+                    Microsoft.Office.Interop.Word.Range range2 = tab2.Range;
+
+                    // Select the last row as source row.
+                    int selectedRow2 = tab2.Rows.Count;
+
+                    //keep only 3 rows if there are more than 3 rows in table
+                    //int rvrrowcount = Reviewers.Count();
+
+                    int rowstodel;
+                    if (selectedRow2 > 3)
+                    {
+                        rowstodel = selectedRow2 - 3;
+                        for (int i = 1; i <= rowstodel; i++)
+                        {
+                            tab2.Rows[4].Delete();
+
+                        }
+                        selectedRow2 = tab2.Rows.Count;
+                    }
+
+
+
+                    // Select and copy content of the source row.
+                    range2.Start = tab2.Rows[selectedRow2].Cells[1].Range.Start;
+                    range2.End = tab2.Rows[selectedRow2].Cells[tab2.Rows[selectedRow2].Cells.Count].Range.End;
+                    range2.Copy();
+
+                    // Insert a new row after the last row if it is not first row to add data
+
+
+                    //Get reviewers with signatures of this file and request
+
+                    int rvwrcnt = 1;
+
+                    using (var ctx = new RadiantSOPEntities())
+                    {
+
+                       // var rvrwrs = ctx.vwRvwrsSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d);
+
+                        var rvrwrs =(from c in ctx.vwRvwrsSignatures where c.fileid == FileID && c.changerequestid==FileChangeRqstID select c);
+
+                        foreach (var r in rvrwrs)
+                        {
+                            // Console.WriteLine(r.reviewername);
+
+                            if (selectedRow2 == 3 && rvwrcnt == 1)
+                            {
+
+                                //if (tab2.Rows[tab2.Rows.Count].Cells[1].Range.Text == "" || tab2.Rows[tab2.Rows.Count].Cells[1].Range.Text == "\r\a")
+                                donotaddrow = true;
+
+                            }
+                            else
+                                donotaddrow = false;
+
+                            if (!donotaddrow)
+                                tab2.Rows.Add(ref missObj);
+
+
+                            // Moves the cursor to the first cell of target row.
+                            range2.Start = tab2.Rows[tab2.Rows.Count].Cells[1].Range.Start;
+                            range2.End = range2.Start;
+
+                            // Paste values to target row.
+                            range2.Paste();
+
+                            // Write new vaules to each cell.
+
+
+                            tab2.Rows[tab2.Rows.Count].Cells[1].Range.Text = r.reviewername;
+                            tab2.Rows[tab2.Rows.Count].Cells[2].Range.Text = r.reviewertitle;
+                            tab2.Rows[tab2.Rows.Count].Cells[3].Range.Text = r.SignedStatus;
+                            if (Convert.ToDateTime(r.signeddate).Year>70)
+                                tab2.Rows[tab2.Rows.Count].Cells[4].Range.Text = Convert.ToDateTime(r.signeddate).ToShortDateString();
+
+                            rvwrcnt = rvwrcnt + 1;
+
+
+                        }
+                    }
+
+
+
+                    //foreach (Employee rvwr in Reviewers)
+                    //{
+
+
+                    //}
+
+                    //end updating 2nd reviewers table
+
+                    //update 3rd table for approver
+
+                    //update 1st table in cover page, file title, SOP #, Rev #, Eff date, owner
+
+                    Microsoft.Office.Interop.Word.Table tab3 = wdoc.Tables[3];
+                    Microsoft.Office.Interop.Word.Range range3 = tab3.Range;
+
+                    // Write new vaules to each cell of row 3. One row always as there will be one approver
+
+
+                    tab3.Rows[3].Cells[1].Range.Text = approverfullname;
+                    tab3.Rows[3].Cells[2].Range.Text = approvertitle;
+                    tab3.Rows[3].Cells[3].Range.Text = approversignstat;
+
+                    if (Convert.ToDateTime(apprvsigndate).Year > 70)
+                        tab3.Rows[3].Cells[4].Range.Text = apprvsigndate.ToShortDateString();
+
+
+                    //end updating 3rd table for approver
+
+                    //update last table to add data into Revison history table 
+
+                    Microsoft.Office.Interop.Word.Table tab = wdoc.Tables[totalTables];
+                    Microsoft.Office.Interop.Word.Range range = tab.Range;
+
+                    // Select the last row as source row.
+                    int selectedRow = tab.Rows.Count;
+
+
+                    //delete rows if the table has more than three rows 
+
+                    if (selectedRow > 2)
+                    {
+                        rowstodel = selectedRow - 2;
+                        for (int i = 1; i <= rowstodel; i++)
+                        {
+                            tab.Rows[3].Delete();
+
+                        }
+                        selectedRow = tab.Rows.Count;
+                    }
+
+                    // Select and copy content of the source row.
+                    range.Start = tab.Rows[selectedRow].Cells[1].Range.Start;
+                    range.End = tab.Rows[selectedRow].Cells[tab.Rows[selectedRow].Cells.Count].Range.End;
+                    range.Copy();
+
+
                     donotaddrow = false;
 
                     int filevercount = 1;
 
                     foreach (FileRevision rev in FileRevisions)
                     {
+                        decimal drevno;
+                        drevno = Convert.ToDecimal(rev.RevisionNo);
 
-                        if (selectedRow == 2 && filevercount == 1)
+                        if ((drevno % 1) == 0)   //only approved version will show here
                         {
-                            donotaddrow = true;
-                        }
 
-                        else
-                            donotaddrow = false;
+                            if (selectedRow == 2 && filevercount == 1)
+                            {
+                                donotaddrow = true;
+                            }
 
-                        if (!donotaddrow)
-                            tab.Rows.Add(ref missObj);
+                            else
+                                donotaddrow = false;
 
-                        // Moves the cursor to the first cell of target row.
-                        range.Start = tab.Rows[tab.Rows.Count].Cells[1].Range.Start;
-                        range.End = range.Start;
+                            if (!donotaddrow)
+                                tab.Rows.Add(ref missObj);
 
-                    // Paste values to target row.
-                        range.Paste();
+                            // Moves the cursor to the first cell of target row.
+                            range.Start = tab.Rows[tab.Rows.Count].Cells[1].Range.Start;
+                            range.End = range.Start;
+
+                            // Paste values to target row.
+                            range.Paste();
 
 
-                        // Write new vaules to each cell.
-                        tab.Rows[tab.Rows.Count].Cells[1].Range.Text = rev.RevisionNo;
-                        tab.Rows[tab.Rows.Count].Cells[2].Range.Text = rev.RevisionDate.ToString("M/d/yyyy");
-                        tab.Rows[tab.Rows.Count].Cells[3].Range.Text = rev.Description;
+                            // Write new vaules to each cell.
+                            tab.Rows[tab.Rows.Count].Cells[1].Range.Text = Convert.ToInt32(rev.RevisionNo).ToString();
+                            tab.Rows[tab.Rows.Count].Cells[2].Range.Text = rev.RevisionDate.ToString("M/d/yyyy");
+                            tab.Rows[tab.Rows.Count].Cells[3].Range.Text = rev.Description;
 
-                        filevercount = filevercount + 1;
+                            filevercount = filevercount + 1;
 
-                    }
+
+
+                        }  //end checking approved version
+
+                    }  //end for loop
 
                 }
 
@@ -769,7 +1095,7 @@ namespace SOPManagement.Models
                 fileCreationInformation.Overwrite = true;
                 //Upload URL
 
-                fileCreationInformation.Url = SiteUrl + FileUrl + FileName;
+                fileCreationInformation.Url = SiteUrl +"/"+ FilePath + FileName;
                 Microsoft.SharePoint.Client.File uploadFile = documentsList.RootFolder.Files.Add(fileCreationInformation);
 
                 //Update the metadata for a field having name "SOPNO"
@@ -802,37 +1128,6 @@ namespace SOPManagement.Models
 
         }
 
-
-        internal void DownloadFilesFromSharePoint(string tempLocation)
-        {
-
-            //DownloadFilesFromSharePoint("https://tenant.sharepoint.com", "/SharedDocuments", @"c:\downloads");
-
-            ClientContext ctx = new ClientContext(SiteUrl);
-
-            SecureString SecurePassword = GetSecureString(Password);
-            ctx.Credentials = new SharePointOnlineCredentials(UserName, SecurePassword);
-
-
-           // ctx.Credentials = new SharePointOnlineCredentials(UserName, Password);
-
-            FileCollection files = ctx.Web.GetFolderByServerRelativeUrl(FolderName).Files;
-
-            ctx.Load(files);
-            ctx.ExecuteQuery();
-
-            foreach (Microsoft.SharePoint.Client.File file in files)
-            {
-                FileInformation fileInfo = Microsoft.SharePoint.Client.File.OpenBinaryDirect(ctx, file.ServerRelativeUrl);
-                ctx.ExecuteQuery();
-
-                var filePath = tempLocation + file.Name;
-                using (var fileStream = new System.IO.FileStream(filePath, System.IO.FileMode.Create))
-                {
-                    fileInfo.Stream.CopyTo(fileStream);
-                }
-            }
-        }
 
         private static SecureString GetSecureString(String Password)
         {
@@ -1184,12 +1479,94 @@ namespace SOPManagement.Models
 
             using (var ctx = new RadiantSOPEntities())
             {
-                FolderName = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SPFilePath).FirstOrDefault();
+                FilePath = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SPFilePath).FirstOrDefault();
                 FileName = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.DeptFileName).FirstOrDefault();
                 SOPNo = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SOPNo).FirstOrDefault();
                 FileLink= ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SPFileLink).FirstOrDefault();
+                FileCurrVersion = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.VersionNo).FirstOrDefault();
+                ApprovalStatus = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.ApprovalStatus).FirstOrDefault();
+                AuthorName = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.CreatedBy).FirstOrDefault();
+                SOPCreateDate = Convert.ToDateTime(ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.CreateDate).FirstOrDefault());
+
+
+                FileStatuscode=ctx.filechangerequestactivities.Where(d => d.fileid == FileID && d.changerequestid==FileChangeRqstID).Select(d => d.approvalstatuscode).FirstOrDefault();
+
             }
 
+
+        }
+
+        public void GetFileRevisions()
+        {
+
+            ErrorMessage = "";
+
+            ClientContext ctx = new ClientContext(SiteUrl);
+
+            string userName = "tshaikh@radiantdelivers.com";
+            string password = "bdkbg88#";
+
+
+            SecureString spassword = GetSecureString(password);
+
+            ctx.Credentials = new SharePointOnlineCredentials(userName, spassword);
+
+            ctx.Load(ctx.Web);
+
+            Web web = ctx.Web;
+
+            //The ServerRelativeUrl property returns a string in the following form, which excludes the name of
+            //    the server or root folder: / Site_Name / Subsite_Name / Folder_Name / File_Name.
+
+            ctx.Load(web, wb => wb.ServerRelativeUrl);
+            ctx.ExecuteQuery();
+
+            // string filerelurl = web.ServerRelativeUrl + "/SOP/Information Technology (IT)/" + "IT-07 OperationTestFile.docx";
+
+            string filerelurl = web.ServerRelativeUrl + "/" + FilePath.Trim() + FileName;
+
+            Microsoft.SharePoint.Client.File file = web.GetFileByServerRelativeUrl(filerelurl);
+
+            //CheckIn the file
+            // file.CheckIn(String.Concat("File CheckingIn at ", DateTime.Now.ToLongDateString()), SP.CheckinType.MajorCheckIn);
+
+            //CheckOut the File
+            // file.CheckOut();
+
+            //Publish the file
+
+            ctx.Load(file);
+            ctx.ExecuteQuery();
+
+            FileVersionCollection fvc = file.Versions;
+
+            ctx.Load(fvc);
+
+            ctx.ExecuteQuery();
+
+            FileRevision[] oRVArr=new FileRevision[fvc.Count] ;
+
+            int i = 0;
+
+            FileRevision oRiv;
+
+            foreach (FileVersion fv in fvc)
+            {
+                oRiv = new FileRevision();
+
+                oRiv.FileID = FileID;
+                oRiv.RevisionID = fv.ID;
+                oRiv.RevisionNo = fv.VersionLabel;
+                oRiv.RevisionDate = fv.Created;
+                oRiv.Description = fv.CheckInComment;
+                oRiv.VersionUrl = fv.Url;
+
+                oRVArr[i] = oRiv;
+
+                i = i + 1;
+            }
+
+            FileRevisions = oRVArr;
 
         }
 
@@ -1221,7 +1598,7 @@ namespace SOPManagement.Models
 
             // string filerelurl = web.ServerRelativeUrl + "/SOP/Information Technology (IT)/" + "IT-07 OperationTestFile.docx";
 
-            string filerelurl = web.ServerRelativeUrl + "/"+FolderName.Trim() +FileName;
+            string filerelurl = web.ServerRelativeUrl + "/"+FilePath.Trim() +FileName;
 
             Microsoft.SharePoint.Client.File file = web.GetFileByServerRelativeUrl(filerelurl);
 
@@ -1267,6 +1644,85 @@ namespace SOPManagement.Models
 
 
                 return pdone;
+        }
+
+
+        internal void DownloadFileFromSharePoint(string tempLocation)
+        {
+
+
+            bool pdone = false;
+            ErrorMessage = "";
+
+            ClientContext ctx = new ClientContext(SiteUrl);
+
+            string userName = "tshaikh@radiantdelivers.com";
+            string password = "bdkbg88#";
+
+
+            SecureString spassword = GetSecureString(password);
+
+            ctx.Credentials = new SharePointOnlineCredentials(userName, spassword);
+
+            ctx.Load(ctx.Web);
+
+            Web web = ctx.Web;
+
+            //The ServerRelativeUrl property returns a string in the following form, which excludes the name of
+            //    the server or root folder: / Site_Name / Subsite_Name / Folder_Name / File_Name.
+
+            ctx.Load(web, wb => wb.ServerRelativeUrl);
+            ctx.ExecuteQuery();
+
+            // string filerelurl = web.ServerRelativeUrl + "/SOP/Information Technology (IT)/" + "IT-07 OperationTestFile.docx";
+
+            string filerelurl = web.ServerRelativeUrl + "/" + FilePath.Trim() + FileName;
+
+            Microsoft.SharePoint.Client.File file = web.GetFileByServerRelativeUrl(filerelurl);
+
+            ctx.Load(file);
+            ctx.ExecuteQuery();
+
+            FileInformation fileInfo = Microsoft.SharePoint.Client.File.OpenBinaryDirect(ctx, file.ServerRelativeUrl);
+
+            var filePath = tempLocation + file.Name;
+
+            using (var fileStream = new System.IO.FileStream(filePath, System.IO.FileMode.Create))
+            {
+                fileInfo.Stream.CopyTo(fileStream);
+            }
+
+
+
+            //---------------------------following code is to downlaod all files in a folder
+            //DownloadFilesFromSharePoint("https://tenant.sharepoint.com", "/SharedDocuments", @"c:\downloads");
+
+            // ClientContext ctx = new ClientContext(SiteUrl);
+
+            // SecureString SecurePassword = GetSecureString(Password);
+            // ctx.Credentials = new SharePointOnlineCredentials(UserName, SecurePassword);
+
+
+            //// ctx.Credentials = new SharePointOnlineCredentials(UserName, Password);
+
+            // FileCollection files = ctx.Web.GetFolderByServerRelativeUrl(FolderName).Files;
+
+            // ctx.Load(files);
+            // ctx.ExecuteQuery();
+
+            // foreach (Microsoft.SharePoint.Client.File file in files)
+            // {
+            //     FileInformation fileInfo = Microsoft.SharePoint.Client.File.OpenBinaryDirect(ctx, file.ServerRelativeUrl);
+            //     ctx.ExecuteQuery();
+
+            //     var filePath = tempLocation + file.Name;
+            //     using (var fileStream = new System.IO.FileStream(filePath, System.IO.FileMode.Create))
+            //     {
+            //         fileInfo.Stream.CopyTo(fileStream);
+            //     }
+            // }
+
+
         }
 
 
