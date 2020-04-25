@@ -270,6 +270,7 @@
     <Compile Include="Models\user.cs">
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\Utility.cs" />
     <Compile Include="Models\vwApprvrsSignature.cs">
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
@@ -307,6 +308,7 @@
     <Content Include="Content\fontawesome-all.min.css" />
     <Content Include="Content\fontawesome.css" />
     <Content Include="Content\fontawesome.min.css" />
+    <Content Include="Content\Images\RadiantLogo.jpg" />
     <Content Include="Content\LogFile\ProcessLog.txt" />
     <Content Include="Content\regular.css" />
     <Content Include="Content\regular.min.css" />

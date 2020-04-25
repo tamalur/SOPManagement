@@ -36,7 +36,7 @@ textarea {
      that is 1/2 of 'width' */
     margin-left: -10em;
     padding-left: 2.1em;
-    background-color: black;
+    background-color: darkred;
     color: white;
     -webkit-border-radius: 0.4em;
     -moz-border-radius: 0.4em;

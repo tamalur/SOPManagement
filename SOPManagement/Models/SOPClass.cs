@@ -12,6 +12,7 @@ using System.Security;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
 using System.Web.Mvc;
+using Microsoft.Online.SharePoint.TenantAdministration;
 
 namespace SOPManagement.Models
 {
@@ -122,7 +123,12 @@ namespace SOPManagement.Models
 
         public string UserName { get; set; }
         public string Password { get; set; }
-        
+
+
+        string userName = Utility.GetSiteAdminUserName();  //it is email address of site admin
+        string password = Utility.GetSiteAdminPassowrd();
+
+        // all database operation 
 
         public void UpdateChangeReqID(short statuscode)
         {
@@ -249,7 +255,6 @@ namespace SOPManagement.Models
             }
 
         }
-
 
         public void AddFileApprover()
 
@@ -502,11 +507,18 @@ namespace SOPManagement.Models
         public void UpdateCoverRevhistPage()
         {
 
-                       
+
             //  string newfilename = SOPNo + " " + SOPFileTitle;
 
 
-            string savePath = HttpContext.Current.Server.MapPath("~/Content/docfiles/" + FileName);
+            //string savePath = HttpContext.Current.Server.MapPath("~/Content/docfiles/" + FileName);
+
+            string tmpfiledirnm = Utility.GetTempLocalDirPath();
+
+            //string savePath = HttpContext.Current.Server.MapPath("~/Content/docfiles/" + FileName);
+
+            string savePath = HttpContext.Current.Server.MapPath(tmpfiledirnm + FileName);
+
             object missObj = System.Reflection.Missing.Value;
             object path = savePath;
             Microsoft.Office.Interop.Word.Application app = new Microsoft.Office.Interop.Word.Application();
@@ -558,7 +570,7 @@ namespace SOPManagement.Models
                     tab1.Rows[1].Cells[2].Range.Text = FileTitle;
                     tab1.Rows[2].Cells[2].Range.Text = SOPNo;
                     tab1.Rows[2].Cells[4].Range.Text = FileCurrVersion;
-                    tab1.Rows[3].Cells[2].Range.Text = SOPEffectiveDate.ToShortDateString();
+                    //tab1.Rows[3].Cells[2].Range.Text = SOPEffectiveDate.ToShortDateString();   //for new file it will be updated during publishing
                     tab1.Rows[4].Cells[2].Range.Text = ownerfullname;
 
 
@@ -749,15 +761,19 @@ namespace SOPManagement.Models
 
         }
 
-
         public void UpdateCoverRevhistPage(bool pUpdSignatureRev)
         {
 
 
-            //  string newfilename = SOPNo + " " + SOPFileTitle;
 
+            string tmpfiledirnm = Utility.GetTempLocalDirPath();
 
-            string savePath = HttpContext.Current.Server.MapPath("~/Content/docfiles/" + FileName);
+            //string savePath = HttpContext.Current.Server.MapPath("~/Content/docfiles/" + FileName);
+
+            string savePath = HttpContext.Current.Server.MapPath(tmpfiledirnm + FileName);
+
+            //string savePath = HttpContext.Current.Server.MapPath("~/Content/docfiles/" + FileName);
+
             object missObj = System.Reflection.Missing.Value;
             object path = savePath;
             Microsoft.Office.Interop.Word.Application app = new Microsoft.Office.Interop.Word.Application();
@@ -1065,7 +1081,52 @@ namespace SOPManagement.Models
 
         }
 
+        public void GetSOPInfoByFileID()
+        {
 
+            using (var ctx = new RadiantSOPEntities())
+            {
+                FilePath = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SPFilePath).FirstOrDefault();
+                FileName = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.DeptFileName).FirstOrDefault();
+                SOPNo = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SOPNo).FirstOrDefault();
+                FileLink = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SPFileLink).FirstOrDefault();
+                FileCurrVersion = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.VersionNo).FirstOrDefault();
+                ApprovalStatus = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.ApprovalStatus).FirstOrDefault();
+                AuthorName = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.CreatedBy).FirstOrDefault();
+                SOPCreateDate = Convert.ToDateTime(ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.CreateDate).FirstOrDefault());
+
+
+                FileStatuscode = ctx.filechangerequestactivities.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.approvalstatuscode).FirstOrDefault();
+
+            }
+
+
+        }
+
+        public void GetSOPNo()
+        {
+
+            RadiantSOPEntities ctx = new RadiantSOPEntities();
+
+            SOPNo = ctx.GetLastSOPNO(FolderName, SubFolderName).FirstOrDefault().ToString();
+
+
+        }
+        //this is for making password secured through channel
+        private static SecureString GetSecureString(String Password)
+        {
+            SecureString oSecurePassword = new SecureString();
+
+            foreach (Char c in Password.ToCharArray())
+            {
+                oSecurePassword.AppendChar(c);
+
+            }
+            return oSecurePassword;
+        }
+
+        //all sharepoint operation
+        //upload document to sharepoint
         public void UploadDocument()
         {
 
@@ -1074,8 +1135,8 @@ namespace SOPManagement.Models
             using (ClientContext clientContext = new ClientContext(SiteUrl))
             {
 
-                string userName = "tshaikh@radiantdelivers.com";
-                string password = "bdkbg88#";
+                //string userName = Utility.GetSiteAdminUserName();  //it is email address of site admin
+                //string password = Utility.GetSiteAdminPassowrd();
 
 
                 SecureString SecurePassword = GetSecureString(password);
@@ -1099,9 +1160,11 @@ namespace SOPManagement.Models
                 Microsoft.SharePoint.Client.File uploadFile = documentsList.RootFolder.Files.Add(fileCreationInformation);
 
                 //Update the metadata for a field having name "SOPNO"
-                string loginname = "tshaikh@radiantdelivers.com";
+                //  string loginname = "tshaikh@radiantdelivers.com";
 
-                User theUser = clientContext.Web.SiteUsers.GetByEmail(loginname);
+                //string loginname = userName;   //email address of site admin
+
+                User theUser = clientContext.Web.SiteUsers.GetByEmail(FileOwnerEmail);
 
 
                 uploadFile.ListItemAllFields["Owner"] = theUser;
@@ -1128,20 +1191,7 @@ namespace SOPManagement.Models
 
         }
 
-
-        private static SecureString GetSecureString(String Password)
-        {
-            SecureString oSecurePassword = new SecureString();
-
-            foreach (Char c in Password.ToCharArray())
-            {
-                oSecurePassword.AppendChar(c);
-
-            }
-            return oSecurePassword;
-        }
-
-
+        //remove existing sharepoint user permissions from file
         public void RemoveAllFilePermissions()
         {
 
@@ -1150,14 +1200,12 @@ namespace SOPManagement.Models
 
             ClientContext clientContext = new ClientContext(SiteUrl);
 
-            string userName = "tshaikh@radiantdelivers.com";
-            string password = "bdkbg88#";
-
+            //string userName = Utility.GetSiteAdminUserName();  //it is email address of site admin
+            //string password = Utility.GetSiteAdminPassowrd();
 
 
             SecureString SecurePassword = GetSecureString(password);
             clientContext.Credentials = new SharePointOnlineCredentials(userName, SecurePassword);
-
 
 
             Web web = clientContext.Web;
@@ -1251,13 +1299,15 @@ namespace SOPManagement.Models
 
         }
 
+        //assign right permissions to requested the user with file in sharepoint by email
         public void AssignFilePermission(string operation, string plabel, string useremail)
         {
 
             ClientContext clientContext = new ClientContext(SiteUrl);
 
-            string userName = "tshaikh@radiantdelivers.com";
-            string password = "bdkbg88#";
+
+            //string userName = Utility.GetSiteAdminUserName();  //it is email address of site admin
+            //string password = Utility.GetSiteAdminPassowrd();
 
             SecureString SecurePassword = GetSecureString(password);
             clientContext.Credentials = new SharePointOnlineCredentials(userName, SecurePassword);
@@ -1315,7 +1365,14 @@ namespace SOPManagement.Models
 
                     rd.Add(clientContext.Web.RoleDefinitions.GetByName(plabel));
                     Principal user = clientContext.Web.EnsureUser(loginname);
-                    item.BreakRoleInheritance(false, false);
+
+                    if (ViewAccessType == "All Users")
+                        item.BreakRoleInheritance(true, false);   //inherit permission for all users selection
+                    else
+                        item.BreakRoleInheritance(false, false);   //do not inherit if all users are not selected
+
+
+                  //  item.BreakRoleInheritance(false, false);
 
 
                     // Microsoft.SharePoint.Client.GroupCollection groupCollection = web.SiteGroups;
@@ -1357,155 +1414,213 @@ namespace SOPManagement.Models
 
         }
 
+
         public void AssignFilePermission(string operation, string plabel, Employee[] employees)
         {
 
             ClientContext clientContext = new ClientContext(SiteUrl);
 
-            string userName = "tshaikh@radiantdelivers.com";
-            string password = "bdkbg88#";
-
             SecureString SecurePassword = GetSecureString(password);
             clientContext.Credentials = new SharePointOnlineCredentials(userName, SecurePassword);
 
+            var users = clientContext.LoadQuery(clientContext.Web.SiteUsers.Where(u => u.PrincipalType == Microsoft.SharePoint.Client.Utilities.PrincipalType.User && u.UserId.NameIdIssuer == "urn:federation:microsoftonline"));
 
-
-            Web web = clientContext.Web;
-
-
-            clientContext.Load(web);
-            clientContext.Load(web.Lists);
-            clientContext.Load(web, wb => wb.ServerRelativeUrl);
-            clientContext.ExecuteQuery();
-
-            Microsoft.SharePoint.Client.List list = web.Lists.GetByTitle(DocumentLibName);
-            clientContext.Load(list);
-            clientContext.ExecuteQuery();
-
-            Folder folder = web.GetFolderByServerRelativeUrl(web.ServerRelativeUrl + FileUrl);
-            clientContext.Load(folder);
-            clientContext.ExecuteQuery();
-
-            CamlQuery camlQuery = new CamlQuery();
-
-
-            //TO GET ONLY FILE ITEM
-            camlQuery.ViewXml = "<View Scope='Recursive'> " +
-                                   "  <Query> " +
-
-                                  " + <Where> " +
-                                       "  <Contains>" +
-                                            " <FieldRef Name='FileLeafRef'/> " +
-                                                " <Value Type='File'>" + FileName + "</Value>" +
-                                           " </Contains> " +
-                                       " </Where> " +
-
-                                    " </Query> " +
-                                " </View>";
-
-
-            camlQuery.FolderServerRelativeUrl = folder.ServerRelativeUrl;
-            ListItemCollection listItems = list.GetItems(camlQuery);
-            clientContext.Load(listItems);
             clientContext.ExecuteQuery();
 
 
+            bool emailfound = false;
 
-            foreach (ListItem item in listItems)
+            foreach (Employee emp in employees)
             {
-                //item.FileSystemObjectType;
+                //check if the user exists in the site
+                // var chkuser = clientContext.LoadQuery(clientContext.Web.SiteUsers.Where(u => u.LoginName == emp.useremailaddress));
 
-                if (item.FileSystemObjectType == FileSystemObjectType.File)
+                emailfound = false;
+
+                foreach (User u in users)
                 {
-                    // This is a File
+                    if (u.Email.Trim().ToLower() == emp.useremailaddress.Trim().ToLower())
 
-                    RoleDefinitionBindingCollection rd = new RoleDefinitionBindingCollection(clientContext);
-                    rd.Add(clientContext.Web.RoleDefinitions.GetByName(plabel));
-
-
-                    // Microsoft.SharePoint.Client.GroupCollection groupCollection = web.SiteGroups;
-                    Principal user;
-
-                    // Group grpvisitor = groupCollection.GetByName("Watercooler Visitors");
-                    // clientContext.Load(grpvisitor);
-
-
-
-                    foreach (Employee emp in employees)
                     {
-
-                        user = clientContext.Web.EnsureUser(emp.useremailaddress);
-                        item.BreakRoleInheritance(false, false);
-
-                        
-                        if (operation == "add")
-                        {
-                            item.RoleAssignments.Add(user, rd);
-                        }
-                        else if (operation == "remove")
-                        {
-
-                            item.RoleAssignments.GetByPrincipal(user).DeleteObject();
-                            
-                        }
-
+                        //userfullname = u.Title;
+                        emailfound = true;
+                        break;
                     }
-
-
-                    item.Update();
-
-                    // item.RoleAssignments.Groups.Remove(grpvisitor);
-
-                    clientContext.ExecuteQuery();
-
                 }
-                else if (item.FileSystemObjectType == FileSystemObjectType.Folder)
+
+                if (emailfound)
                 {
-                    // This is a  Folder
+                    AssignFilePermission(operation, plabel, emp.useremailaddress.Trim());
                 }
 
 
-
-
             }
-
-
 
         }
 
+            //assign right permissions to requested group of users with file in sharepoint by email
+            //public void AssignFilePermission(string operation, string plabel, Employee[] employees)
+            //{
 
-        public void GetSOPInfoByFileID()
-        {
-
-            using (var ctx = new RadiantSOPEntities())
-            {
-                FilePath = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SPFilePath).FirstOrDefault();
-                FileName = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.DeptFileName).FirstOrDefault();
-                SOPNo = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SOPNo).FirstOrDefault();
-                FileLink= ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SPFileLink).FirstOrDefault();
-                FileCurrVersion = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.VersionNo).FirstOrDefault();
-                ApprovalStatus = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.ApprovalStatus).FirstOrDefault();
-                AuthorName = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.CreatedBy).FirstOrDefault();
-                SOPCreateDate = Convert.ToDateTime(ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.CreateDate).FirstOrDefault());
+            //    ClientContext clientContext = new ClientContext(SiteUrl);
 
 
-                FileStatuscode=ctx.filechangerequestactivities.Where(d => d.fileid == FileID && d.changerequestid==FileChangeRqstID).Select(d => d.approvalstatuscode).FirstOrDefault();
+            //    //string userName = Utility.GetSiteAdminUserName();  //it is email address of site admin
+            //    //string password = Utility.GetSiteAdminPassowrd();
 
-            }
+
+            //    SecureString SecurePassword = GetSecureString(password);
+            //    clientContext.Credentials = new SharePointOnlineCredentials(userName, SecurePassword);
 
 
-        }
 
-        public void GetFileRevisions()
+            //    Web web = clientContext.Web;
+
+
+            //    clientContext.Load(web);
+            //    clientContext.Load(web.Lists);
+            //    clientContext.Load(web, wb => wb.ServerRelativeUrl);
+            //    clientContext.ExecuteQuery();
+
+            //    Microsoft.SharePoint.Client.List list = web.Lists.GetByTitle(DocumentLibName);
+            //    clientContext.Load(list);
+            //    clientContext.ExecuteQuery();
+
+            //    Folder folder = web.GetFolderByServerRelativeUrl(web.ServerRelativeUrl + FileUrl);
+            //    clientContext.Load(folder);
+            //    clientContext.ExecuteQuery();
+
+            //    CamlQuery camlQuery = new CamlQuery();
+
+
+            //    //TO GET ONLY FILE ITEM
+            //    camlQuery.ViewXml = "<View Scope='Recursive'> " +
+            //                           "  <Query> " +
+
+            //                          " + <Where> " +
+            //                               "  <Contains>" +
+            //                                    " <FieldRef Name='FileLeafRef'/> " +
+            //                                        " <Value Type='File'>" + FileName + "</Value>" +
+            //                                   " </Contains> " +
+            //                               " </Where> " +
+
+            //                            " </Query> " +
+            //                        " </View>";
+
+
+            //    camlQuery.FolderServerRelativeUrl = folder.ServerRelativeUrl;
+            //    ListItemCollection listItems = list.GetItems(camlQuery);
+            //    clientContext.Load(listItems);
+
+            //    var users = clientContext.LoadQuery(clientContext.Web.SiteUsers.Where(u => u.PrincipalType == Microsoft.SharePoint.Client.Utilities.PrincipalType.User && u.UserId.NameIdIssuer == "urn:federation:microsoftonline"));
+
+            //    clientContext.ExecuteQuery();
+
+
+            //    bool emailfound = false;
+
+            //    foreach (ListItem item in listItems)
+            //    {
+            //        //item.FileSystemObjectType;
+
+            //        if (item.FileSystemObjectType == FileSystemObjectType.File)
+            //        {
+            //            // This is a File
+
+            //            RoleDefinitionBindingCollection rd = new RoleDefinitionBindingCollection(clientContext);
+            //            rd.Add(clientContext.Web.RoleDefinitions.GetByName(plabel));
+
+
+            //            // Microsoft.SharePoint.Client.GroupCollection groupCollection = web.SiteGroups;
+            //            Principal user;
+
+            //            // Group grpvisitor = groupCollection.GetByName("Watercooler Visitors");
+            //            // clientContext.Load(grpvisitor);
+
+            //            //get all site users to find user
+
+            //            //clientContext.ExecuteQuery();
+
+            //          //  emailfound = false;
+
+            //            foreach (Employee emp in employees)
+            //            {
+            //                //check if the user exists in the site
+            //                // var chkuser = clientContext.LoadQuery(clientContext.Web.SiteUsers.Where(u => u.LoginName == emp.useremailaddress));
+
+            //                emailfound = false;
+
+            //                foreach (User u in users)
+            //                {
+            //                    if (u.Email.Trim().ToLower() == emp.useremailaddress.Trim().ToLower())
+
+            //                    {
+            //                        //userfullname = u.Title;
+            //                        emailfound = true;
+            //                        break;
+            //                    }
+            //                }
+
+            //                if (emailfound)
+            //                {
+
+            //                    user = clientContext.Web.EnsureUser(emp.useremailaddress);
+
+            //                    if (ViewAccessType == "All Users")
+            //                        item.BreakRoleInheritance(true, false);   //inherit permission for all users selection
+            //                    else
+            //                        item.BreakRoleInheritance(false, false);   //do not inherit if all users are not selected
+
+
+            //                   // rd.Add(clientContext.Web.RoleDefinitions.GetByName(plabel));
+
+            //                    if (operation == "add")
+            //                    {
+            //                        item.RoleAssignments.Add(user, rd);
+            //                    }
+            //                    else if (operation == "remove")
+            //                    {
+
+            //                        item.RoleAssignments.GetByPrincipal(user).DeleteObject();
+
+            //                    }
+
+            //                    item.Update();
+
+
+            //                }  //end checking employee exists in the site
+
+            //                clientContext.ExecuteQuery();
+
+            //            }  //end looping employees
+
+            //        }
+            //        else if (item.FileSystemObjectType == FileSystemObjectType.Folder)
+            //        {
+            //            // This is a  Folder
+            //        }
+
+
+
+
+            //    }
+
+
+
+            //}
+
+
+            //get file version history from sharepoint
+
+            public void GetFileRevisions()
         {
 
             ErrorMessage = "";
 
             ClientContext ctx = new ClientContext(SiteUrl);
 
-            string userName = "tshaikh@radiantdelivers.com";
-            string password = "bdkbg88#";
-
+            //string userName = Utility.GetSiteAdminUserName();  //it is email address of site admin
+            //string password = Utility.GetSiteAdminPassowrd();
 
             SecureString spassword = GetSecureString(password);
 
@@ -1570,6 +1685,7 @@ namespace SOPManagement.Models
 
         }
 
+        //publish/approve file in sharepoint so all users having read permission can view the sop 
         public bool PublishFile()
         {
 
@@ -1578,9 +1694,8 @@ namespace SOPManagement.Models
 
             ClientContext ctx = new ClientContext(SiteUrl);
 
-            string userName = "tshaikh@radiantdelivers.com";
-            string password = "bdkbg88#";
-
+            //string userName = Utility.GetSiteAdminUserName();  //it is email address of site admin
+            //string password = Utility.GetSiteAdminPassowrd();
 
             SecureString spassword = GetSecureString(password);
 
@@ -1646,8 +1761,8 @@ namespace SOPManagement.Models
                 return pdone;
         }
 
-
-        internal void DownloadFileFromSharePoint(string tempLocation)
+        //download file from sharepoint so system can modify cover page and revision history
+        public void DownloadFileFromSharePoint(string tempLocation)
         {
 
 
@@ -1655,9 +1770,6 @@ namespace SOPManagement.Models
             ErrorMessage = "";
 
             ClientContext ctx = new ClientContext(SiteUrl);
-
-            string userName = "tshaikh@radiantdelivers.com";
-            string password = "bdkbg88#";
 
 
             SecureString spassword = GetSecureString(password);
@@ -1725,20 +1837,7 @@ namespace SOPManagement.Models
 
         }
 
-
-
-        public void GetSOPNo()
-        {
-
-            RadiantSOPEntities ctx = new RadiantSOPEntities();
-
-            SOPNo = ctx.GetLastSOPNO(FolderName, SubFolderName).FirstOrDefault().ToString();
-
-
-        }
-
-
-
+   
 
     } //end of class
 }  //end of namespace

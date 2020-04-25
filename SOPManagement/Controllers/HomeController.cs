@@ -31,14 +31,19 @@ namespace SOPManagement.Controllers
     [Authorize]
     public class HomeController : Controller
     {
-        // string siteurl;
 
-        string siteurl = "https://radiantdelivers.sharepoint.com/sites/watercooler";
+        //string siteurl = "https://radiantdelivers.sharepoint.com/sites/watercooler";
+
+        string siteurl = Utility.GetSiteUrl();
 
         RadiantSOPEntities ctx = new RadiantSOPEntities();
+     
 
         public ActionResult Index()
         {
+
+            Session["UserFullName"] = Utility.GetLoggedInUserFullName();
+
             return View();
         }
 
@@ -69,7 +74,7 @@ namespace SOPManagement.Controllers
 
             Session["SOPMsg"] = "";
 
-            if (IsSessionExpired())
+            if (Utility.IsSessionExpired())
             {
 
                 ViewBag.ErrorMessage = "SOP Application: Session not Timed out";
@@ -126,35 +131,6 @@ namespace SOPManagement.Controllers
             // return View();
         }
 
-        
-        [HttpPost]
-        //public ActionResult PublishFile(SOPManagement.Models.SOPClass sopmodel)
-        //{
-
-        //    SOPClass sop = new SOPClass();
-
-        //    sop.SiteUrl = siteurl;
-
-        //  // sop.FileID = fileid;
-
-        //    if (sop.PublishFile())
-
-        //    {
-        //        Session["SOPMsg"] = "SOP File " + sop.FileName + " was successfully published!";
-
-        //    }
-        //    else
-        //        Session["SOPMsg"] = "Failed to publis SOP File " + sop.FileName + ".Please contact IT!";
-
-
-        //    sop = null;
-
-        //    //return RedirectToAction("SOPMessage");
-
-        //    return View();
-
-
-        //}
 
         public ActionResult SOPDashboard()
         {
@@ -168,7 +144,7 @@ namespace SOPManagement.Controllers
 
 
 
-            ViewBag.ddlDeptFolders = new SelectList(GetFolders(), "FileName", "FileName");
+            ViewBag.ddlDeptFolders = new SelectList(Utility.GetFolders(), "FileName", "FileName");
 
             ViewBag.employees = (from c in ctx.users select new { c.useremailaddress, c.userfullname, c.userstatuscode,c.jobtitle }).Where(x => x.userstatuscode == 1).Distinct();
 
@@ -179,18 +155,34 @@ namespace SOPManagement.Controllers
             return View();
         }
 
+        public ActionResult SOPMessage()
+        {
+            
+            return View();
+
+        }
+
         [Authorize(Roles = "TransfloWheelsAdmnUsers")]
         //[Authorize(Roles = "TransfloARUsers")]
         //  [RoleFilter] with form authentication in web.cofig use this custom filter to redirect to custom page. make sure you don't use any role in authorize 
+
         [HttpGet]
         public ActionResult CreateUploadSOP()
         {
 
-           // ViewBag.Title = "Upload or Create SOP";  //I assigned in cshtml file
 
-            ViewBag.ddlDeptFolders = new SelectList(GetFolders(), "FileName", "FileName");
+            //run this protect configuration to encrypt config file so hacker cannot read 
+            //sensitive data even they get the config file
+            //run this just one time to encrypt or one time to dycript
 
-            ViewBag.employees = (from c in ctx.users select new { c.useremailaddress, c.userfullname, c.userstatuscode}).Where(x=>x.userstatuscode==1).Distinct();
+          //  Utility.ProtectConfiguration();
+            //Utility.UnProtectConfiguration();   //dycrip it when you need to change any data in config file
+
+            // ViewBag.Title = "Upload or Create SOP";  //I assigned in cshtml file
+
+            ViewBag.ddlDeptFolders = new SelectList(Utility.GetFolders(), "FileName", "FileName");
+
+            ViewBag.employees = (from c in ctx.users select new { c.useremailaddress, c.userfullname, c.userstatuscode }).Where(x => x.userstatuscode == 1).Distinct();
 
             Session["employees"] = ViewBag.employees;
 
@@ -203,48 +195,16 @@ namespace SOPManagement.Controllers
             return View();
         }
 
-
-        //We'll define expired session as situation when Session.IsNewSession is true 
-        // (it is a new session), but  session cookie already exists on visitor's computer 
-        //from previous session.Here is a procedure that returns true if session is expired and returns false if not.
-
-        //Session.IsNewSession property tells us if session is created during current request or not.
-        //If value is true, it is a new session.If value is false, it is existing active session created before.
-
-        public static bool IsSessionExpired()
-        {
-            if (System.Web.HttpContext.Current.Session != null)
-            {
-                if (System.Web.HttpContext.Current.Session.IsNewSession)
-                {
-                    string CookieHeaders = System.Web.HttpContext.Current.Request.Headers["Cookie"];
-
-                    if ((null != CookieHeaders) && (CookieHeaders.IndexOf("ASP.NET_SessionId") >= 0))
-                    {
-                        // IsNewSession is true, but session cookie exists,
-                        // so, ASP.NET session is expired
-                        return true;
-                    }
-                }
-            }
-
-            // Session is not expired and function will return false,
-            // could be new session, or existing active session
-            return false;
-        }
-
-        public ActionResult SOPMessage()
-        {
-            
-            return View();
-
-        }
-
-
         [HttpPost]
         public ActionResult CreateUploadSOP(SOPManagement.Models.SOPClass sop)
         {
-        
+
+
+            //run this protect configuration to encrypt config file so hacker cannot read 
+            //sensitive data even they get the config file
+            //run this just one time to encrypt or one time to dycript
+            //Utility.ProtectConfiguration();
+            //Utility.UnProtectConfiguration();
 
             ViewBag.employees = (from c in ctx.users select new { c.useremailaddress, c.userfullname, c.userstatuscode, c.jobtitle }).Where(x => x.userstatuscode == 1).Distinct();
 
@@ -273,7 +233,7 @@ namespace SOPManagement.Controllers
 
             Session["ErrorMsg"] = "";
 
-            if (IsSessionExpired())
+            if (Utility.IsSessionExpired())
              {
 
                 ViewBag.ErrorMessage = "SOP Application: Session not Timed out";
@@ -283,14 +243,16 @@ namespace SOPManagement.Controllers
             }
 
 
-            // var usr = System.Environment.UserName;
+            //// var usr = System.Environment.UserName;
 
-            user = System.Web.HttpContext.Current.User.Identity.Name;
+            //user = System.Web.HttpContext.Current.User.Identity.Name;
 
-            user = user.Split('\\').Last();
+            //user = user.Split('\\').Last();
 
-            Session["UserID"] = user;
-            loggedinusereml = user + "@radiantdelivers.com";
+            //Session["UserID"] = user;
+            //loggedinusereml = user + "@radiantdelivers.com";
+
+            loggedinusereml = Utility.GetCurrentLoggedInUserEmail();
 
             // we turend off this code as I am authorizing through [Authorize]
             //check admin user access, if not admin redirect to error page
@@ -344,8 +306,12 @@ namespace SOPManagement.Controllers
 
             //log DateTime:sop.SOPNO: start saving new or updloaded to temp project folder
 
-            string docpath = Server.MapPath("~/Content/DocFiles/");
-            
+            //string docpath = Server.MapPath("~/Content/DocFiles/");
+
+            string tmpfiledirpathnm = Utility.GetTempLocalDirPath();
+
+            string tmpfiledirmappath = Server.MapPath(tmpfiledirpathnm);
+
             if (sop.FileName!=null && sop.FileName.Trim() != "")
             {
 
@@ -356,9 +322,18 @@ namespace SOPManagement.Controllers
 
 
                 //for new file copy from template to temp file
-                //    System.IO.File.Copy(Server.MapPath("~/Content/docfiles/SOPTemplate.docx"), Server.MapPath("~/Content/docfiles/SOPTemp.docx"), true);
 
-                System.IO.File.Copy(Server.MapPath("~/Content/docfiles/SOPTemplate.docx"), Server.MapPath("~/Content/docfiles/"+ oSop.FileName), true);
+                //System.IO.File.Copy(Server.MapPath("~/Content/docfiles/SOPTemplate.docx"), Server.MapPath("~/Content/docfiles/"+ oSop.FileName), true);
+
+
+                string tmpltmapfilepath = Server.MapPath(tmpfiledirpathnm + Utility.GetTemplateFileName());
+                string newmapfilepath = Server.MapPath(tmpfiledirpathnm + oSop.FileName);
+
+
+                //System.IO.File.Copy(Server.MapPath("~/Content/docfiles/SOPTemplate.docx"), Server.MapPath("~/Content/docfiles/" + oSop.FileName), true);
+
+                System.IO.File.Copy(tmpltmapfilepath, newmapfilepath, true);
+
 
                 bProcessCompleted = true;
             }
@@ -376,17 +351,17 @@ namespace SOPManagement.Controllers
 
                 oSop.FileName = oSop.SOPNo + " " + oSop.FileName;
 
-                if (!Directory.Exists(docpath))
+                if (!Directory.Exists(tmpfiledirmappath))
 
                 {
 
-                    Directory.CreateDirectory(docpath);
+                    Directory.CreateDirectory(tmpfiledirmappath);
 
                 }
 
                 //  sop.UploadedFile.SaveAs(docpath + "SOPTemp.docx");
 
-                sop.UploadedFile.SaveAs(docpath + oSop.FileName);
+                sop.UploadedFile.SaveAs(tmpfiledirmappath + oSop.FileName);
 
                 bProcessCompleted = true;
 
@@ -411,11 +386,13 @@ namespace SOPManagement.Controllers
                 oSop.Updatefreq = supdfreq;
                 oSop.Updatefrequnit = sop.Updatefrequnit;
                 oSop.Updfrequnitcode = sop.Updfrequnitcode;
-                oSop.SOPEffectiveDate = Convert.ToDateTime(sop.SOPEffectiveDate);
+               // oSop.SOPEffectiveDate = Convert.ToDateTime(sop.SOPEffectiveDate);
 
 
-                oSop.FileLocalPath = docpath + oSop.FileName;
 
+                oSop.FileLocalPath = tmpfiledirmappath + oSop.FileName;
+
+                //we don't have any revision history for new or first time uploaded file
                 //FileRevision[] oRevarr = new FileRevision[1];
 
                 //FileRevision rev1 = new FileRevision();
@@ -430,7 +407,7 @@ namespace SOPManagement.Controllers
 
 
                 oSop.SiteUrl = siteurl;
-                oSop.FileCurrVersion = "1";
+                oSop.FileCurrVersion = "1";    //for new file version no is 1 
 
                 oSop.UpdateCoverRevhistPage();
 
@@ -459,7 +436,7 @@ namespace SOPManagement.Controllers
 
                 //DateTime:sop.SOPNo:start uploading file in sharepoint online SOP doc library
 
-                Thread.Sleep(6000);
+                Thread.Sleep(7000);
 
                 oSop.FolderName =sop.FolderName;
                 oSop.SubFolderName =sop.SubFolderName;
@@ -529,6 +506,8 @@ namespace SOPManagement.Controllers
                 //log 
                 //DateTime:sop.SOPNo:successfully updated SQL tables
                 //DateTime:sop.SOPNo:start assigning permission to SOP file in sharepoint 
+
+                oSop.ViewAccessType = "";
 
                 if (sop.AllUsersReadAcc)   //by default all users have read permission
                 {
@@ -696,10 +675,12 @@ namespace SOPManagement.Controllers
 
             Session["ErrorMsg"] = "";
 
-            Session["Dashboardlink"] = "http://camis1-bioasp01/Reports/Pages/Report.aspx?ItemPath=%2fSOP+Reports%2fSOP+Dashboard";
+            //Session["Dashboardlink"] = "http://camis1-bioasp01/Reports/Pages/Report.aspx?ItemPath=%2fSOP+Reports%2fSOP+Dashboard";
 
+            Session["Dashboardlink"] = Utility.GetDashBoardUrl();
+            
 
-            if (IsSessionExpired())
+            if (Utility.IsSessionExpired())
             {
 
                 // ViewBag.ErrorMessage = "SOP Application: Session not Timed out";
@@ -712,7 +693,7 @@ namespace SOPManagement.Controllers
 
 
 
-            if (id == null || changereqid == null || changereqid == "" || !IsNumeric(changereqid))     //no file provided
+            if (id == null || changereqid == null || changereqid == "" || !Utility.IsNumeric(changereqid))     //no file provided
             {
 
                 Session["ErrorMsg"] = "Error: Valid File ID and Cahneg Request ID is required to publish the file!";
@@ -732,17 +713,19 @@ namespace SOPManagement.Controllers
 
             Employee oEmp = new Employee();
 
-            string loggedinuser = "";
+            //string loggedinuser = "";
 
-            // var usr = System.Environment.UserName;
+            //// var usr = System.Environment.UserName;
 
-            loggedinuser = System.Web.HttpContext.Current.User.Identity.Name;
+            //loggedinuser = System.Web.HttpContext.Current.User.Identity.Name;
 
-            loggedinuser = loggedinuser.Split('\\').Last();
+            //loggedinuser = loggedinuser.Split('\\').Last();
 
-            Session["UserID"] = loggedinuser;
+            //Session["UserEmail"] = loggedinuser;
 
-            oEmp.useremailaddress = loggedinuser + "@radiantdelivers.com";
+            oEmp.useremailaddress = Utility.GetCurrentLoggedInUserEmail();
+
+            Session["UserEmail"] = oEmp.useremailaddress;
 
 
             if (!oEmp.AuthenticateUser("approver", sopfileid))   //only approver can publish a signed SOP
@@ -795,12 +778,14 @@ namespace SOPManagement.Controllers
             //and owner as well as update version no, revision history etc.
             //1. first download the file
 
-            string templocalpath = Server.MapPath("~/Content/DocFiles/ ");
+            //string templocaldirpath = Server.MapPath("~/Content/DocFiles/");
+
+            string templocaldirpath = Utility.GetTempLocalDirPath();
 
             if (oSOP.FileStatuscode == 1)  //signed and ready to publish
             {
 
-                oSOP.DownloadFileFromSharePoint(templocalpath);
+                oSOP.DownloadFileFromSharePoint(templocaldirpath);
 
                 //2. update the file 
 
@@ -809,7 +794,7 @@ namespace SOPManagement.Controllers
                 oSOP.UpdateCoverRevhistPage(true);
 
                 //3. upload again
-                oSOP.FileLocalPath = templocalpath + oSOP.FileName;
+                oSOP.FileLocalPath = templocaldirpath + oSOP.FileName;
 
                 oSOP.FileStream = System.IO.File.ReadAllBytes(oSOP.FileLocalPath);
 
@@ -842,36 +827,36 @@ namespace SOPManagement.Controllers
 
         //https://www.entityframeworktutorial.net/Querying-with-EDM.aspx
 
-        public List<SOPClass> GetFolders()
-        {
+        //public List<SOPClass> GetFolders()
+        //{
 
-            List<SOPClass> folderlist;
+        //    List<SOPClass> folderlist;
 
-            using (var ctx = new RadiantSOPEntities())
-            {
+        //    using (var ctx = new RadiantSOPEntities())
+        //    {
 
-                var folders = ctx.deptsopfiles.Select(x => new SOPClass()
-                {
-                    FileID = x.FileID,
-                    FileName = x.DeptFileName,
-                    FilePath = x.SPFilePath,
-                    FileLink = x.SPFileLink,
-                    SOPNo = x.SOPNo,
-                    FileStatuscode=x.filestatuscode
+        //        var folders = ctx.deptsopfiles.Select(x => new SOPClass()
+        //        {
+        //            FileID = x.FileID,
+        //            FileName = x.DeptFileName,
+        //            FilePath = x.SPFilePath,
+        //            FileLink = x.SPFileLink,
+        //            SOPNo = x.SOPNo,
+        //            FileStatuscode=x.filestatuscode
 
-                }).Where(s => s.FilePath == "SOP/" && s.FileStatuscode==3);
-
-
-                folderlist = folders.ToList();
+        //        }).Where(s => s.FilePath == "SOP/" && s.FileStatuscode==3);
 
 
-            }
+        //        folderlist = folders.ToList();
 
 
-            return folderlist;
+        //    }
 
 
-        }
+        //    return folderlist;
+
+
+        //}
 
         [HttpGet]
         public JsonResult CheckIfExists(string FileName)
@@ -946,10 +931,6 @@ namespace SOPManagement.Controllers
         //public void UploadFile(HttpPostedFileBase postedFile, string deptfoldername, string subfoldername, string sopno)
 
 
-        public bool IsNumeric(string value)
-        {
-            return value.All(char.IsNumber);
-        }
 
         //JsonResult
 
@@ -1225,220 +1206,13 @@ namespace SOPManagement.Controllers
             }
 
 
-
-
-
-
             return Json(fileloaded);
             
 
         }
 
 
-
-
-        //private ArrayList getFileVersions(string siteurl,string filerelpath)
-        //{
-
-        //    ArrayList fversions = new ArrayList();
-
-        //    //SOP / Warehouse Operations /
-
-
-        //    using (ClientContext clientContext = new ClientContext(siteurl))
-        //    {
-
-        //        string userName = "tshaikh@radiantdelivers.com";
-        //        string password = "bagerhat79&";
-
-
-        //        SecureString SecurePassword = GetSecureString(password);
-        //        clientContext.Credentials = new SharePointOnlineCredentials(userName, SecurePassword);
-
-        //        Web site = clientContext.Web;
-        //        clientContext.Load(site);
-        //        // File file = site.GetFileByServerRelativeUrl("/Shared Documents/mydocument.doc");
-
-
-        //        //FileVersionCollection versions;
-        //        Microsoft.SharePoint.Client.File file = site.GetFileByServerRelativeUrl(filerelpath);
-
-        //        clientContext.Load(file);
-
-        //        clientContext.ExecuteQuery();
-
-
-        //        string id;
-
-        //        FileVersionCollection versions = file.Versions;
-
-        //        clientContext.Load(versions);
-
-        //        PropertyValues fi = file.Properties;
                 
-        //        clientContext.Load(fi);
-
-            
-        //        clientContext.ExecuteQuery();
-
-        //        string lv = file.MajorVersion.ToString();
-
-
-        //        id = fi["ID"].ToString();
-
-
-         
-
-        //        if (versions != null)
-        //        {
-        //            foreach (FileVersion version in versions)
-        //            {
-        //                Console.WriteLine("Version : {0}", version.VersionLabel);
-
-        //                clientContext.Load(version);
-        //                clientContext.ExecuteQuery();
-
-
-        //                if ((Convert.ToDouble(version.VersionLabel) % 1) == 0)
-        //                {
-        //                    //You can get all major versions here.
-
-                            
-        //                    fversions.Add(version.VersionLabel);
-
-        //                }
-
-
-        //            }
-        //        }
-
-
-        //    }
-
-
-           
-
-        //    return fversions;
-        //}
-
-
-        //private void GetFileVersions(string siteURL, string documentListName, string documentListURL, string documentName)
-        //{
-
-        //    ClientContext clientContext = new ClientContext(siteURL);
-
-        //    string userName = "tshaikh@radiantdelivers.com";
-        //    string password = "bagerhat79&";
-
-        //    SecureString SecurePassword = GetSecureString(password);
-        //    clientContext.Credentials = new SharePointOnlineCredentials(userName, SecurePassword);
-
-
-        //    Web web = clientContext.Web;
-        //    clientContext.Load(web);
-        //    clientContext.Load(web.Lists);
-        //    clientContext.Load(web, wb => wb.ServerRelativeUrl);
-        //    clientContext.ExecuteQuery();
-
-        //    Microsoft.SharePoint.Client.List list = web.Lists.GetByTitle(documentListName);
-        //    clientContext.Load(list);
-        //    clientContext.ExecuteQuery();
-
-        //    Folder folder = web.GetFolderByServerRelativeUrl(web.ServerRelativeUrl + documentListURL);
-        //    clientContext.Load(folder);
-        //    clientContext.ExecuteQuery();
-
-        //    CamlQuery camlQuery = new CamlQuery();
-
-  
-        //    //TO GET ONLY FILE ITEM
-        //    camlQuery.ViewXml = "<View Scope='Recursive'> " +
-        //                           "  <Query> " +
-
-        //                          " + <Where> " +
-        //                               "  <Contains>" +
-        //                                    " <FieldRef Name='FileLeafRef'/> " +
-        //                                        " <Value Type='File'>" + documentName + "</Value>" +
-        //                                   " </Contains> " +
-        //                               " </Where> " +
-
-        //                            " </Query> " +
-        //                        " </View>";
-
-  
-        //    camlQuery.FolderServerRelativeUrl = folder.ServerRelativeUrl;
-        //    ListItemCollection listItems = list.GetItems(camlQuery);
-        //    clientContext.Load(listItems);
-        //    clientContext.ExecuteQuery();
-
-
-        //    string fid;
-
-        //    foreach (ListItem item in listItems)
-        //    {
-        //        //item.FileSystemObjectType;
-
-        //        if (item.FileSystemObjectType == FileSystemObjectType.File)
-        //        {
-        //            // This is the File
-
-        //            Microsoft.SharePoint.Client.File file = item.File;
-
-        //            FileVersionCollection versions = file.Versions;
-
-        //            fid=file.Properties["ID"].ToString();
-
-        //            clientContext.Load(file);
-        //            clientContext.Load(versions);
-        //            clientContext.ExecuteQuery();
-
-
-        //            //$file = $item.File
-        //            //versions = $file.Versions
-        //            //$ctx.Load($file)
-        //            //$ctx.Load($versions)
-        //            //$ctx.ExecuteQuery()
-
-
-        //            foreach(FileVersion v in versions)
-        //            {
-
-        //                clientContext.Load(v);
-        //                clientContext.ExecuteQuery();
-
-        //                User modifiedBy = v.CreatedBy;
-        //                clientContext.Load(modifiedBy);
-
-        //                clientContext.ExecuteQuery();
-
-        //                string loginnm =modifiedBy.LoginName;
-        //                string title = modifiedBy.Title;
-
-
-        //            }
-
-
-
-
-        //        }
-        //        else if (item.FileSystemObjectType == FileSystemObjectType.Folder)
-        //        {
-        //            // This is a  Folder
-        //        }
-
-
-
-
-        //    }
-
-
-
-        //}
-
-                
-        public class vwDepartmentFolders
-        {
-        }
     }  //end of class HomeController
 
     public class RoleFilterAttribute : ActionFilterAttribute
