@@ -1,10 +1,18 @@
-﻿@model SOPManagement.Models.SOPClass
+﻿
+<div>
+    <h3>Publishing SOP, DO NOT click any menu now, please wait...</h3>
 
-@using (Html.BeginForm("PublishFile", "Home", FormMethod.Post))
-{
+</div>
 
-    <label>Publish</label>
+<div id="loading">
+    <img id="loading-image" src="~/Content/Images/soploading.gif" alt="Loading..." />
+</div>
 
-    <input type="submit" value="Submit" />
+<script>
+ 
+    window.onload = function () {
+        //alert("window load complete");
+        window.location.href = '@Url.Action("ProcessPublish", "Home")' 
+    }
 
-}
+</script>

@@ -309,6 +309,7 @@
     <Content Include="Content\fontawesome.css" />
     <Content Include="Content\fontawesome.min.css" />
     <Content Include="Content\Images\RadiantLogo.jpg" />
+    <Content Include="Content\Images\soploading.gif" />
     <Content Include="Content\LogFile\ProcessLog.txt" />
     <Content Include="Content\regular.css" />
     <Content Include="Content\regular.min.css" />
@@ -409,6 +410,7 @@
     <Content Include="webfonts\fa-brands-400.ttf" />
     <Content Include="webfonts\fa-brands-400.eot" />
     <Content Include="Views\Home\PublishFile.cshtml" />
+    <Content Include="Views\Home\PublishFilePost.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

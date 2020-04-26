@@ -1032,7 +1032,7 @@ namespace SOPManagement.Models
 
 
                             // Write new vaules to each cell.
-                            tab.Rows[tab.Rows.Count].Cells[1].Range.Text = Convert.ToInt32(rev.RevisionNo).ToString();
+                            tab.Rows[tab.Rows.Count].Cells[1].Range.Text = Math.Round(Convert.ToDecimal(rev.RevisionNo)).ToString();
                             tab.Rows[tab.Rows.Count].Cells[2].Range.Text = rev.RevisionDate.ToString("M/d/yyyy");
                             tab.Rows[tab.Rows.Count].Cells[3].Range.Text = rev.Description;
 
@@ -1081,7 +1081,9 @@ namespace SOPManagement.Models
 
         }
 
-        public void GetSOPInfoByFileID()
+
+
+        public void GetSOPInfo()
         {
 
             using (var ctx = new RadiantSOPEntities())
@@ -1095,6 +1097,7 @@ namespace SOPManagement.Models
                 AuthorName = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.CreatedBy).FirstOrDefault();
                 SOPCreateDate = Convert.ToDateTime(ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.CreateDate).FirstOrDefault());
 
+                FileOwnerEmail=ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.owneremail).FirstOrDefault();
 
                 FileStatuscode = ctx.filechangerequestactivities.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.approvalstatuscode).FirstOrDefault();
 
