@@ -22,9 +22,12 @@ namespace SOPManagement.Models
 
         public short userstatuscode { get; set; }
 
-        public Employee[] employees { get; set; }
+         public Employee[] employees { get; set; }
         public bool HasSignedSOP { get; set; }
 
+        public DateTime signaturedate { get; set; }
+
+        public string signstatus { get; set; }
 
         public bool AuthenticateUser(string pAuthtype, int pFileid)
         {
@@ -114,19 +117,19 @@ namespace SOPManagement.Models
 
         //    return bAuthenticate;
         //}
-        public void GetUserInfoByEmail()
-        {
+        //public void GetUserInfoByEmail()
+        //{
 
-            RadiantSOPEntities ctx = new RadiantSOPEntities();
+        //    RadiantSOPEntities ctx = new RadiantSOPEntities();
 
-            //lsopno = foldername + "-001";
+        //    //lsopno = foldername + "-001";
 
-            userfullname = ctx.getUserFullNameByEmailUserID(useremailaddress, 0).FirstOrDefault().ToString();
+        //    userfullname = ctx.getUserFullNameByEmailUserID(useremailaddress, 0).FirstOrDefault().ToString();
 
-            userjobtitle = ctx.GetUserJobTitleByEmailUserID(useremailaddress, 0).FirstOrDefault().ToString();
+        //    userjobtitle = ctx.GetUserJobTitleByEmailUserID(useremailaddress, 0).FirstOrDefault().ToString();
 
 
-        }
+        //}
 
         public void GetEmployeesByDeptCode()
         {

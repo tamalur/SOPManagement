@@ -236,17 +236,19 @@ namespace SOPManagement.Controllers
 
             SOPClass oSOP = new SOPClass();
 
-            oSOP.SiteUrl = siteurl;
 
+            //assign basic info
+
+            string templocaldirpath = Server.MapPath(Utility.GetTempLocalDirPath());
+
+            oSOP.SiteUrl = siteurl;
             oSOP.FileID = id;
             oSOP.DocumentLibName = "SOP";
-
             oSOP.FileChangeRqstID = changereqid;
-
 
             oSOP.GetSOPInfo();  //get file path, name etc.
 
-            oSOP.FileTitle = Path.ChangeExtension(oSOP.FileName, null);
+            oSOP.FileLocalPath = templocaldirpath + oSOP.FileName;
 
             //We need to check whether the SOP is signed by all parties (approver, reviewer, owner)
             //we will check signed status code in changeactivities table, it must be 1 to publish the sop
@@ -277,7 +279,6 @@ namespace SOPManagement.Controllers
 
             //string templocaldirpath = Server.MapPath("~/Content/DocFiles/");
 
-            string templocaldirpath = Server.MapPath(Utility.GetTempLocalDirPath());
 
             if (oSOP.FileStatuscode == 1)  //signed and ready to publish
             {
@@ -286,12 +287,11 @@ namespace SOPManagement.Controllers
 
                 //2. update the file 
 
-                oSOP.GetFileRevisions();
+               // oSOP.GetFileRevisions();
 
                 oSOP.UpdateCoverRevhistPage(true);
 
                 //3. upload again
-                oSOP.FileLocalPath = templocaldirpath + oSOP.FileName;
 
                 Thread.Sleep(7000);
 
@@ -333,7 +333,7 @@ namespace SOPManagement.Controllers
             //run this just one time to encrypt or one time to dycript
 
           //  Utility.ProtectConfiguration();
-            //Utility.UnProtectConfiguration();   //dycrip it when you need to change any data in config file
+         //   Utility.UnProtectConfiguration();   //dycrip it when you need to change any data in config file
 
             // ViewBag.Title = "Upload or Create SOP";  //I assigned in cshtml file
 
@@ -566,7 +566,9 @@ namespace SOPManagement.Controllers
                 oSop.SiteUrl = siteurl;
                 oSop.FileCurrVersion = "1";    //for new file version no is 1 
 
-                oSop.UpdateCoverRevhistPage();
+                //    oSop.UpdateCoverRevhistPage();
+
+                oSop.UpdateCoverRevhistPageDocX();
 
                 bProcessCompleted = true;
 
@@ -832,155 +834,6 @@ namespace SOPManagement.Controllers
             TempData["FileID"] = id;
             TempData["ChangeIReqID"] = changereqid;
 
-            //int sopfileid = 0;
-            //int validchngreq = 0;
-
-            //Session["ErrorMsg"] = "";
-
-            ////Session["Dashboardlink"] = "http://camis1-bioasp01/Reports/Pages/Report.aspx?ItemPath=%2fSOP+Reports%2fSOP+Dashboard";
-
-            //Session["Dashboardlink"] = Utility.GetDashBoardUrl();
-
-
-            //if (Utility.IsSessionExpired())
-            //{
-
-            //    // ViewBag.ErrorMessage = "SOP Application: Session not Timed out";
-
-            //    Session["ErrorMsg"] = "SOP Application: Session not Timed out";
-
-            //    return RedirectToAction("SOPMessage");
-
-            //}
-
-
-
-            //if (id == null || changereqid == null || changereqid == "" || !Utility.IsNumeric(changereqid))     //no file provided
-            //{
-
-            //    Session["ErrorMsg"] = "Error: Valid File ID and Cahneg Request ID is required to publish the file!";
-
-            //    return RedirectToAction("SOPMessage");
-
-            //}
-
-            //else
-            //{
-            //    validchngreq = Convert.ToInt32(changereqid);
-            //    sopfileid = Convert.ToInt16(id);
-
-
-            //}
-
-
-            //Employee oEmp = new Employee();
-
-            ////string loggedinuser = "";
-
-            ////// var usr = System.Environment.UserName;
-
-            ////loggedinuser = System.Web.HttpContext.Current.User.Identity.Name;
-
-            ////loggedinuser = loggedinuser.Split('\\').Last();
-
-            ////Session["UserEmail"] = loggedinuser;
-
-            //oEmp.useremailaddress = Utility.GetCurrentLoggedInUserEmail();
-
-            //Session["UserEmail"] = oEmp.useremailaddress;
-
-
-            //if (!oEmp.AuthenticateUser("approver", sopfileid))   //only approver can publish a signed SOP
-
-            //{
-
-            //    Session["SOPMsg"] = "Failed to authenticate user as an approver of the file.Please contact IT!";
-            //    return RedirectToAction("SOPMessage");
-            //}
-
-            //SOPClass oSOP = new SOPClass();
-
-            //oSOP.SiteUrl = siteurl;
-
-            //oSOP.FileID = sopfileid;
-            //oSOP.DocumentLibName = "SOP";
-
-            //oSOP.FileChangeRqstID = validchngreq;
-
-
-            //oSOP.GetSOPInfo();  //get file path, name etc.
-
-            //oSOP.FileTitle = Path.ChangeExtension(oSOP.FileName, null);
-
-            ////We need to check whether the SOP is signed by all parties (approver, reviewer, owner)
-            ////we will check signed status code in changeactivities table, it must be 1 to publish the sop
-
-            //if (oSOP.FileStatuscode == 2)  //not signed
-            //{
-            //    Session["SOPMsg"] = "Error: SOP " + oSOP.FileName + " has not been signed by all signatories!";
-
-            //    return RedirectToAction("SOPMessage");
-
-
-            //}
-
-
-            //if (oSOP.FileStatuscode == 3)  //published 
-            //{
-            //    Session["SOPMsg"] = "Error: SOP " + oSOP.FileName + " has already been publsihed!";
-
-            //    return RedirectToAction("SOPMessage");
-
-
-            //}
-
-
-            ////just before publishing we need to update the coversheet with signed status of reviewers, approver
-            ////and owner as well as update version no, revision history etc.
-            ////1. first download the file
-
-            ////string templocaldirpath = Server.MapPath("~/Content/DocFiles/");
-
-            //string templocaldirpath =Server.MapPath(Utility.GetTempLocalDirPath());
-
-            //if (oSOP.FileStatuscode == 1)  //signed and ready to publish
-            //{
-
-            //    oSOP.DownloadFileFromSharePoint(templocaldirpath);
-
-            //    //2. update the file 
-
-            //    oSOP.GetFileRevisions();
-
-            //    oSOP.UpdateCoverRevhistPage(true);
-
-            //    //3. upload again
-            //    oSOP.FileLocalPath = templocaldirpath + oSOP.FileName;
-
-            //    Thread.Sleep(7000);
-
-            //    oSOP.FileStream = System.IO.File.ReadAllBytes(oSOP.FileLocalPath);
-
-            //    oSOP.UploadDocument();
-
-
-            //    if (oSOP.PublishFile())
-            //    {
-
-            //        Session["SOPMsg"] = "SOP " + oSOP.FileName + " has been successfully published!";
-
-            //        return RedirectToAction("SOPMessage");
-
-            //    }
-
-            //    else
-            //    {
-            //        Session["SOPMsg"] = "Failed to publish SOP " + oSOP.FileName + oSOP.ErrorMessage + ".Please contact IT!";
-            //        return RedirectToAction("SOPMessage");
-            //    }
-
-
-            //} //end checking signed status
 
 
             return View();

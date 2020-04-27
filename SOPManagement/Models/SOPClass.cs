@@ -13,6 +13,10 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
 using System.Web.Mvc;
 using Microsoft.Online.SharePoint.TenantAdministration;
+using System.Threading.Tasks;
+using Xceed.Words.NET;
+using Xceed.Document.NET;
+using Paragraph = Xceed.Document.NET.Paragraph;
 
 namespace SOPManagement.Models
 {
@@ -21,7 +25,7 @@ namespace SOPManagement.Models
 
     public class SOPClass
     {
-        
+
         public int FileID { get; set; }
 
         public string[] FilereviewersArr { get; set; }
@@ -30,7 +34,7 @@ namespace SOPManagement.Models
 
         public bool AllUsersReadAcc { get; set; }
 
-        public short? FileStatuscode { get; set;}
+        public short? FileStatuscode { get; set; }
 
         [Required(ErrorMessage = "File Owner is Required")]
         [Display(Name = "Select SOP Owner")]
@@ -48,7 +52,7 @@ namespace SOPManagement.Models
         [Display(Name = "Select SOP Approver")]
         public string FileApproverEmail { get; set; }
 
-   
+
         public string FileTitle { get; set; }   //title is without sopno
 
         [Display(Name = "SOP File Name")]
@@ -64,20 +68,20 @@ namespace SOPManagement.Models
         public string SubFolderName { get; set; }
 
         public string DepartmentName { get; set; }
-        public short DepartmentCode { get; set;}
+        public short DepartmentCode { get; set; }
 
         public string ViewAccessType { get; set; }
 
-        public int  ViewAccessTypeID { get; set; }
+        public int ViewAccessTypeID { get; set; }
 
-          
+
         public string SOPNo { get; set; }
 
         public FileRevision[] FileRevisions { get; set; }
 
         public string FileCurrVersion { get; set; }
 
-    
+
         [Required(ErrorMessage = "Frequency Required")]
         [Display(Name = "Update Frequency")]
         public short Updatefreq { get; set; }
@@ -95,9 +99,12 @@ namespace SOPManagement.Models
 
         public bool OperationSuccess { get; set; }
 
-        public Employee[] Reviewers { get; set; }
+        public Employee[] FileReviewers { get; set; }
 
-        public Employee[] Viewers { get; set; }
+        public Employee[] FileViewers { get; set; }
+
+        public Employee FileOwner { get; set; }
+        public Employee FileApprover { get; set; }
 
         public string DocumentLibName { get; set; }
 
@@ -135,7 +142,7 @@ namespace SOPManagement.Models
 
             using (var dbcontext = new RadiantSOPEntities())
             {
-                var result = dbcontext.filechangerequestactivities.SingleOrDefault(b => b.changerequestid == FileChangeRqstID && b.fileid==FileID);
+                var result = dbcontext.filechangerequestactivities.SingleOrDefault(b => b.changerequestid == FileChangeRqstID && b.fileid == FileID);
                 if (result != null)
                 {
                     result.approvalstatuscode = statuscode;
@@ -195,9 +202,9 @@ namespace SOPManagement.Models
             {
                 var rvwractvts = new filereviewersactivity()
                 {
-                    changerequestid= FileChangeRqstID,
-                    reviewid= previewid,
-                     approvalstatuscode=2   //not signed
+                    changerequestid = FileChangeRqstID,
+                    reviewid = previewid,
+                    approvalstatuscode = 2   //not signed
                     // statusdatetime=DateTime.Today   //no sign no date
                 };
                 dbcontex.filereviewersactivities.Add(rvwractvts);
@@ -227,9 +234,9 @@ namespace SOPManagement.Models
             {
                 var pblsracvts = new filepublishersactivity()
                 {
-                    changerequestid= FileChangeRqstID,
-                    publisherid= ppublisherid,
-                    approvalstatuscode=8  //8=not approved
+                    changerequestid = FileChangeRqstID,
+                    publisherid = ppublisherid,
+                    approvalstatuscode = 8  //8=not approved
                     //statusdatetime= DateTime.Today
                 };
 
@@ -247,7 +254,7 @@ namespace SOPManagement.Models
                     changerequestid = FileChangeRqstID,
                     ownershipid = pownershipid,
                     approvalstatuscode = 2  //not signed
-                  //  statusdatetime = DateTime.Today   //no sign no date
+                                            //  statusdatetime = DateTime.Today   //no sign no date
 
                 };
                 dbcontext.fileownersactivities.Add(owneractvts);
@@ -322,8 +329,8 @@ namespace SOPManagement.Models
                 {
                     fileid = FileID,
                     viewtypename = ViewAccessType,
-                   // departmentname=DepartmentName
-                   departmentcode=DepartmentCode
+                    // departmentname=DepartmentName
+                    departmentcode = DepartmentCode
 
                 };
                 dbcontext.fileviewaccesstypes.Add(fileviewacctype);
@@ -358,11 +365,11 @@ namespace SOPManagement.Models
                 using (var dbcontext = new RadiantSOPEntities())
                 {
 
-                    var vwrtable = new  fileviewer
+                    var vwrtable = new fileviewer
                     {
                         viewerid = vwrid,
-                        viewaccessid= ViewAccessTypeID
-                        
+                        viewaccessid = ViewAccessTypeID
+
 
                     };
                     dbcontext.fileviewers.Add(vwrtable);
@@ -397,7 +404,7 @@ namespace SOPManagement.Models
             using (var dbcontext = new RadiantSOPEntities())
             {
 
-                var ownertable = new  fileowner()
+                var ownertable = new fileowner()
                 {
                     ownerid = ownerid,
                     fileid = FileID
@@ -421,7 +428,7 @@ namespace SOPManagement.Models
         public void AddChangeRequest()
         {
 
-         
+
 
             using (var dbcontex = new RadiantSOPEntities())
             {
@@ -431,7 +438,7 @@ namespace SOPManagement.Models
                     fileid = FileID,
                     approvalstatuscode = 2,   //2=not signed
                     statusdatetime = DateTime.Today,
-                    requesterid=FileChangeRqsterID
+                    requesterid = FileChangeRqsterID
                 };
                 dbcontex.filechangerequestactivities.Add(chngtable);
                 dbcontex.SaveChanges();
@@ -487,7 +494,7 @@ namespace SOPManagement.Models
                     fileid = FileID,
                     frequencyofrevision = Updatefreq,
                     unitoffrequency = Updatefrequnit,
-                    unitcodeupdfreq= Updfrequnitcode,
+                    unitcodeupdfreq = Updfrequnitcode,
                     lastrevisionno = "1.0",
                     scheduledatetime = freqschdl
 
@@ -504,6 +511,309 @@ namespace SOPManagement.Models
 
         }
 
+        public void UpdateCoverRevhistPageDocX()
+        {
+
+
+            //  string newfilename = SOPNo + " " + SOPFileTitle;
+
+
+            //string savePath = HttpContext.Current.Server.MapPath("~/Content/docfiles/" + FileName);
+
+            string tmpfiledirnm = Utility.GetTempLocalDirPath();
+
+            //string savePath = HttpContext.Current.Server.MapPath("~/Content/docfiles/" + FileName);
+
+            string savePath = HttpContext.Current.Server.MapPath(tmpfiledirnm + FileName);
+
+            object path = savePath;
+
+            
+
+            try
+            {
+
+
+                //  Microsoft.Office.Interop.Word.Document wdoc = app.Documents.Open(ref path, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj);
+
+                var wdoc = DocX.Load(savePath);
+
+
+
+                //  add row in table and data in cell
+
+                Employee emp = new Employee();
+                string ownerfullname;
+                string approverfullname;
+                string approvertitle;
+
+
+                int totalTables = wdoc.Tables.Count;
+
+
+
+                //Add data into reviewer table  - 2nd table in the cover page
+
+                if (totalTables > 0)
+                {
+
+
+                    //update 1st table in cover page, file title, Owner, SOP #, Rev #, Eff date, owner
+
+                    emp.useremailaddress = FileOwnerEmail;
+                    emp.GetUserByEmail();
+                    ownerfullname = emp.userfullname;
+
+
+                    //first table tab1 with SOP basic info
+
+                    var tab1 = wdoc.Tables[0];
+
+                    // Select the last row as source row.
+                    int selectedRow1 = tab1.Rows.Count;
+
+                    tab1.Rows[0].Cells[1].Paragraphs[0].Remove(false);    //track changes false
+                    tab1.Rows[0].Cells[1].Paragraphs[0].Append(FileTitle);
+
+                    tab1.Rows[1].Cells[1].Paragraphs[0].Remove(false);    //track changes false
+                    tab1.Rows[1].Cells[1].Paragraphs[0].Append(SOPNo);
+
+                    tab1.Rows[1].Cells[3].Paragraphs[0].Remove(false);    //track changes false
+                    tab1.Rows[1].Cells[3].Paragraphs[0].Append(FileCurrVersion);
+
+                    tab1.Rows[3].Cells[1].Paragraphs[0].Remove(false);    //track changes false
+                    tab1.Rows[3].Cells[1].Paragraphs[0].Append(ownerfullname);
+
+
+                    //2nd table tab2 to add/update reviewers
+
+                    var tab2 = wdoc.Tables[1];
+
+                    int tab2rows = tab2.RowCount - 1;  //exclude first two title row
+
+                    //first remove existing rows except header row
+
+                    int totrvwrs = FileReviewers.Count();
+
+                    int totdiff = tab2rows - totrvwrs;
+
+                    int startindx;
+
+                    //prepare reviewer table first so total reviewers and total table rows become equal
+
+                    if (totdiff > 0)  //remove extar rows when reviewers are less
+                    {
+                        startindx = tab2.RowCount - totdiff;
+
+                        int r= startindx;
+
+                        
+                        for (int i = startindx; i <= tab2rows; i++)
+                        {
+                            if (r==startindx)
+
+                                 tab2.Rows[i].Remove();
+                            else
+                                tab2.Rows[i-1].Remove();
+
+                            r = r+1;
+                        }
+                    }
+
+                    int rowtoadd = Math.Abs(totdiff);  //get positive to loop
+
+                    if (totdiff < 0)  //add rows as reviewers are more than table rows
+                    {
+
+                        for (int i = 1; i <= rowtoadd; i++)  //how many rows to add    
+                        {
+                            tab2.InsertRow();
+                            
+                            
+                        }
+                    }
+
+                    //if rows in table and total reviewers are same don't need to do anything
+
+                    //now add reviewers to table as we have equal rows to reviewers
+
+                    int totnewrow = tab2.Rows.Count();  //get updated rows from table
+                    int rvwrno = 0;  //for start index of reviewer
+
+                    if ((totnewrow - 1) == totrvwrs)
+                    {
+
+                        for (int i = 1; i <= totnewrow - 1; i++)   //exclude row[0] for header
+                        {
+
+                            emp.useremailaddress = FileReviewers[rvwrno].useremailaddress;
+                            emp.GetUserByEmail();
+
+                            tab2.Rows[i].Cells[0].Paragraphs[0].Remove(false);
+                            tab2.Rows[i].Cells[0].Paragraphs[0].Append(emp.userfullname);
+
+                            tab2.Rows[i].Cells[1].Paragraphs[0].Remove(false);
+                            tab2.Rows[i].Cells[1].Paragraphs[0].Append(emp.userjobtitle);
+
+
+                            rvwrno = rvwrno + 1;
+
+                        }
+                    }
+                    //end updating reviewers table
+
+                    // table tab3 to update approver row 
+
+                    emp.useremailaddress = FileApproverEmail;
+                    emp.GetUserByEmail();
+
+                    approverfullname = emp.userfullname;
+                    approvertitle = emp.userjobtitle;
+
+                    var tab3 = wdoc.Tables[2];
+
+                    // Select the last row as source row.
+                    int aprvrRow = tab3.Rows.Count;
+
+                    tab3.Rows[1].Cells[0].Paragraphs[0].Remove(false);    //track changes false
+                    tab3.Rows[1].Cells[0].Paragraphs[0].Append(approverfullname);
+
+                    tab3.Rows[1].Cells[1].Paragraphs[0].Remove(false);    //track changes false
+                    tab3.Rows[1].Cells[1].Paragraphs[0].Append(approvertitle);
+
+
+                    //start now add/update of revision history table
+
+
+
+                    int totrh = FileRevisions.Count();
+
+                    if (totrh>0)
+                    {
+
+                        //first remove existing rows except header row
+
+                        int revtabindx = totalTables - 1;
+
+                        var tabrh = wdoc.Tables[revtabindx];
+
+                        int tabrhrows = tabrh.RowCount - 1;  //exclude first one title row
+
+
+                        int totdiffrh = tabrhrows - totrh;
+
+                        int startindxrh;
+
+                        //prepare revision table first so total revisions and total table rows become equal
+
+                        if (totdiffrh > 0)  //remove extar rows when reviewers are less
+                        {
+                            startindxrh = tabrh.RowCount - totdiffrh;
+
+                            int r = startindxrh;
+
+
+                            for (int i = startindxrh; i <= tabrhrows; i++)
+                            {
+                                if (r == startindxrh)
+
+                                    tabrh.Rows[i].Remove();
+                                else
+                                    tab2.Rows[i - 1].Remove();
+
+                                r = r + 1;
+                            }
+                        }
+
+                        int rowtoaddrh = Math.Abs(totdiffrh);  //get positive to loop
+
+                        if (totdiffrh < 0)  //add rows as reh hist are more than table rows
+                        {
+
+                            for (int i = 1; i <= rowtoaddrh; i++)  //how many rows to add    
+                            {
+                                tabrh.InsertRow();
+
+
+                            }
+                        }
+
+                        //if rows in table and total reviewers are same don't need to do anything
+
+                        //now add revisions to table as we have equal rows to revisions
+
+                        int totnewrowrh = tabrh.Rows.Count();  //get updated rows from table
+                        int rhno = 0;  //for start index of reviewer
+
+                        if ((totnewrowrh - 1) == totrh)
+                        {
+
+                            for (int i = 1; i <= totnewrowrh - 1; i++)   //exclude row[0] for header
+                            {
+
+
+
+                                tabrh.Rows[i].Cells[0].Paragraphs[0].Remove(false);
+                                tabrh.Rows[i].Cells[0].Paragraphs[0].Append(FileRevisions[rhno].RevisionNo);
+
+                                tabrh.Rows[i].Cells[1].Paragraphs[0].Remove(false);
+                                tabrh.Rows[i].Cells[1].Paragraphs[0].Append(FileRevisions[rhno].RevisionDate.ToShortDateString());
+
+
+                                rhno = rhno + 1;
+
+                            }
+                        }
+                        //end updating revision table
+
+
+
+                    } //end checking total revisons
+
+                    //add footer
+
+                    wdoc.AddFooters();
+
+
+                    // Get the default Footer for this document.
+                    Footer footer_default = wdoc.Footers.Odd;
+
+                    // Insert a Paragraph into the default Footer.
+                    Paragraph p3 = footer_default.InsertParagraph();
+
+                    p3.Append(FileTitle).Bold();
+
+
+                    wdoc.Save();
+
+                    wdoc = null;
+
+                }  //if totalTables
+
+
+
+
+
+            }
+    
+            catch (Exception ex)
+            {
+                ErrorMessage = ex.Message;
+
+            }
+
+            finally
+            {
+                //app.Application.Quit();
+                
+
+            }
+
+
+
+
+
+        }
         public void UpdateCoverRevhistPage()
         {
 
@@ -1088,20 +1398,39 @@ namespace SOPManagement.Models
 
             using (var ctx = new RadiantSOPEntities())
             {
+                //basic sop info related to file id
                 FilePath = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SPFilePath).FirstOrDefault();
                 FileName = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.DeptFileName).FirstOrDefault();
+                FileTitle = Path.ChangeExtension(FileName, null);
                 SOPNo = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SOPNo).FirstOrDefault();
                 FileLink = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SPFileLink).FirstOrDefault();
                 FileCurrVersion = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.VersionNo).FirstOrDefault();
-                ApprovalStatus = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.ApprovalStatus).FirstOrDefault();
+               // ApprovalStatus = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.ApprovalStatus).FirstOrDefault();
                 AuthorName = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.CreatedBy).FirstOrDefault();
                 SOPCreateDate = Convert.ToDateTime(ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.CreateDate).FirstOrDefault());
 
-                FileOwnerEmail=ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.owneremail).FirstOrDefault();
+                //data related to change request
+
+                FileOwner.useremailaddress = ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.owneremail).FirstOrDefault();
+                FileOwner.GetUserByEmail();
+                FileOwner.signaturedate = Convert.ToDateTime(ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.ownersigneddate).FirstOrDefault());
+                FileOwner.signstatus= ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.ownerSignedStatus).FirstOrDefault();
+
+                FileApprover.useremailaddress = ctx.vwApprvrsSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.approveremail).FirstOrDefault();
+                FileApprover.GetUserByEmail();
+                FileApprover.signaturedate = Convert.ToDateTime(ctx.vwApprvrsSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.Aprvrsigneddate).FirstOrDefault());
+                FileApprover.signstatus = ctx.vwApprvrsSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.AprvrSignedStatus).FirstOrDefault();
 
                 FileStatuscode = ctx.filechangerequestactivities.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.approvalstatuscode).FirstOrDefault();
-
+                
             }
+
+
+            //get reviewers
+
+            GetReviewers();
+
+            GetFileRevisions();
 
 
         }
@@ -1615,7 +1944,7 @@ namespace SOPManagement.Models
 
             //get file version history from sharepoint
 
-            public void GetFileRevisions()
+       public void GetFileRevisions()
         {
 
             ErrorMessage = "";
@@ -1685,6 +2014,41 @@ namespace SOPManagement.Models
             }
 
             FileRevisions = oRVArr;
+
+        }
+
+
+        public void GetReviewers()
+        {
+
+            using (var dbctx = new RadiantSOPEntities())
+            {
+                var rvrwrs = (from c in dbctx.vwRvwrsSignatures where c.fileid == FileID && c.changerequestid == FileChangeRqstID select c);
+
+                Employee[] oRreviewersArr = new Employee[rvrwrs.Count()];
+                int i = 0;
+                Employee oRvwr;
+                foreach (var r in rvrwrs)
+                {
+
+                    oRvwr = new Employee();
+
+                    oRvwr.useremailaddress = r.revieweremail;
+                    oRvwr.userfullname = r.reviewername;
+                    oRvwr.userid = r.reviewerid;
+                    oRvwr.userjobtitle = r.reviewertitle;
+                    oRvwr.signaturedate = Convert.ToDateTime(r.signeddate);
+                    oRvwr.signstatus = r.SignedStatus;
+
+                    oRreviewersArr[i] = oRvwr;
+
+                    i = i + 1;
+
+                }
+
+                FileReviewers = oRreviewersArr;
+            }
+
 
         }
 
@@ -1843,4 +2207,8 @@ namespace SOPManagement.Models
    
 
     } //end of class
+
+    internal class FileReviewers
+    {
+    }
 }  //end of namespace

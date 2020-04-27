@@ -177,6 +177,12 @@
       <HintPath>..\packages\Antlr.3.5.0.2\lib\Antlr3.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />
+    <Reference Include="Xceed.Document.NET, Version=1.6.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
+      <HintPath>..\packages\DocX.1.6.0\lib\net40\Xceed.Document.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Words.NET, Version=1.6.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4, processorArchitecture=MSIL">
+      <HintPath>..\packages\DocX.1.6.0\lib\net40\Xceed.Words.NET.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform">
@@ -335,10 +341,6 @@
     </Content>
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
-    <Content Include="Content\DocFiles\SOPTmplt.docx" />
-    <Content Include="Content\DocFiles\SOPBodyTmplt.docx" />
-    <Content Include="Content\DocFiles\SOPCoverTmplt.docx" />
-    <Content Include="Content\DocFiles\SOPFile.docx" />
     <EntityDeploy Include="Models\SOPEDM.edmx">
       <Generator>EntityModelCodeGenerator</Generator>
       <LastGenOutput>SOPEDM.Designer.cs</LastGenOutput>
@@ -346,6 +348,8 @@
     <Content Include="Models\SOPEDM.edmx.diagram">
       <DependentUpon>SOPEDM.edmx</DependentUpon>
     </Content>
+    <Content Include="Content\DocFiles\SOPTemplate.docx" />
+    <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
     <Content Include="Scripts\fontawesome\all.js" />
     <Content Include="Scripts\fontawesome\all.min.js" />
