@@ -539,7 +539,7 @@ namespace SOPManagement.Controllers
 
                 oSop.FileApproverEmail = sop.FileApproverEmail;
                 oSop.FileOwnerEmail =sop.FileOwnerEmail;
-                oSop.Reviewers = rvwrItems; 
+                oSop.FileReviewers = rvwrItems; 
                 oSop.Updatefreq = supdfreq;
                 oSop.Updatefrequnit = sop.Updatefrequnit;
                 oSop.Updfrequnitcode = sop.Updfrequnitcode;
@@ -595,7 +595,7 @@ namespace SOPManagement.Controllers
 
                 //DateTime:sop.SOPNo:start uploading file in sharepoint online SOP doc library
 
-                Thread.Sleep(7000);
+             //   Thread.Sleep(7000);
 
                 oSop.FolderName =sop.FolderName;
                 oSop.SubFolderName =sop.SubFolderName;
@@ -727,7 +727,7 @@ namespace SOPManagement.Controllers
                         //now add view access info by custom users in SQL table
                         //we need this to retrieve and change in admin page
 
-                        oSop.Viewers = vwrItems;
+                        oSop.FileReviewers = vwrItems;
                         oSop.ViewAccessType = "By Users";
                         oSop.AddViewerAccessType();
                         oSop.AddFileViewers();
@@ -1073,7 +1073,7 @@ namespace SOPManagement.Controllers
 
                 oSop.FileApproverEmail = approver;
                 oSop.FileOwnerEmail = owner;
-                oSop.Reviewers = rvwrItems;
+                oSop.FileReviewers = rvwrItems;
                 oSop.Updatefreq = supdfreq;
                 oSop.Updatefrequnit = sopupdfrequnit;
                 oSop.SOPEffectiveDate = Convert.ToDateTime(sopeffdate);
@@ -1195,7 +1195,7 @@ namespace SOPManagement.Controllers
                         //now add view access info by custom users in SQL table
                         //we need this to retrieve and change in admin page
 
-                        oSop.Viewers = vwrItems;
+                        oSop.FileViewers = vwrItems;
                         oSop.ViewAccessType = "By Users";
                         oSop.AddViewerAccessType();
                         oSop.AddFileViewers();

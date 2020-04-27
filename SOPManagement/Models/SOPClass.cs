@@ -17,6 +17,9 @@ using System.Threading.Tasks;
 using Xceed.Words.NET;
 using Xceed.Document.NET;
 using Paragraph = Xceed.Document.NET.Paragraph;
+using Section = Xceed.Document.NET.Section;
+using Table = Xceed.Document.NET.Table;
+using System.Drawing;
 
 namespace SOPManagement.Models
 {
@@ -163,7 +166,7 @@ namespace SOPManagement.Models
 
             OperationSuccess = false;
 
-            foreach (Employee rvwr in Reviewers)
+            foreach (Employee rvwr in FileReviewers)
             {
                 emp.useremailaddress = rvwr.useremailaddress;
                 emp.GetUserByEmail();
@@ -356,7 +359,7 @@ namespace SOPManagement.Models
             //delete all viewers with the file id that was deleted from ViewAccessType table
 
 
-            foreach (Employee vwr in Viewers)
+            foreach (Employee vwr in FileViewers)
             {
                 emp.useremailaddress = vwr.useremailaddress;
                 emp.GetUserByEmail();
@@ -640,6 +643,9 @@ namespace SOPManagement.Models
                     int totnewrow = tab2.Rows.Count();  //get updated rows from table
                     int rvwrno = 0;  //for start index of reviewer
 
+                    Xceed.Document.NET.Cell cel1;
+                    Xceed.Document.NET.Cell celend;
+
                     if ((totnewrow - 1) == totrvwrs)
                     {
 
@@ -650,10 +656,17 @@ namespace SOPManagement.Models
                             emp.GetUserByEmail();
 
                             tab2.Rows[i].Cells[0].Paragraphs[0].Remove(false);
-                            tab2.Rows[i].Cells[0].Paragraphs[0].Append(emp.userfullname);
+                            cel1 = tab2.Rows[i].Cells[0];
+                            cel1.SetBorder(TableCellBorderType.Left, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
+                            cel1.Paragraphs[0].Append(emp.userfullname);
+
+                            //tab2.Rows[i].Cells[0].Paragraphs[0].Append(emp.userfullname);
 
                             tab2.Rows[i].Cells[1].Paragraphs[0].Remove(false);
                             tab2.Rows[i].Cells[1].Paragraphs[0].Append(emp.userjobtitle);
+
+                            celend = tab2.Rows[i].Cells[3];
+                            celend.SetBorder(TableCellBorderType.Right, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
 
 
                             rvwrno = rvwrno + 1;
@@ -675,18 +688,25 @@ namespace SOPManagement.Models
                     // Select the last row as source row.
                     int aprvrRow = tab3.Rows.Count;
 
-                    tab3.Rows[1].Cells[0].Paragraphs[0].Remove(false);    //track changes false
-                    tab3.Rows[1].Cells[0].Paragraphs[0].Append(approverfullname);
+                    cel1 = tab3.Rows[1].Cells[0];
+                    cel1.SetBorder(TableCellBorderType.Left, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
+
+                    cel1.Paragraphs[0].Remove(false);    //track changes false
+                    cel1.Paragraphs[0].Append(approverfullname);
 
                     tab3.Rows[1].Cells[1].Paragraphs[0].Remove(false);    //track changes false
                     tab3.Rows[1].Cells[1].Paragraphs[0].Append(approvertitle);
 
+                    celend = tab3.Rows[1].Cells[3];
+                    celend.SetBorder(TableCellBorderType.Right, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
+
 
                     //start now add/update of revision history table
 
+                    int totrh = 0;
 
-
-                    int totrh = FileRevisions.Count();
+                    if (FileRevisions != null)
+                        totrh = FileRevisions.Count();
 
                     if (totrh>0)
                     {
@@ -752,13 +772,17 @@ namespace SOPManagement.Models
                             {
 
 
+                                cel1 = tabrh.Rows[i].Cells[0];
+                                cel1.SetBorder(TableCellBorderType.Left, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
 
-                                tabrh.Rows[i].Cells[0].Paragraphs[0].Remove(false);
-                                tabrh.Rows[i].Cells[0].Paragraphs[0].Append(FileRevisions[rhno].RevisionNo);
+                                cel1.Paragraphs[0].Remove(false);
+                                cel1.Paragraphs[0].Append(FileRevisions[rhno].RevisionNo);
 
                                 tabrh.Rows[i].Cells[1].Paragraphs[0].Remove(false);
                                 tabrh.Rows[i].Cells[1].Paragraphs[0].Append(FileRevisions[rhno].RevisionDate.ToShortDateString());
 
+                                celend = tabrh.Rows[i].Cells[2];
+                                celend.SetBorder(TableCellBorderType.Right, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
 
                                 rhno = rhno + 1;
 
@@ -778,10 +802,50 @@ namespace SOPManagement.Models
                     // Get the default Footer for this document.
                     Footer footer_default = wdoc.Footers.Odd;
 
-                    // Insert a Paragraph into the default Footer.
-                    Paragraph p3 = footer_default.InsertParagraph();
+                    Table tabfooter = footer_default.InsertTable(1, 2);
 
-                    p3.Append(FileTitle).Bold();
+                    //tabfooter.AutoFit = AutoFit.Contents;
+
+                    tabfooter.SetBorder(TableBorderType.Bottom, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
+                    tabfooter.SetBorder(TableBorderType.Top, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
+                    tabfooter.SetBorder(TableBorderType.Left, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
+                    tabfooter.SetBorder(TableBorderType.Right, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
+                    tabfooter.SetBorder(TableBorderType.InsideH, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
+                    tabfooter.SetBorder(TableBorderType.InsideV, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
+
+                    //footer_default.Tables[0].Rows[0].MergeCells(1, 3);
+
+                    //tabfooter
+
+                    tabfooter.Rows[0].Cells[0].Paragraphs[0].Append(FileName);
+                    tabfooter.Rows[0].Cells[1].Paragraphs[0].Append("Page ").AppendPageNumber(PageNumberFormat.normal).Append(" of ").AppendPageCount(PageNumberFormat.normal);
+
+
+                   // tabfooter.SetColumnWidth(0, 100);
+
+                    tabfooter.SetWidthsPercentage(new[] { 50f, 50f }, 800);   //array is percent of each column width, 500 is total table with
+
+                    //footer_default.Tables[0].Rows[0].Cells[0].Paragraphs[0].Append(FileName);
+                    // footer_default.Tables[0].Rows[0].Cells[4].Paragraphs[0].Append("Page ").AppendPageNumber(PageNumberFormat.normal).Append(" of ").AppendPageCount(PageNumberFormat.normal);
+
+
+
+
+                    // Insert a Paragraph into the default Footer.
+
+
+                    //Paragraph p3 = footer_default.InsertParagraph();
+                    // p3.Append(FileName).Direction = Direction.LeftToRight;
+
+
+
+                    //  Paragraph p4 = footer_default..InsertParagraph();
+                    //  p4.Alignment = Alignment.right;
+
+                    //p3.Append("Page ").AppendPageNumber(PageNumberFormat.normal).Alignment=Alignment.right;
+                    //p3.Append(" Of ").AppendPageCount(PageNumberFormat.normal).Alignment=Alignment.right;
+
+
 
 
                     wdoc.Save();
@@ -806,6 +870,362 @@ namespace SOPManagement.Models
             {
                 //app.Application.Quit();
                 
+
+            }
+
+
+
+
+
+        }
+        public void UpdateCoverRevhistPageDocX(bool pUpdSignatureRev)
+        {
+
+
+            //  string newfilename = SOPNo + " " + SOPFileTitle;
+
+
+            //string savePath = HttpContext.Current.Server.MapPath("~/Content/docfiles/" + FileName);
+
+            string tmpfiledirnm = Utility.GetTempLocalDirPath();
+
+            //string savePath = HttpContext.Current.Server.MapPath("~/Content/docfiles/" + FileName);
+
+            string savePath = HttpContext.Current.Server.MapPath(tmpfiledirnm + FileName);
+
+            object path = savePath;
+
+
+
+            try
+            {
+
+
+                var wdoc = DocX.Load(savePath);
+
+                //  add row in table and data in cell
+
+
+                int totalTables = wdoc.Tables.Count;
+
+
+                if (totalTables > 0)
+                {
+
+
+                    //update 1st table in cover page, file title, Owner, SOP #, Rev #, Eff date, owner
+
+
+                    var tab1 = wdoc.Tables[0];
+
+                    // Select the last row as source row.
+                    int selectedRow1 = tab1.Rows.Count;
+
+                    tab1.Rows[0].Cells[1].Paragraphs[0].Remove(false);    //track changes false
+                    tab1.Rows[0].Cells[1].Paragraphs[0].Append(FileTitle);
+
+                    tab1.Rows[1].Cells[1].Paragraphs[0].Remove(false);    //track changes false
+                    tab1.Rows[1].Cells[1].Paragraphs[0].Append(SOPNo);
+
+                    tab1.Rows[1].Cells[3].Paragraphs[0].Remove(false);    //track changes false
+                    tab1.Rows[1].Cells[3].Paragraphs[0].Append(FileCurrVersion);
+
+                    tab1.Rows[3].Cells[1].Paragraphs[0].Remove(false);    //track changes false
+                    tab1.Rows[3].Cells[1].Paragraphs[0].Append(FileOwner.userfullname);
+
+
+                    //2nd table tab2 to add/update reviewers
+
+                    var tab2 = wdoc.Tables[1];
+
+                    int tab2rows = tab2.RowCount - 1;  //exclude first two title row
+
+                    //first remove existing rows except header row
+
+                    int totrvwrs = FileReviewers.Count();
+
+                    int totdiff = tab2rows - totrvwrs;
+
+                    int startindx;
+
+                    //prepare reviewer table first so total reviewers and total table rows become equal
+
+                    if (totdiff > 0)  //remove extar rows when reviewers are less
+                    {
+                        startindx = tab2.RowCount - totdiff;
+
+                        int r = startindx;
+
+
+                        for (int i = startindx; i <= tab2rows; i++)
+                        {
+                            if (r == startindx)
+
+                                tab2.Rows[i].Remove();
+                            else
+                                tab2.Rows[i - 1].Remove();
+
+                            r = r + 1;
+                        }
+                    }
+
+                    int rowtoadd = Math.Abs(totdiff);  //get positive to loop
+
+                    if (totdiff < 0)  //add rows as reviewers are more than table rows
+                    {
+
+                        for (int i = 1; i <= rowtoadd; i++)  //how many rows to add    
+                        {
+                            tab2.InsertRow();
+
+
+                        }
+                    }
+
+                    //if rows in table and total reviewers are same don't need to do anything
+
+                    //now add reviewers to table as we have equal rows to reviewers
+
+                    int totnewrow = tab2.Rows.Count();  //get updated rows from table
+                    int rvwrno = 0;  //for start index of reviewer
+
+                    Xceed.Document.NET.Cell cel1;
+                    Xceed.Document.NET.Cell celend;
+
+                    if ((totnewrow - 1) == totrvwrs)
+                    {
+
+                        for (int i = 1; i <= totnewrow - 1; i++)   //exclude row[0] for header
+                        {
+
+                            tab2.Rows[i].Cells[0].Paragraphs[0].Remove(false);
+                            cel1 = tab2.Rows[i].Cells[0];
+                            cel1.SetBorder(TableCellBorderType.Left, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
+                            cel1.Paragraphs[0].Append(FileReviewers[rvwrno].userfullname);
+
+                            tab2.Rows[i].Cells[1].Paragraphs[0].Remove(false);
+                            tab2.Rows[i].Cells[1].Paragraphs[0].Append(FileReviewers[rvwrno].userjobtitle);
+
+                            tab2.Rows[i].Cells[2].Paragraphs[0].Remove(false);
+                            tab2.Rows[i].Cells[2].Paragraphs[0].Append(FileReviewers[rvwrno].signstatus);
+
+
+                            celend = tab2.Rows[i].Cells[3];
+                            celend.SetBorder(TableCellBorderType.Right, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
+
+                            celend.Paragraphs[0].Remove(false);
+                            celend.Paragraphs[0].Append(FileReviewers[rvwrno].signaturedate.ToShortDateString());
+
+
+
+                            rvwrno = rvwrno + 1;
+
+                        }
+                    }
+                    //end updating reviewers table
+
+                    // table tab3 to update approver row 
+
+
+                    var tab3 = wdoc.Tables[2];
+
+                    // Select the last row as source row.
+                    int aprvrRow = tab3.Rows.Count;
+
+                    cel1 = tab3.Rows[1].Cells[0];
+                    cel1.SetBorder(TableCellBorderType.Left, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
+
+                    cel1.Paragraphs[0].Remove(false);    //track changes false
+                    cel1.Paragraphs[0].Append(FileApprover.userfullname);
+
+                    tab3.Rows[1].Cells[1].Paragraphs[0].Remove(false);    //track changes false
+                    tab3.Rows[1].Cells[1].Paragraphs[0].Append(FileApprover.userjobtitle);
+
+                    tab3.Rows[1].Cells[2].Paragraphs[0].Remove(false);    //track changes false
+                    tab3.Rows[1].Cells[2].Paragraphs[0].Append(FileApprover.signstatus);
+
+
+                    celend = tab3.Rows[1].Cells[3];
+                    celend.SetBorder(TableCellBorderType.Right, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
+
+                    celend.Paragraphs[0].Remove(false);    //track changes false
+                    celend.Paragraphs[0].Append(FileApprover.signaturedate.ToShortDateString());
+
+
+
+                    //start now add/update of revision history table
+
+                    int totrh = 0;
+
+                    if (FileRevisions != null)
+                        totrh = FileRevisions.Count();
+
+                    if (totrh > 0)
+                    {
+
+                        //first remove existing rows except header row
+
+                        int revtabindx = totalTables - 1;
+
+                        var tabrh = wdoc.Tables[revtabindx];
+
+                        int tabrhrows = tabrh.RowCount - 1;  //exclude first one title row
+
+
+                        int totdiffrh = tabrhrows - totrh;
+
+                        int startindxrh;
+
+                        //prepare revision table first so total revisions and total table rows become equal
+
+                        if (totdiffrh > 0)  //remove extar rows when reviewers are less
+                        {
+                            startindxrh = tabrh.RowCount - totdiffrh;
+
+                            int r = startindxrh;
+
+
+                            for (int i = startindxrh; i <= tabrhrows; i++)
+                            {
+                                if (r == startindxrh)
+
+                                    tabrh.Rows[i].Remove();
+                                else
+                                    tab2.Rows[i - 1].Remove();
+
+                                r = r + 1;
+                            }
+                        }
+
+                        int rowtoaddrh = Math.Abs(totdiffrh);  //get positive to loop
+
+                        if (totdiffrh < 0)  //add rows as reh hist are more than table rows
+                        {
+
+                            for (int i = 1; i <= rowtoaddrh; i++)  //how many rows to add    
+                            {
+                                tabrh.InsertRow();
+
+
+                            }
+                        }
+
+                        //if rows in table and total reviewers are same don't need to do anything
+
+                        //now add revisions to table as we have equal rows to revisions
+
+                        int totnewrowrh = tabrh.Rows.Count();  //get updated rows from table
+                        int rhno = 0;  //for start index of reviewer
+
+                        if ((totnewrowrh - 1) == totrh)
+                        {
+
+                            for (int i = 1; i <= totnewrowrh - 1; i++)   //exclude row[0] for header
+                            {
+
+
+                                cel1 = tabrh.Rows[i].Cells[0];
+                                cel1.SetBorder(TableCellBorderType.Left, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
+
+                                cel1.Paragraphs[0].Remove(false);
+                                cel1.Paragraphs[0].Append(FileRevisions[rhno].RevisionNo);
+
+                                tabrh.Rows[i].Cells[1].Paragraphs[0].Remove(false);
+                                tabrh.Rows[i].Cells[1].Paragraphs[0].Append(FileRevisions[rhno].RevisionDate.ToShortDateString());
+
+                                celend = tabrh.Rows[i].Cells[2];
+                                celend.SetBorder(TableCellBorderType.Right, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
+
+                                celend.Paragraphs[0].Remove(false);
+                                celend.Paragraphs[0].Append(FileRevisions[rhno].Description);
+
+
+                                rhno = rhno + 1;
+
+                            }
+                        }
+                        //end updating revision table
+
+
+
+                    } //end checking total revisons
+
+                    //add footer
+
+                    wdoc.AddFooters();
+
+
+                    // Get the default Footer for this document.
+                    Footer footer_default = wdoc.Footers.Odd;
+
+                    Table tabfooter = footer_default.InsertTable(1, 2);
+
+                    //tabfooter.AutoFit = AutoFit.Contents;
+
+                    tabfooter.SetBorder(TableBorderType.Bottom, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
+                    tabfooter.SetBorder(TableBorderType.Top, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
+                    tabfooter.SetBorder(TableBorderType.Left, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
+                    tabfooter.SetBorder(TableBorderType.Right, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
+                    tabfooter.SetBorder(TableBorderType.InsideH, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
+                    tabfooter.SetBorder(TableBorderType.InsideV, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
+
+                    //footer_default.Tables[0].Rows[0].MergeCells(1, 3);
+
+                    //tabfooter
+
+                    tabfooter.Rows[0].Cells[0].Paragraphs[0].Append(FileName);
+                    tabfooter.Rows[0].Cells[1].Paragraphs[0].Append("Page ").AppendPageNumber(PageNumberFormat.normal).Append(" of ").AppendPageCount(PageNumberFormat.normal);
+
+
+                    // tabfooter.SetColumnWidth(0, 100);
+
+                    tabfooter.SetWidthsPercentage(new[] { 50f, 50f }, 800);   //array is percent of each column width, 500 is total table with
+
+                    //footer_default.Tables[0].Rows[0].Cells[0].Paragraphs[0].Append(FileName);
+                    // footer_default.Tables[0].Rows[0].Cells[4].Paragraphs[0].Append("Page ").AppendPageNumber(PageNumberFormat.normal).Append(" of ").AppendPageCount(PageNumberFormat.normal);
+
+
+
+
+                    // Insert a Paragraph into the default Footer.
+
+
+                    //Paragraph p3 = footer_default.InsertParagraph();
+                    // p3.Append(FileName).Direction = Direction.LeftToRight;
+
+
+
+                    //  Paragraph p4 = footer_default..InsertParagraph();
+                    //  p4.Alignment = Alignment.right;
+
+                    //p3.Append("Page ").AppendPageNumber(PageNumberFormat.normal).Alignment=Alignment.right;
+                    //p3.Append(" Of ").AppendPageCount(PageNumberFormat.normal).Alignment=Alignment.right;
+
+
+
+
+                    wdoc.Save();
+
+                    wdoc = null;
+
+                }  //if totalTables
+
+
+
+
+
+            }
+
+            catch (Exception ex)
+            {
+                ErrorMessage = ex.Message;
+
+            }
+
+            finally
+            {
+                //app.Application.Quit();
+
 
             }
 
@@ -917,7 +1337,7 @@ namespace SOPManagement.Models
                     // Insert a new row after the last row if it is not first row to add data
 
                     int rvwrcnt = 1;
-                    foreach (Employee rvwr in Reviewers)
+                    foreach (Employee rvwr in FileReviewers)
                     {
 
                         if (selectedRow2 == 3 && rvwrcnt == 1)
