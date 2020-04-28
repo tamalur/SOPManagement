@@ -168,8 +168,8 @@ namespace SOPManagement.Controllers
 
         public ActionResult ProcessPublish()
         {
-            int id = 0;
-            int changereqid = 0;
+            int id = 0;  //file id will be provide through dashboad
+            int changereqid = 0; //change request id 
 
             if (TempData["FileID"]!=null)
                 id =Convert.ToInt32(TempData["FileID"]);
@@ -199,7 +199,7 @@ namespace SOPManagement.Controllers
 
 
 
-            if (changereqid == 0)     //no file provided
+            if (changereqid == 0)     //change request is required to publish aganist a change
             {
 
                 Session["ErrorMsg"] = "Error: Valid File ID and Cahneg Request ID is required to publish the file!";
@@ -211,15 +211,6 @@ namespace SOPManagement.Controllers
 
             Employee oEmp = new Employee();
 
-            //string loggedinuser = "";
-
-            //// var usr = System.Environment.UserName;
-
-            //loggedinuser = System.Web.HttpContext.Current.User.Identity.Name;
-
-            //loggedinuser = loggedinuser.Split('\\').Last();
-
-            //Session["UserEmail"] = loggedinuser;
 
             oEmp.useremailaddress = Utility.GetCurrentLoggedInUserEmail();
 
@@ -237,7 +228,7 @@ namespace SOPManagement.Controllers
             SOPClass oSOP = new SOPClass();
 
 
-            //assign basic info
+            //assign SOP basic info
 
             string templocaldirpath = Server.MapPath(Utility.GetTempLocalDirPath());
 
@@ -246,7 +237,7 @@ namespace SOPManagement.Controllers
             oSOP.DocumentLibName = "SOP";
             oSOP.FileChangeRqstID = changereqid;
 
-            oSOP.GetSOPInfo();  //get file path, name etc.
+            oSOP.GetSOPInfo();  //get updated reviewers, approver, owner, version, file name etc.
 
             oSOP.FileLocalPath = templocaldirpath + oSOP.FileName;
 
@@ -275,7 +266,7 @@ namespace SOPManagement.Controllers
 
             //just before publishing we need to update the coversheet with signed status of reviewers, approver
             //and owner as well as update version no, revision history etc.
-            //1. first download the file
+            
 
             //string templocaldirpath = Server.MapPath("~/Content/DocFiles/");
 
@@ -283,23 +274,25 @@ namespace SOPManagement.Controllers
             if (oSOP.FileStatuscode == 1)  //signed and ready to publish
             {
 
+                //download from sharepont online SOP lib so we can update it locally
+                
                 oSOP.DownloadFileFromSharePoint(templocaldirpath);
 
-                //2. update the file 
+                //update the cover page and rev history with xceed docx .net library
+                oSOP.UpdateCoverRevhistPageDocX(true);
 
-               // oSOP.GetFileRevisions();
 
-                oSOP.UpdateCoverRevhistPage(true);
+                //upload the updated file again to the SOP lib in sharepoint online.
+                
 
-                //3. upload again
-
-                Thread.Sleep(7000);
+               // Thread.Sleep(7000);
 
                 oSOP.FileStream = System.IO.File.ReadAllBytes(oSOP.FileLocalPath);
 
                 oSOP.UploadDocument();
 
-
+                // at last update status to approve in the so employees with given read access can access it
+                
                 if (oSOP.PublishFile())
                 {
 
@@ -400,14 +393,6 @@ namespace SOPManagement.Controllers
             }
 
 
-            //// var usr = System.Environment.UserName;
-
-            //user = System.Web.HttpContext.Current.User.Identity.Name;
-
-            //user = user.Split('\\').Last();
-
-            //Session["UserID"] = user;
-            //loggedinusereml = user + "@radiantdelivers.com";
 
             loggedinusereml = Utility.GetCurrentLoggedInUserEmail();
 
@@ -475,7 +460,7 @@ namespace SOPManagement.Controllers
 
                 oSop.FileName = sop.SOPNo + " " + sop.FileName.Trim() + ".docx";
 
-                oSop.FileTitle = sop.FileName.Trim();
+                oSop.FileTitle = sop.SOPNo + " "+sop.FileName.Trim();
 
 
                 //for new file copy from template to temp file
@@ -543,8 +528,12 @@ namespace SOPManagement.Controllers
                 oSop.Updatefreq = supdfreq;
                 oSop.Updatefrequnit = sop.Updatefrequnit;
                 oSop.Updfrequnitcode = sop.Updfrequnitcode;
-               // oSop.SOPEffectiveDate = Convert.ToDateTime(sop.SOPEffectiveDate);
+                // oSop.SOPEffectiveDate = Convert.ToDateTime(sop.SOPEffectiveDate);
 
+                Employee oFileOwner = new Employee();
+                oFileOwner.useremailaddress = sop.FileOwnerEmail;
+                oFileOwner.GetUserByEmail();
+                oSop.FileOwner = oFileOwner;
 
 
                 oSop.FileLocalPath = tmpfiledirmappath + oSop.FileName;
@@ -566,7 +555,8 @@ namespace SOPManagement.Controllers
                 oSop.SiteUrl = siteurl;
                 oSop.FileCurrVersion = "1";    //for new file version no is 1 
 
-                //    oSop.UpdateCoverRevhistPage();
+
+                //udpate coverpage with sop basic info and owner, reviewers, approver
 
                 oSop.UpdateCoverRevhistPageDocX();
 
@@ -727,7 +717,7 @@ namespace SOPManagement.Controllers
                         //now add view access info by custom users in SQL table
                         //we need this to retrieve and change in admin page
 
-                        oSop.FileReviewers = vwrItems;
+                        oSop.FileViewers = vwrItems;
                         oSop.ViewAccessType = "By Users";
                         oSop.AddViewerAccessType();
                         oSop.AddFileViewers();
@@ -839,45 +829,7 @@ namespace SOPManagement.Controllers
             return View();
         }
 
-        public ActionResult PublishFilePost(int? id)
-        {
 
-
-            return View();
-        }
-
-        //https://www.entityframeworktutorial.net/Querying-with-EDM.aspx
-
-        //public List<SOPClass> GetFolders()
-        //{
-
-        //    List<SOPClass> folderlist;
-
-        //    using (var ctx = new RadiantSOPEntities())
-        //    {
-
-        //        var folders = ctx.deptsopfiles.Select(x => new SOPClass()
-        //        {
-        //            FileID = x.FileID,
-        //            FileName = x.DeptFileName,
-        //            FilePath = x.SPFilePath,
-        //            FileLink = x.SPFileLink,
-        //            SOPNo = x.SOPNo,
-        //            FileStatuscode=x.filestatuscode
-
-        //        }).Where(s => s.FilePath == "SOP/" && s.FileStatuscode==3);
-
-
-        //        folderlist = folders.ToList();
-
-
-        //    }
-
-
-        //    return folderlist;
-
-
-        //}
 
         [HttpGet]
         public JsonResult CheckIfExists(string FileName)

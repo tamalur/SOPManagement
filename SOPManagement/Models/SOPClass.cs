@@ -927,6 +927,10 @@ namespace SOPManagement.Models
                     tab1.Rows[1].Cells[1].Paragraphs[0].Remove(false);    //track changes false
                     tab1.Rows[1].Cells[1].Paragraphs[0].Append(SOPNo);
 
+                    tab1.Rows[2].Cells[1].Paragraphs[0].Remove(false);    //track changes false
+                    tab1.Rows[2].Cells[1].Paragraphs[0].Append(DateTime.Today.ToShortDateString());  //publish today
+
+
                     tab1.Rows[1].Cells[3].Paragraphs[0].Remove(false);    //track changes false
                     tab1.Rows[1].Cells[3].Paragraphs[0].Append(FileCurrVersion);
 
@@ -1821,25 +1825,42 @@ namespace SOPManagement.Models
                 //basic sop info related to file id
                 FilePath = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SPFilePath).FirstOrDefault();
                 FileName = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.DeptFileName).FirstOrDefault();
-                FileTitle = Path.ChangeExtension(FileName, null);
                 SOPNo = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SOPNo).FirstOrDefault();
+                FileTitle = Path.ChangeExtension(FileName, null);
                 FileLink = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SPFileLink).FirstOrDefault();
                 FileCurrVersion = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.VersionNo).FirstOrDefault();
-               // ApprovalStatus = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.ApprovalStatus).FirstOrDefault();
-                AuthorName = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.CreatedBy).FirstOrDefault();
+
+                if (FileCurrVersion != null && FileCurrVersion != "")
+                {
+                    FileCurrVersion = Math.Round(Math.Ceiling(Convert.ToDecimal(FileCurrVersion))).ToString();
+
+                }
+
+                    // ApprovalStatus = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.ApprovalStatus).FirstOrDefault();
+                    AuthorName = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.CreatedBy).FirstOrDefault();
                 SOPCreateDate = Convert.ToDateTime(ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.CreateDate).FirstOrDefault());
 
                 //data related to change request
 
-                FileOwner.useremailaddress = ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.owneremail).FirstOrDefault();
-                FileOwner.GetUserByEmail();
-                FileOwner.signaturedate = Convert.ToDateTime(ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.ownersigneddate).FirstOrDefault());
-                FileOwner.signstatus= ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.ownerSignedStatus).FirstOrDefault();
+                Employee oSOPOwner = new Employee();
 
-                FileApprover.useremailaddress = ctx.vwApprvrsSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.approveremail).FirstOrDefault();
-                FileApprover.GetUserByEmail();
-                FileApprover.signaturedate = Convert.ToDateTime(ctx.vwApprvrsSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.Aprvrsigneddate).FirstOrDefault());
-                FileApprover.signstatus = ctx.vwApprvrsSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.AprvrSignedStatus).FirstOrDefault();
+                oSOPOwner.useremailaddress = ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.owneremail).FirstOrDefault();
+                oSOPOwner.GetUserByEmail();
+                oSOPOwner.signaturedate = Convert.ToDateTime(ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.ownersigneddate).FirstOrDefault());
+                oSOPOwner.signstatus= ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.ownerSignedStatus).FirstOrDefault();
+
+                FileOwner = oSOPOwner;
+
+                Employee oSOPApprover = new Employee();
+
+                oSOPApprover.useremailaddress = ctx.vwApprvrsSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.approveremail).FirstOrDefault();
+                oSOPApprover.GetUserByEmail();
+                oSOPApprover.signaturedate = Convert.ToDateTime(ctx.vwApprvrsSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.Aprvrsigneddate).FirstOrDefault());
+                oSOPApprover.signstatus = ctx.vwApprvrsSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.AprvrSignedStatus).FirstOrDefault();
+
+
+                FileApprover = oSOPApprover;
+
 
                 FileStatuscode = ctx.filechangerequestactivities.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.approvalstatuscode).FirstOrDefault();
                 
@@ -1916,7 +1937,7 @@ namespace SOPManagement.Models
 
                 //string loginname = userName;   //email address of site admin
 
-                User theUser = clientContext.Web.SiteUsers.GetByEmail(FileOwnerEmail);
+                User theUser = clientContext.Web.SiteUsers.GetByEmail(FileOwner.useremailaddress);
 
 
                 uploadFile.ListItemAllFields["Owner"] = theUser;
@@ -2411,7 +2432,23 @@ namespace SOPManagement.Models
 
             ctx.ExecuteQuery();
 
-            FileRevision[] oRVArr=new FileRevision[fvc.Count] ;
+
+            //get major versions, first count this to define array
+            int totrev = 0;
+            foreach (FileVersion fv in fvc)
+            {
+
+                decimal drevno;
+                drevno = Convert.ToDecimal(fv.VersionLabel);
+
+                if ((drevno % 1) == 0)   //only approved version will show here
+
+                {
+                    totrev = totrev + 1;
+                }
+            }
+
+            FileRevision[] oRVArr=new FileRevision[totrev] ;
 
             int i = 0;
 
@@ -2419,18 +2456,26 @@ namespace SOPManagement.Models
 
             foreach (FileVersion fv in fvc)
             {
-                oRiv = new FileRevision();
 
-                oRiv.FileID = FileID;
-                oRiv.RevisionID = fv.ID;
-                oRiv.RevisionNo = fv.VersionLabel;
-                oRiv.RevisionDate = fv.Created;
-                oRiv.Description = fv.CheckInComment;
-                oRiv.VersionUrl = fv.Url;
+                decimal drevno;
+                drevno = Convert.ToDecimal(fv.VersionLabel);
 
-                oRVArr[i] = oRiv;
+                if ((drevno % 1) == 0)   //only approved version will show here
 
-                i = i + 1;
+                {
+                    oRiv = new FileRevision();
+
+                    oRiv.FileID = FileID;
+                    oRiv.RevisionID = fv.ID;
+                    oRiv.RevisionNo = Math.Round(Convert.ToDecimal(fv.VersionLabel)).ToString();
+                    oRiv.RevisionDate = fv.Created;
+                    oRiv.Description = fv.CheckInComment;
+                    oRiv.VersionUrl = fv.Url;
+
+                    oRVArr[i] = oRiv;
+
+                    i = i + 1;
+                }
             }
 
             FileRevisions = oRVArr;
