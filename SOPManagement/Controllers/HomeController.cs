@@ -162,10 +162,6 @@ namespace SOPManagement.Controllers
 
         }
 
-        [Authorize(Roles = "TransfloWheelsAdmnUsers")]
-        //[Authorize(Roles = "TransfloARUsers")]
-        //  [RoleFilter] with form authentication in web.cofig use this custom filter to redirect to custom page. make sure you don't use any role in authorize 
-
         public ActionResult ProcessPublish()
         {
             int id = 0;  //file id will be provide through dashboad
@@ -217,13 +213,13 @@ namespace SOPManagement.Controllers
             Session["UserEmail"] = oEmp.useremailaddress;
 
 
-            if (!oEmp.AuthenticateUser("approver", id))   //only approver can publish a signed SOP
+            //if (!oEmp.AuthenticateUser("approver", id))   //only approver can publish a signed SOP
 
-            {
+            //{
 
-                Session["SOPMsg"] = "Failed to authenticate user as an approver of the file.Please contact IT!";
-                return RedirectToAction("SOPMessage");
-            }
+            //    Session["SOPMsg"] = "Failed to authenticate user as an approver of the file.Please contact IT!";
+            //    return RedirectToAction("SOPMessage");
+            //}
 
             SOPClass oSOP = new SOPClass();
 
@@ -316,6 +312,10 @@ namespace SOPManagement.Controllers
         }
 
 
+        [Authorize(Roles = "SOPADMIN")]
+        //[Authorize(Roles = "TransfloARUsers")]
+        //  [RoleFilter] with form authentication in web.cofig use this custom filter to redirect to custom page. make sure you don't use any role in authorize 
+
         [HttpGet]
         public ActionResult CreateUploadSOP()
         {
@@ -325,7 +325,7 @@ namespace SOPManagement.Controllers
             //sensitive data even they get the config file
             //run this just one time to encrypt or one time to dycript
 
-          //  Utility.ProtectConfiguration();
+         //   Utility.ProtectConfiguration();
          //   Utility.UnProtectConfiguration();   //dycrip it when you need to change any data in config file
 
             // ViewBag.Title = "Upload or Create SOP";  //I assigned in cshtml file
@@ -487,12 +487,11 @@ namespace SOPManagement.Controllers
 
                 //for uploaded file copy it from posted file to temp file
 
-                oSop.FileName = Path.GetFileName(sop.UploadedFile.FileName);
+                oSop.FileName = Path.GetFileName(sop.UploadedFile.FileName);   
 
-                oSop.FileTitle = Path.ChangeExtension(oSop.FileName, null);
+                oSop.FileTitle = Path.ChangeExtension(oSop.FileName, null);    //without exctension
 
-                oSop.FileName = oSop.SOPNo + " " + oSop.FileName;
-
+     
                 if (!Directory.Exists(tmpfiledirmappath))
 
                 {

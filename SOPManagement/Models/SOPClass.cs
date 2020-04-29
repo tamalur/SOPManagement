@@ -584,6 +584,10 @@ namespace SOPManagement.Models
                     tab1.Rows[1].Cells[3].Paragraphs[0].Remove(false);    //track changes false
                     tab1.Rows[1].Cells[3].Paragraphs[0].Append(FileCurrVersion);
 
+                    tab1.Rows[2].Cells[1].Paragraphs[0].Remove(false);    //track changes false
+                    tab1.Rows[2].Cells[1].Paragraphs[0].Append("");  //reset effective for new file 
+
+
                     tab1.Rows[3].Cells[1].Paragraphs[0].Remove(false);    //track changes false
                     tab1.Rows[3].Cells[1].Paragraphs[0].Append(ownerfullname);
 
@@ -665,9 +669,16 @@ namespace SOPManagement.Models
                             tab2.Rows[i].Cells[1].Paragraphs[0].Remove(false);
                             tab2.Rows[i].Cells[1].Paragraphs[0].Append(emp.userjobtitle);
 
+                            //resent signature status
+                            tab2.Rows[i].Cells[2].Paragraphs[0].Remove(false);
+                            tab2.Rows[i].Cells[2].Paragraphs[0].Append("");
+
+
                             celend = tab2.Rows[i].Cells[3];
                             celend.SetBorder(TableCellBorderType.Right, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
 
+                            celend.Paragraphs[0].Remove(false);
+                            celend.Paragraphs[0].Append("");   //reset signature date
 
                             rvwrno = rvwrno + 1;
 
@@ -697,9 +708,14 @@ namespace SOPManagement.Models
                     tab3.Rows[1].Cells[1].Paragraphs[0].Remove(false);    //track changes false
                     tab3.Rows[1].Cells[1].Paragraphs[0].Append(approvertitle);
 
+                    tab3.Rows[1].Cells[2].Paragraphs[0].Remove(false);    //track changes false
+                    tab3.Rows[1].Cells[2].Paragraphs[0].Append("");  //reset approver signature status
+
                     celend = tab3.Rows[1].Cells[3];
                     celend.SetBorder(TableCellBorderType.Right, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
 
+                    celend.Paragraphs[0].Remove(false);
+                    celend.Paragraphs[0].Append("");  //reset signature date
 
                     //start now add/update of revision history table
 
@@ -779,7 +795,7 @@ namespace SOPManagement.Models
                                 cel1.Paragraphs[0].Append(FileRevisions[rhno].RevisionNo);
 
                                 tabrh.Rows[i].Cells[1].Paragraphs[0].Remove(false);
-                                tabrh.Rows[i].Cells[1].Paragraphs[0].Append(FileRevisions[rhno].RevisionDate.ToShortDateString());
+                                tabrh.Rows[i].Cells[1].Paragraphs[0].Append(FileRevisions[rhno].RevisionDate.ToString("MMMM dd, yyyy"));
 
                                 celend = tabrh.Rows[i].Cells[2];
                                 celend.SetBorder(TableCellBorderType.Right, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
@@ -817,13 +833,13 @@ namespace SOPManagement.Models
 
                     //tabfooter
 
-                    tabfooter.Rows[0].Cells[0].Paragraphs[0].Append(FileName);
+                    tabfooter.Rows[0].Cells[0].Paragraphs[0].Append(FileTitle);
                     tabfooter.Rows[0].Cells[1].Paragraphs[0].Append("Page ").AppendPageNumber(PageNumberFormat.normal).Append(" of ").AppendPageCount(PageNumberFormat.normal);
 
 
                    // tabfooter.SetColumnWidth(0, 100);
 
-                    tabfooter.SetWidthsPercentage(new[] { 50f, 50f }, 800);   //array is percent of each column width, 500 is total table with
+                    tabfooter.SetWidthsPercentage(new[] { 50f, 50f }, 800);   //array is percent of each column width, 800 is total table with
 
                     //footer_default.Tables[0].Rows[0].Cells[0].Paragraphs[0].Append(FileName);
                     // footer_default.Tables[0].Rows[0].Cells[4].Paragraphs[0].Append("Page ").AppendPageNumber(PageNumberFormat.normal).Append(" of ").AppendPageCount(PageNumberFormat.normal);
@@ -928,7 +944,7 @@ namespace SOPManagement.Models
                     tab1.Rows[1].Cells[1].Paragraphs[0].Append(SOPNo);
 
                     tab1.Rows[2].Cells[1].Paragraphs[0].Remove(false);    //track changes false
-                    tab1.Rows[2].Cells[1].Paragraphs[0].Append(DateTime.Today.ToShortDateString());  //publish today
+                    tab1.Rows[2].Cells[1].Paragraphs[0].Append(DateTime.Today.ToString("MMMM dd, yyyy"));  //publish today
 
 
                     tab1.Rows[1].Cells[3].Paragraphs[0].Remove(false);    //track changes false
@@ -1018,7 +1034,7 @@ namespace SOPManagement.Models
                             celend.SetBorder(TableCellBorderType.Right, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
 
                             celend.Paragraphs[0].Remove(false);
-                            celend.Paragraphs[0].Append(FileReviewers[rvwrno].signaturedate.ToShortDateString());
+                            celend.Paragraphs[0].Append(FileReviewers[rvwrno].signaturedate.ToString("MMMM dd, yyyy"));
 
 
 
@@ -1053,7 +1069,7 @@ namespace SOPManagement.Models
                     celend.SetBorder(TableCellBorderType.Right, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
 
                     celend.Paragraphs[0].Remove(false);    //track changes false
-                    celend.Paragraphs[0].Append(FileApprover.signaturedate.ToShortDateString());
+                    celend.Paragraphs[0].Append(FileApprover.signaturedate.ToString("MMMM dd, yyyy"));
 
 
 
@@ -1135,7 +1151,7 @@ namespace SOPManagement.Models
                                 cel1.Paragraphs[0].Append(FileRevisions[rhno].RevisionNo);
 
                                 tabrh.Rows[i].Cells[1].Paragraphs[0].Remove(false);
-                                tabrh.Rows[i].Cells[1].Paragraphs[0].Append(FileRevisions[rhno].RevisionDate.ToShortDateString());
+                                tabrh.Rows[i].Cells[1].Paragraphs[0].Append(FileRevisions[rhno].RevisionDate.ToString("MMMM dd, yyyy"));
 
                                 celend = tabrh.Rows[i].Cells[2];
                                 celend.SetBorder(TableCellBorderType.Right, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
@@ -1177,7 +1193,7 @@ namespace SOPManagement.Models
 
                     //tabfooter
 
-                    tabfooter.Rows[0].Cells[0].Paragraphs[0].Append(FileName);
+                    tabfooter.Rows[0].Cells[0].Paragraphs[0].Append(FileTitle);
                     tabfooter.Rows[0].Cells[1].Paragraphs[0].Append("Page ").AppendPageNumber(PageNumberFormat.normal).Append(" of ").AppendPageCount(PageNumberFormat.normal);
 
 
@@ -2468,7 +2484,7 @@ namespace SOPManagement.Models
                     oRiv.FileID = FileID;
                     oRiv.RevisionID = fv.ID;
                     oRiv.RevisionNo = Math.Round(Convert.ToDecimal(fv.VersionLabel)).ToString();
-                    oRiv.RevisionDate = fv.Created;
+                    oRiv.RevisionDate = fv.Created.ToLocalTime();   //utc to local time
                     oRiv.Description = fv.CheckInComment;
                     oRiv.VersionUrl = fv.Url;
 
