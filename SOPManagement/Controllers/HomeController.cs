@@ -278,7 +278,7 @@ namespace SOPManagement.Controllers
 
                 oSOP.UpdateCoverRevhistPageDocX(true);
 
-                oSOP.UpdateCoverRevhistPage(true);
+               // oSOP.UpdateCoverRevhistPage(true);     //interop com version does not work.
 
                 //upload the updated file again to the SOP lib in sharepoint online.
 
@@ -815,8 +815,8 @@ namespace SOPManagement.Controllers
 
         public ActionResult PublishFile(int? id)
         {
-            //give this url to Elhadj 
-            // http://localhost:58639/Home/PublishFile/293?chngreqid=18
+            //give this url to Elhadj to link to dashboard
+            // http://localhost:58639/Home/PublishFile/40?chngreqid=6
 
 
             string changereqid = Request.QueryString["chngreqid"];

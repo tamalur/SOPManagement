@@ -22,22 +22,19 @@
             }
 
         </div>
-
-        @*@if (Session["Dashboardlink"]!=null && Session["Dashboardlink"].ToString()!="")
-        {
-
-            <div class="col-md-12">
-                <p>
-                    <a href=@Session["Dashboardlink"].ToString() target="_blank">Click here to go back to SOP Dashboard</a>
-                </p>
-
-            </div>
+        <div class="col-md-12">
+            <p>
+                <button onclick="goBack()">Go Back</button>
+            </p>
             
             <br />
-            
-        }*@
-
-
+        </div>
     </div>
 
 </div>
+
+<script>
+    function goBack() {
+        window.history.back();
+    }
+</script>
