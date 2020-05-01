@@ -16,5 +16,6 @@ namespace SOPManagement.Models
     {
         public short departmentcode { get; set; }
         public string departmentname { get; set; }
+        public Nullable<short> sopdeptcode { get; set; }
     }
 }

@@ -209,6 +209,9 @@
     <Compile Include="Models\codesfilestatu.cs">
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\codesSOPDepartment.cs">
+      <DependentUpon>SOPEDM.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\codesUnit.cs">
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
@@ -316,7 +319,7 @@
     <Content Include="Content\fontawesome.min.css" />
     <Content Include="Content\Images\RadiantLogo.jpg" />
     <Content Include="Content\Images\soploading.gif" />
-    <Content Include="Content\LogFile\ProcessLog.txt" />
+    <Content Include="Content\LogFile\SOPProcessLog.txt" />
     <Content Include="Content\regular.css" />
     <Content Include="Content\regular.min.css" />
     <Content Include="Content\solid.css" />
@@ -453,6 +456,8 @@
           <DevelopmentServerPort>58639</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
           <IISUrl>http://localhost:58639/</IISUrl>
+          <OverrideIISAppRootUrl>True</OverrideIISAppRootUrl>
+          <IISAppRootUrl>http://localhost:58639/</IISAppRootUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>

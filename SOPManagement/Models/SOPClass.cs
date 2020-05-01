@@ -518,30 +518,20 @@ namespace SOPManagement.Models
         {
 
 
-            //  string newfilename = SOPNo + " " + SOPFileTitle;
-
-
-            //string savePath = HttpContext.Current.Server.MapPath("~/Content/docfiles/" + FileName);
 
             string tmpfiledirnm = Utility.GetTempLocalDirPath();
-
-            //string savePath = HttpContext.Current.Server.MapPath("~/Content/docfiles/" + FileName);
 
             string savePath = HttpContext.Current.Server.MapPath(tmpfiledirnm + FileName);
 
             object path = savePath;
 
-            
+           
 
             try
             {
 
 
-                //  Microsoft.Office.Interop.Word.Document wdoc = app.Documents.Open(ref path, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj);
-
                 var wdoc = DocX.Load(savePath);
-
-
 
                 //  add row in table and data in cell
 
@@ -1228,6 +1218,8 @@ namespace SOPManagement.Models
 
                     wdoc = null;
 
+                    
+
                 }  //if totalTables
 
 
@@ -1239,6 +1231,7 @@ namespace SOPManagement.Models
             catch (Exception ex)
             {
                 ErrorMessage = ex.Message;
+
 
             }
 
@@ -1258,10 +1251,11 @@ namespace SOPManagement.Models
         {
 
 
-            //  string newfilename = SOPNo + " " + SOPFileTitle;
 
+            Logger oLogger = new Logger();
 
-            //string savePath = HttpContext.Current.Server.MapPath("~/Content/docfiles/" + FileName);
+            oLogger.LogFileName = HttpContext.Current.Server.MapPath(Utility.GetLogFilePath());
+
 
             string tmpfiledirnm = Utility.GetTempLocalDirPath();
 
@@ -1320,7 +1314,7 @@ namespace SOPManagement.Models
                     tab1.Rows[1].Cells[2].Range.Text = FileTitle;
                     tab1.Rows[2].Cells[2].Range.Text = SOPNo;
                     tab1.Rows[2].Cells[4].Range.Text = FileCurrVersion;
-                    //tab1.Rows[3].Cells[2].Range.Text = SOPEffectiveDate.ToShortDateString();   //for new file it will be updated during publishing
+                    tab1.Rows[3].Cells[2].Range.Text = "";   //for new file it will be updated during publishing
                     tab1.Rows[4].Cells[2].Range.Text = ownerfullname;
 
 
@@ -1332,16 +1326,16 @@ namespace SOPManagement.Models
                     // Select the last row as source row.
                     int selectedRow2 = tab2.Rows.Count;
 
-                    //keep only 3 rows if there are more than 3 rows in table
+                    //keep only 2 rows if there are more than 2 rows in table
                     //int rvrrowcount = Reviewers.Count();
 
                     int rowstodel;
-                    if (selectedRow2 > 3)
+                    if (selectedRow2 > 2)
                     {
-                        rowstodel = selectedRow2 - 3;
+                        rowstodel = selectedRow2 - 2;
                         for (int i = 1; i <= rowstodel; i++)
                         {
-                            tab2.Rows[4].Delete();
+                            tab2.Rows[3].Delete();
 
                         }
                         selectedRow2 = tab2.Rows.Count;
@@ -1360,7 +1354,7 @@ namespace SOPManagement.Models
                     foreach (Employee rvwr in FileReviewers)
                     {
 
-                        if (selectedRow2 == 3 && rvwrcnt == 1)
+                        if (selectedRow2 == 2 && rvwrcnt == 1)
                         {
 
                             //if (tab2.Rows[tab2.Rows.Count].Cells[1].Range.Text == "" || tab2.Rows[tab2.Rows.Count].Cells[1].Range.Text == "\r\a")
@@ -1388,7 +1382,8 @@ namespace SOPManagement.Models
 
                         tab2.Rows[tab2.Rows.Count].Cells[1].Range.Text = rvwr.userfullname;
                         tab2.Rows[tab2.Rows.Count].Cells[2].Range.Text = emp.userjobtitle;
-                        //tab2.Rows[tab2.Rows.Count].Cells[3].Range.Text = "cell 3";
+                        tab2.Rows[tab2.Rows.Count].Cells[3].Range.Text = "";
+                        tab2.Rows[tab2.Rows.Count].Cells[4].Range.Text = "";
 
                         rvwrcnt = rvwrcnt + 1;
 
@@ -1405,8 +1400,10 @@ namespace SOPManagement.Models
                     Microsoft.Office.Interop.Word.Range range3 = tab3.Range;
 
                     // Write new vaules to each cell of row 3. One row always as there will be one approver
-                    tab3.Rows[3].Cells[1].Range.Text = approverfullname;
-                    tab3.Rows[3].Cells[2].Range.Text = approvertitle;
+                    tab3.Rows[2].Cells[1].Range.Text = approverfullname;
+                    tab3.Rows[2].Cells[2].Range.Text = approvertitle;
+                    tab3.Rows[2].Cells[3].Range.Text = "";  //reset approver signature
+                    tab3.Rows[2].Cells[4].Range.Text = "";  //reset signdate
 
                     //end updating 3rd table for approver
 
@@ -1419,23 +1416,25 @@ namespace SOPManagement.Models
                     int selectedRow = tab.Rows.Count;
 
 
+                    //we don't need revision history for new upload
+
                     //delete rows if the table has more than three rows 
 
-                    if (selectedRow > 2)
-                    {
-                        rowstodel = selectedRow - 2;
-                        for (int i = 1; i <= rowstodel; i++)
-                        {
-                            tab.Rows[3].Delete();
+                    //if (selectedRow > 2)
+                    //{
+                    //    rowstodel = selectedRow - 2;
+                    //    for (int i = 1; i <= rowstodel; i++)
+                    //    {
+                    //        tab.Rows[3].Delete();
 
-                        }
-                        selectedRow = tab.Rows.Count;
-                    }
+                    //    }
+                    //    selectedRow = tab.Rows.Count;
+                    //}
 
-                    // Select and copy content of the source row.
-                    range.Start = tab.Rows[selectedRow].Cells[1].Range.Start;
-                    range.End = tab.Rows[selectedRow].Cells[tab.Rows[selectedRow].Cells.Count].Range.End;
-                    range.Copy();
+                    //// Select and copy content of the source row.
+                    //range.Start = tab.Rows[selectedRow].Cells[1].Range.Start;
+                    //range.End = tab.Rows[selectedRow].Cells[tab.Rows[selectedRow].Cells.Count].Range.End;
+                    //range.Copy();
 
 
                     //donotaddrow = false;
@@ -1484,12 +1483,11 @@ namespace SOPManagement.Models
 
                     footerRange.Tables[1].Cell(1, 1).Range.Text = FileTitle;
 
-
-
                 }
-
+                
                 wdoc.SaveAs2(savePath);   //save in actual file from tempalte
 
+                oLogger.UpdateLogFile(DateTime.Today.ToString("MM/dd/yyyy HH:mm:ss") + ":Successfully updated cover page");
 
             }
 
@@ -1497,17 +1495,16 @@ namespace SOPManagement.Models
             {
                 ErrorMessage = ex.Message;
 
+                oLogger.UpdateLogFile(DateTime.Today.ToString("MM/dd/yyyy HH:mm:ss") + ":UpdateCoverRevhistPage:Error:" + ex.Message);
+
             }
 
             finally
             {
                 app.Application.Quit();
+                oLogger.UpdateLogFile(DateTime.Today.ToString("MM/dd/yyyy HH:mm:ss") + ":UpdateCoverRevhistPage:Application was closed successfully during cover page update:");
 
             }
-
-
-
-
 
         }
 
@@ -1515,14 +1512,11 @@ namespace SOPManagement.Models
         {
 
 
+            Logger oLogger = new Logger();
+            oLogger.LogFileName = HttpContext.Current.Server.MapPath(Utility.GetLogFilePath());
 
             string tmpfiledirnm = Utility.GetTempLocalDirPath();
-
-            //string savePath = HttpContext.Current.Server.MapPath("~/Content/docfiles/" + FileName);
-
             string savePath = HttpContext.Current.Server.MapPath(tmpfiledirnm + FileName);
-
-            //string savePath = HttpContext.Current.Server.MapPath("~/Content/docfiles/" + FileName);
 
             object missObj = System.Reflection.Missing.Value;
             object path = savePath;
@@ -1532,40 +1526,7 @@ namespace SOPManagement.Models
             {
 
 
-                //  System.IO.File.Copy(HttpContext.Current.Server.MapPath("~/Content/docfiles/SOPTemp.docx"), HttpContext.Current.Server.MapPath("~/Content/docfiles/" + FileName), true);
-
                 Microsoft.Office.Interop.Word.Document wdoc = app.Documents.Open(ref path, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj);
-
-
-                //  add row in table and data in cell
-
-                // Employee emp = new Employee();
-
-                string ownerfullname;
-                string ownertitle;
-                string ownrsigstatus;
-                DateTime ownrsigndate;
-
-
-                string approverfullname;
-                string approvertitle;
-                string approversignstat;
-                DateTime apprvsigndate;
-
-
-                using (var ctx = new RadiantSOPEntities())
-                {
-                    approverfullname = ctx.vwApprvrsSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.approvername).FirstOrDefault();
-                    approvertitle = ctx.vwApprvrsSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.approvertitle).FirstOrDefault();
-                    approversignstat= ctx.vwApprvrsSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.AprvrSignedStatus).FirstOrDefault();
-                    apprvsigndate= Convert.ToDateTime(ctx.vwApprvrsSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.Aprvrsigneddate).FirstOrDefault());
-
-                    ownerfullname = ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.ownerrname).FirstOrDefault();
-                    ownertitle = ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.ownertitle).FirstOrDefault();
-                    ownrsigstatus= ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.ownerSignedStatus).FirstOrDefault();
-                    ownrsigndate= Convert.ToDateTime(ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.ownersigneddate).FirstOrDefault());
-
-                }
 
 
                 int totalTables = wdoc.Tables.Count;
@@ -1585,28 +1546,13 @@ namespace SOPManagement.Models
 
                     // Select the last row as source row.
                     int selectedRow1 = tab1.Rows.Count;
-                    int filecurversion=1;
-                    //if FileCurrVersion
-
-                     decimal fd=0 ;
-                    
-                    bool result = decimal.TryParse(FileCurrVersion, out fd); //i now = 108  
-
-                    if (result)
-                    {
-                        filecurversion = Convert.ToInt16(Math.Ceiling(fd));
-                    }
-
-        
 
                     // Write new vaules to each cell.
                     tab1.Rows[1].Cells[2].Range.Text = FileTitle;
                     tab1.Rows[2].Cells[2].Range.Text = SOPNo;
-                    tab1.Rows[2].Cells[4].Range.Text = filecurversion.ToString();
-                    tab1.Rows[3].Cells[2].Range.Text = DateTime.Today.ToShortDateString(); //current bcs it will publish now
-                    //SOPEffectiveDate.ToShortDateString();
-                    tab1.Rows[4].Cells[2].Range.Text = ownerfullname;
-
+                    tab1.Rows[2].Cells[4].Range.Text = FileCurrVersion;
+                    tab1.Rows[3].Cells[2].Range.Text = DateTime.Today.ToString("MMMM dd, yyyy"); //current bcs it will publish now
+                    tab1.Rows[4].Cells[2].Range.Text =FileOwner.userfullname;
 
                     //update 2nd table in  cover page for updating reviewers
 
@@ -1616,22 +1562,19 @@ namespace SOPManagement.Models
                     // Select the last row as source row.
                     int selectedRow2 = tab2.Rows.Count;
 
-                    //keep only 3 rows if there are more than 3 rows in table
-                    //int rvrrowcount = Reviewers.Count();
+                    //keep only 2 rows if there are more than 2 rows in table
 
                     int rowstodel;
-                    if (selectedRow2 > 3)
+                    if (selectedRow2 > 2)
                     {
-                        rowstodel = selectedRow2 - 3;
+                        rowstodel = selectedRow2 - 2;
                         for (int i = 1; i <= rowstodel; i++)
                         {
-                            tab2.Rows[4].Delete();
+                            tab2.Rows[3].Delete();
 
                         }
                         selectedRow2 = tab2.Rows.Count;
                     }
-
-
 
                     // Select and copy content of the source row.
                     range2.Start = tab2.Rows[selectedRow2].Cells[1].Range.Start;
@@ -1640,7 +1583,6 @@ namespace SOPManagement.Models
 
                     // Insert a new row after the last row if it is not first row to add data
 
-
                     //Get reviewers with signatures of this file and request
 
                     int rvwrcnt = 1;
@@ -1648,18 +1590,14 @@ namespace SOPManagement.Models
                     using (var ctx = new RadiantSOPEntities())
                     {
 
-                       // var rvrwrs = ctx.vwRvwrsSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d);
-
                         var rvrwrs =(from c in ctx.vwRvwrsSignatures where c.fileid == FileID && c.changerequestid==FileChangeRqstID select c);
 
                         foreach (var r in rvrwrs)
                         {
-                            // Console.WriteLine(r.reviewername);
 
-                            if (selectedRow2 == 3 && rvwrcnt == 1)
+                            if (selectedRow2 == 2 && rvwrcnt == 1)
                             {
 
-                                //if (tab2.Rows[tab2.Rows.Count].Cells[1].Range.Text == "" || tab2.Rows[tab2.Rows.Count].Cells[1].Range.Text == "\r\a")
                                 donotaddrow = true;
 
                             }
@@ -1679,12 +1617,10 @@ namespace SOPManagement.Models
 
                             // Write new vaules to each cell.
 
-
                             tab2.Rows[tab2.Rows.Count].Cells[1].Range.Text = r.reviewername;
                             tab2.Rows[tab2.Rows.Count].Cells[2].Range.Text = r.reviewertitle;
                             tab2.Rows[tab2.Rows.Count].Cells[3].Range.Text = r.SignedStatus;
-                            if (Convert.ToDateTime(r.signeddate).Year>70)
-                                tab2.Rows[tab2.Rows.Count].Cells[4].Range.Text = Convert.ToDateTime(r.signeddate).ToShortDateString();
+                            tab2.Rows[tab2.Rows.Count].Cells[4].Range.Text = Convert.ToDateTime(r.signeddate).ToString("MMMM dd, yyyy");
 
                             rvwrcnt = rvwrcnt + 1;
 
@@ -1692,32 +1628,17 @@ namespace SOPManagement.Models
                         }
                     }
 
-
-
-                    //foreach (Employee rvwr in Reviewers)
-                    //{
-
-
-                    //}
-
                     //end updating 2nd reviewers table
 
                     //update 3rd table for approver
 
-                    //update 1st table in cover page, file title, SOP #, Rev #, Eff date, owner
-
                     Microsoft.Office.Interop.Word.Table tab3 = wdoc.Tables[3];
                     Microsoft.Office.Interop.Word.Range range3 = tab3.Range;
 
-                    // Write new vaules to each cell of row 3. One row always as there will be one approver
-
-
-                    tab3.Rows[3].Cells[1].Range.Text = approverfullname;
-                    tab3.Rows[3].Cells[2].Range.Text = approvertitle;
-                    tab3.Rows[3].Cells[3].Range.Text = approversignstat;
-
-                    if (Convert.ToDateTime(apprvsigndate).Year > 70)
-                        tab3.Rows[3].Cells[4].Range.Text = apprvsigndate.ToShortDateString();
+                    tab3.Rows[2].Cells[1].Range.Text = FileApprover.userfullname;
+                    tab3.Rows[2].Cells[2].Range.Text =FileApprover.userjobtitle;
+                    tab3.Rows[2].Cells[3].Range.Text = FileApprover.signstatus;
+                    tab3.Rows[2].Cells[4].Range.Text = FileApprover.signaturedate.ToString("MMMM dd, yyyy");
 
 
                     //end updating 3rd table for approver
@@ -1782,8 +1703,8 @@ namespace SOPManagement.Models
 
 
                             // Write new vaules to each cell.
-                            tab.Rows[tab.Rows.Count].Cells[1].Range.Text = Math.Round(Convert.ToDecimal(rev.RevisionNo)).ToString();
-                            tab.Rows[tab.Rows.Count].Cells[2].Range.Text = rev.RevisionDate.ToString("M/d/yyyy");
+                            tab.Rows[tab.Rows.Count].Cells[1].Range.Text = rev.RevisionNo;
+                            tab.Rows[tab.Rows.Count].Cells[2].Range.Text = rev.RevisionDate.ToString("MMMM dd, yyyy");
                             tab.Rows[tab.Rows.Count].Cells[3].Range.Text = rev.Description;
 
                             filevercount = filevercount + 1;
@@ -1804,11 +1725,11 @@ namespace SOPManagement.Models
 
                     footerRange.Tables[1].Cell(1, 1).Range.Text = FileTitle;
 
-
-
                 }
 
                 wdoc.SaveAs2(savePath);   //save in actual file from tempalte
+
+                oLogger.UpdateLogFile(DateTime.Today.ToString("MM/dd/yyyy HH:mm:ss") + ":UpdateCoverRevhistPage(publish true):Interop successfuly saved doc file");
 
 
             }
@@ -1816,12 +1737,14 @@ namespace SOPManagement.Models
             catch (Exception ex)
             {
                 ErrorMessage = ex.Message;
+                oLogger.UpdateLogFile(DateTime.Today.ToString("MM/dd/yyyy HH:mm:ss") + ":UpdateCoverRevhistPage(publish true):Error:" + ex.Message);
 
             }
 
             finally
             {
                 app.Application.Quit();
+                oLogger.UpdateLogFile(DateTime.Today.ToString("MM/dd/yyyy HH:mm:ss") + ":UpdateCoverRevhistPage(publish true):Interop closed word application successfully");
 
             }
 

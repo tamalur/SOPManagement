@@ -1,0 +1,14 @@
+12:00 AM:Successfully updated cover page
+12:00 AM:UpdateCoverRevhistPage:Application was closed successfully during cover page update:
+04/29/2020 00:00:00:Successfully updated cover page
+04/29/2020 00:00:00:UpdateCoverRevhistPage:Application was closed successfully during cover page update:
+04/30/2020 00:00:00:Successfully updated cover page
+04/30/2020 00:00:00:UpdateCoverRevhistPage:Application was closed successfully during cover page update:
+04/30/2020 00:00:00:Successfully updated cover page
+04/30/2020 00:00:00:UpdateCoverRevhistPage:Application was closed successfully during cover page update:
+04/30/2020 00:00:00:UpdateCoverRevhistPage(publish true):Interop successfuly saved doc file
+04/30/2020 00:00:00:UpdateCoverRevhistPage(publish true):Interop closed word application successfully
+04/30/2020 00:00:00:Successfully updated cover page
+04/30/2020 00:00:00:UpdateCoverRevhistPage:Application was closed successfully during cover page update:
+04/30/2020 00:00:00:UpdateCoverRevhistPage(publish true):Interop successfuly saved doc file
+04/30/2020 00:00:00:UpdateCoverRevhistPage(publish true):Interop closed word application successfully

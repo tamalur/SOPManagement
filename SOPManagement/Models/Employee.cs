@@ -147,7 +147,7 @@ namespace SOPManagement.Models
                 var employees = ctx.vwUsers.Select(x => new Employee()
                 {
 
-                    userid = x.userid,
+                    userid = x.userid1,
                     useremailaddress = x.useremailaddress,
                     userfullname = x.userfullname,
                     userjobtitle = x.jobtitle,
@@ -190,7 +190,7 @@ namespace SOPManagement.Models
                 var employee = ctx.vwUsers.Select(x => new Employee()
                 {
 
-                    userid = x.userid,
+                    userid = x.userid1,
                     useremailaddress = x.useremailaddress,
                     userfullname = x.userfullname,
                     userjobtitle = x.jobtitle,

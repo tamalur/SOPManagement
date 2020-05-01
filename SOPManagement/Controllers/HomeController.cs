@@ -275,13 +275,15 @@ namespace SOPManagement.Controllers
                 oSOP.DownloadFileFromSharePoint(templocaldirpath);
 
                 //update the cover page and rev history with xceed docx .net library
+
                 oSOP.UpdateCoverRevhistPageDocX(true);
 
+                oSOP.UpdateCoverRevhistPage(true);
 
                 //upload the updated file again to the SOP lib in sharepoint online.
-                
 
-               // Thread.Sleep(7000);
+
+                // Thread.Sleep(6000);
 
                 oSOP.FileStream = System.IO.File.ReadAllBytes(oSOP.FileLocalPath);
 
@@ -326,7 +328,7 @@ namespace SOPManagement.Controllers
             //run this just one time to encrypt or one time to dycript
 
          //   Utility.ProtectConfiguration();
-         //   Utility.UnProtectConfiguration();   //dycrip it when you need to change any data in config file
+       //     Utility.UnProtectConfiguration();   //dycrip it when you need to change any data in config file
 
             // ViewBag.Title = "Upload or Create SOP";  //I assigned in cshtml file
 
@@ -336,7 +338,7 @@ namespace SOPManagement.Controllers
 
             Session["employees"] = ViewBag.employees;
 
-            ViewBag.departments = (from c in ctx.codesdepartments select new { c.departmentname, c.departmentcode }).Distinct();
+            ViewBag.departments = (from c in ctx.codesSOPDepartments select new { c.sopdeptname, c.sopdeptcode }).Distinct();
 
             ViewBag.updfrequnits = (from c in ctx.codesUnits select new { c.Unitname, c.unitcode, c.UnitType }).Where(x => x.UnitType == "UpdateFrequency").Distinct();
 
@@ -559,6 +561,8 @@ namespace SOPManagement.Controllers
 
                 oSop.UpdateCoverRevhistPageDocX();
 
+               // oSop.UpdateCoverRevhistPage();
+
                 bProcessCompleted = true;
 
             }
@@ -584,7 +588,7 @@ namespace SOPManagement.Controllers
 
                 //DateTime:sop.SOPNo:start uploading file in sharepoint online SOP doc library
 
-             //   Thread.Sleep(7000);
+           //     Thread.Sleep(6000);
 
                 oSop.FolderName =sop.FolderName;
                 oSop.SubFolderName =sop.SubFolderName;

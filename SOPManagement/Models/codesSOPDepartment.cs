@@ -12,16 +12,9 @@ namespace SOPManagement.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class vwUser
+    public partial class codesSOPDepartment
     {
-        public Nullable<short> departmentcode { get; set; }
-        public string userfullname { get; set; }
-        public string useremailaddress { get; set; }
-        public string jobtitle { get; set; }
-        public string departmentname { get; set; }
-        public short subdeptcode { get; set; }
-        public int userid1 { get; set; }
-        public string windowsusername1 { get; set; }
-        public Nullable<short> userstatuscode1 { get; set; }
+        public short sopdeptcode { get; set; }
+        public string sopdeptname { get; set; }
     }
 }

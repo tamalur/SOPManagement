@@ -218,7 +218,7 @@
             @Html.Label("Read Access to a Department", htmlAttributes: new { @class = "control-label col-md-2" })
 
             <div class="col-md-10">
-                @Html.DropDownListFor(model => model.DepartmentCode, new SelectList(ViewBag.departments, "departmentcode", "departmentname"), "Select a department", new { @class = "form-control" })
+                @Html.DropDownListFor(model => model.DepartmentCode, new SelectList(ViewBag.departments, "sopdeptcode", "sopdeptname"), "Select a department", new { @class = "form-control" })
                 @Html.ValidationMessageFor(model => model.DepartmentCode, "", new { @class = "text-danger" })
             </div>
         </div>

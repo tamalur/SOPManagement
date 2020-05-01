@@ -269,6 +269,17 @@ namespace SOPManagement.Models
 
         }
 
+        public static string GetLogFilePath()
+        {
+
+            string tlocalpath = "";
+            tlocalpath = ConfigurationManager.AppSettings["logfilepathnm"];
+            //  tlocaldir = HttpContext.Current.Server.MapPath(tlocaldir);
+
+            return tlocalpath;
+
+
+        }
 
 
         public static string GetTemplateFileName()

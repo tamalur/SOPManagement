@@ -56,5 +56,7 @@ namespace SOPManagement.Models
         public string PublisherApprovalStatus { get; set; }
         public Nullable<System.DateTime> EffectiveDate { get; set; }
         public Nullable<System.DateTime> NextUpdateDate { get; set; }
+        public Nullable<int> changerequestid { get; set; }
+        public string PublishURL { get; set; }
     }
 }
