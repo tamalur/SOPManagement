@@ -1,29 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
-using Microsoft.SharePoint.Client;
-using System.Security;
-using Microsoft.SharePoint.Client.Search.Query;
-using Microsoft.Office.Interop.Word;
-using Microsoft.Office.Interop;
-using System.Reflection;
-using System.IO;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Wordprocessing;
-using ListItem = Microsoft.SharePoint.Client.ListItem;
-using Break = DocumentFormat.OpenXml.Wordprocessing.Break;
-using System.Xml.Linq;
-using System.Globalization;
-using System.Collections;
-using SOPManagement.Models;
 using Newtonsoft.Json;
-using System.Text.RegularExpressions;
-using Group = Microsoft.SharePoint.Client.Group;
-using System.Data.Entity.Infrastructure;
-using System.Data.Entity.Core.Objects;
-using System.Threading;
+using SOPManagement.Models;
 
 //this controller was developed by Tamalur from April 10 to April 22, 2020
 namespace SOPManagement.Controllers
@@ -131,6 +113,167 @@ namespace SOPManagement.Controllers
             // return View();
         }
 
+        public ActionResult SignSOP(int? id)
+        {
+
+            //http://localhost:58639/Home/SignSOP/41?chngreqid=8
+
+            string user = "";
+            string loggedinusereml = "";
+
+            Session["SOPMsg"] = "";
+
+            if (Utility.IsSessionExpired())
+            {
+
+                //ViewBag.ErrorMessage = "SOP Application: Session not Timed out";
+                Session["SOPMsg"] = "SOP Sign: Session timed out";
+                return RedirectToAction("SOPMessage");
+
+            }
+
+
+            loggedinusereml = Utility.GetCurrentLoggedInUserEmail();
+
+
+            string changereqid = Request.QueryString["chngreqid"];
+
+            //id = 42;
+           // int chngrqid = 9 ;
+            TempData["FileID"] = id;
+            TempData["ChangeIReqID"] = changereqid;
+            //TempData["ChangeIReqID"] = chngrqid;      //changereqid;
+
+            SOPSignatureModel sm = new SOPSignatureModel();
+            SOPClass oSOP = new SOPClass();
+
+            oSOP.FileID = Convert.ToInt32(id);
+            oSOP.FileChangeRqstID = Convert.ToInt32(changereqid);
+            oSOP.SiteUrl = siteurl;
+
+            oSOP.GetSOPInfo();
+
+
+            //now verify if he is signatory in any approver group with logged in email address with this file
+            //and change request id
+            //if not then redirect to unauthonticated error page otherwise get his/her sign status and date to
+            //show it in viewer
+
+            sm.LoggedInUserIsOwner = "";
+            sm.LoggedInUserIsApprover = "";
+            sm.LoggedInUserIsReviewer = "";
+            sm.LoggedInSignDate = DateTime.Today;
+
+            if (loggedinusereml.ToLower().Trim() == oSOP.FileOwner.useremailaddress.ToLower().Trim())
+            {
+                sm.LoggedInUserIsOwner = "yes";
+                if (oSOP.FileOwner.signstatus.ToLower() == "signed")
+                {
+                    sm.LoggedInSigned = true;
+                    sm.LoggedInSignDate = oSOP.FileOwner.signaturedate;
+                }
+                else
+                    sm.LoggedInSigned = false;
+            }
+
+            if (loggedinusereml.ToLower().Trim() == oSOP.FileApprover.useremailaddress.ToLower().Trim())
+            {
+                sm.LoggedInUserIsApprover = "yes";
+
+                if (oSOP.FileApprover.signstatus.ToLower() == "signed")
+                {
+                    sm.LoggedInSigned = true;
+                    sm.LoggedInSignDate = oSOP.FileApprover.signaturedate;
+                }
+                else
+                    sm.LoggedInSigned = false;
+
+
+            }
+
+            foreach (Employee rvwr in oSOP.FileReviewers)
+            {
+                if (loggedinusereml.ToLower().Trim() == rvwr.useremailaddress.ToLower().Trim())
+                {
+                    sm.LoggedInUserIsReviewer = "yes";
+
+                    if (rvwr.signstatus.ToLower() == "signed")
+                    {
+                        sm.LoggedInSigned = true;
+                        sm.LoggedInSignDate = rvwr.signaturedate;
+                    }
+                    else
+                        sm.LoggedInSigned = false;
+
+
+                    break;
+                }
+            }
+
+            //logged in user is no where in approvers so redirect him to unauthenticated error page
+            if (sm.LoggedInUserIsOwner=="" && sm.LoggedInUserIsApprover=="" && sm.LoggedInUserIsReviewer=="")
+
+            {
+               // ViewBag.ErrorMessage = "SOP Application: Session not Timed out";
+                Session["SOPMsg"] = "SOP Sign: Failed loading approval page as you are not an authenticated approver of this SOP.";
+                return RedirectToAction("SOPMessage");
+
+
+            }
+
+
+            //assign values for this signatory
+
+            sm.LoggedInUserEmail = loggedinusereml;
+            sm.SOPNo = oSOP.SOPNo;
+            sm.SOPName = oSOP.FileTitle;
+            sm.SOPUrl = oSOP.FileLink;
+            sm.SOPFilePath = oSOP.FilePath;
+
+            sm.SOPOwnerSignature= oSOP.FileOwner;
+            sm.SOPApprvrSignature = oSOP.FileApprover;
+            sm.SOPRvwerSignatures = oSOP.FileReviewers;
+          
+
+
+            //var rvrlist = db.vwRvwrsSignatures.Select(x => new { x.revieweremail, x.reviewername, x.reviewertitle, x.SignedStatus, x.signeddate });
+
+            //List<Employee> lemp = new List<Employee>();
+
+
+            //foreach (var itm in rvrlist)
+            //{
+            //    Employee emp = new Employee();
+
+            //    emp.useremailaddress = itm.revieweremail;
+            //    emp.userfullname = itm.reviewername;
+            //    emp.userjobtitle = itm.reviewertitle;
+            //    emp.signstatus = itm.SignedStatus;
+            //    emp.signaturedate = Convert.ToDateTime(itm.signeddate);
+            //    lemp.Add(emp);
+
+
+            //}
+            //sm.SOPReviewersSigns=lemp;
+
+            //lmodel.Add(lmodel);
+
+
+            return View(sm);
+        }
+
+
+        [HttpPost]
+        public ActionResult SignSOP(SOPSignatureModel sm)
+        {
+
+            string sgn;
+            if (sm.LoggedInSigned)
+                sgn = "Signed";
+
+
+            return View(sm);
+        }
 
         public ActionResult SOPDashboard()
         {
@@ -175,7 +318,7 @@ namespace SOPManagement.Controllers
             //id = ViewBag.FileID;
             //changereqid = ViewBag.ChangeIReqID;
 
-            Session["ErrorMsg"] = "";
+            Session["SOPMsg"] = "";
 
             //Session["Dashboardlink"] = "http://camis1-bioasp01/Reports/Pages/Report.aspx?ItemPath=%2fSOP+Reports%2fSOP+Dashboard";
 
@@ -187,7 +330,7 @@ namespace SOPManagement.Controllers
 
                 // ViewBag.ErrorMessage = "SOP Application: Session not Timed out";
 
-                Session["ErrorMsg"] = "SOP Application: Session not Timed out";
+                Session["SOPMsg"] = "SOP Publish:Error - Session timed out";
 
                 return RedirectToAction("SOPMessage");
 
@@ -198,7 +341,7 @@ namespace SOPManagement.Controllers
             if (changereqid == 0)     //change request is required to publish aganist a change
             {
 
-                Session["ErrorMsg"] = "Error: Valid File ID and Cahneg Request ID is required to publish the file!";
+                Session["SOPMsg"] = "SOP Publish: Error validating File ID and Change Request ID required to publish the file!";
 
                 return RedirectToAction("SOPMessage");
 
@@ -242,7 +385,7 @@ namespace SOPManagement.Controllers
 
             if (oSOP.FileStatuscode == 2)  //not signed
             {
-                Session["SOPMsg"] = "Error: SOP " + oSOP.FileName + " has not been signed by all signatories!";
+                Session["SOPMsg"] = "SOP Publish: Failed to load page as : SOP " + oSOP.FileName + " has not been signed by all signatories!";
 
                 return RedirectToAction("SOPMessage");
 
@@ -252,7 +395,7 @@ namespace SOPManagement.Controllers
 
             if (oSOP.FileStatuscode == 3)  //published 
             {
-                Session["SOPMsg"] = "Error: SOP " + oSOP.FileName + " has already been publsihed!";
+                Session["SOPMsg"] = "SOP Publish: Failed as SOP " + oSOP.FileName + " has already been publsihed!";
 
                 return RedirectToAction("SOPMessage");
 
@@ -294,7 +437,7 @@ namespace SOPManagement.Controllers
                 if (oSOP.PublishFile())
                 {
 
-                    Session["SOPMsg"] = "SOP " + oSOP.FileName + " has been successfully published!";
+                    Session["SOPMsg"] = "SOP Publish: SOP " + oSOP.FileName + " has been successfully published!";
 
                     return RedirectToAction("SOPMessage");
 
@@ -302,7 +445,7 @@ namespace SOPManagement.Controllers
 
                 else
                 {
-                    Session["SOPMsg"] = "Failed to publish SOP " + oSOP.FileName + oSOP.ErrorMessage + ".Please contact IT!";
+                    Session["SOPMsg"] = "SOP Publish: Failed to publish SOP " + oSOP.FileName + oSOP.ErrorMessage + ".Please contact IT!";
                     return RedirectToAction("SOPMessage");
                 }
 
@@ -336,7 +479,7 @@ namespace SOPManagement.Controllers
 
             ViewBag.employees = (from c in ctx.users select new { c.useremailaddress, c.userfullname, c.userstatuscode }).Where(x => x.userstatuscode == 1).Distinct();
 
-            Session["employees"] = ViewBag.employees;
+          //  Session["employees"] = ViewBag.employees;
 
             ViewBag.departments = (from c in ctx.codesSOPDepartments select new { c.sopdeptname, c.sopdeptcode }).Distinct();
 
@@ -358,6 +501,7 @@ namespace SOPManagement.Controllers
             //Utility.ProtectConfiguration();
             //Utility.UnProtectConfiguration();
 
+            //reload employee in viewbag for loading emplyees ddl 
             ViewBag.employees = (from c in ctx.users select new { c.useremailaddress, c.userfullname, c.userstatuscode, c.jobtitle }).Where(x => x.userstatuscode == 1).Distinct();
 
 
@@ -383,15 +527,15 @@ namespace SOPManagement.Controllers
             string user = "";
             string loggedinusereml = "";
 
-            Session["ErrorMsg"] = "";
+            Session["SOPMsg"] = "";
 
             if (Utility.IsSessionExpired())
              {
 
-                ViewBag.ErrorMessage = "SOP Application: Session not Timed out";
-                Session["ErrorMsg"] = "SOP Application: Session not Timed out";
-                return Json(new { redirecturl = "/Home/RedirectForErr" }, JsonRequestBehavior.AllowGet);
-
+                //ViewBag.ErrorMessage = "SOP Create/Upload: Session not Timed out";
+                Session["SOPMsg"] = "SOP Create/Upload: Error - SOP Create/Upload: Session timed out";
+                //  return Json(new { redirecturl = "/Home/RedirectForErr" }, JsonRequestBehavior.AllowGet);
+                return RedirectToAction("SOPMessage");
             }
 
 
@@ -872,7 +1016,7 @@ namespace SOPManagement.Controllers
                     FileLink = x.SPFileLink,
                     SOPNo = x.SOPNo,
                     FileStatuscode=x.filestatuscode
-                }).Where(s => s.FilePath == "SOP/" + foldername + "/" && !s.FileName.Contains(".docx") && s.FileStatuscode==3);
+                }).Where(s => s.FilePath == "SOP/" + foldername + "/" && !s.FileName.Contains(".docx") && s.FileStatuscode==3);   //valid sub folder
 
 
                 subfolderlist = subfolders.ToList();

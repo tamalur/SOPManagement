@@ -276,6 +276,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>SOPEDM.edmx</DependentUpon>
     </Compile>
+    <Compile Include="Models\SOPSignatureModel.cs" />
     <Compile Include="Models\user.cs">
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
@@ -397,7 +398,6 @@
     <Content Include="Views\Home\UploadSOPFile.cshtml" />
     <Content Include="Views\Home\UploadFile.cshtml" />
     <Content Include="Views\Shared\DisplaySubfolders.cshtml" />
-    <Content Include="Views\Home\ApproveSOP.cshtml" />
     <Content Include="Views\Home\CreateUploadSOP.cshtml" />
     <Content Include="Views\Home\SOPMessage.cshtml" />
     <Content Include="Views\Home\CreateUploadSOPAuth.cshtml" />
@@ -417,6 +417,7 @@
     <Content Include="webfonts\fa-brands-400.ttf" />
     <Content Include="webfonts\fa-brands-400.eot" />
     <Content Include="Views\Home\PublishFile.cshtml" />
+    <Content Include="Views\Home\SignSOP.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

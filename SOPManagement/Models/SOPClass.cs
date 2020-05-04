@@ -1267,6 +1267,8 @@ namespace SOPManagement.Models
             object path = savePath;
             Microsoft.Office.Interop.Word.Application app = new Microsoft.Office.Interop.Word.Application();
 
+           // Microsoft.Office.Interop.Word.ApplicationClass app = new ApplicationClass();
+
             try
             {
 

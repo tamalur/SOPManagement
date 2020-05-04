@@ -11,7 +11,7 @@
     @Html.AntiForgeryToken()
 
     <div class="form-horizontal">
-    
+
         @*<h4>Upload or Create SOP</h4>*@
         <hr />
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
@@ -76,12 +76,12 @@
         </div>
 
         @*<div class="form-group">
-            @Html.LabelFor(model => model.SOPEffectiveDate, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.SOPEffectiveDate, new { htmlAttributes = new { @class = "form-control", type = "date" } })
-                @Html.ValidationMessageFor(model => model.SOPEffectiveDate, "", new { @class = "text-danger" })
-            </div>
-        </div>*@
+                @Html.LabelFor(model => model.SOPEffectiveDate, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.SOPEffectiveDate, new { htmlAttributes = new { @class = "form-control", type = "date" } })
+                    @Html.ValidationMessageFor(model => model.SOPEffectiveDate, "", new { @class = "text-danger" })
+                </div>
+            </div>*@
 
         <div class="form-group">
             @Html.LabelFor(model => model.Updatefreq, htmlAttributes: new { @class = "control-label col-md-2" })
@@ -311,13 +311,16 @@
         </div>
 
     </div>
+
+
 }
 
 <div class="container" style="text-align:center">
-
-    <div class="col-md-12">  <button onclick="submit()" id="btnsubmit">Submit Form</button> </div>
-
+        <button onclick="submit()" id="btnsubmit">Submit Form</button>
 </div>
+
+
+
 
 
 @*<div>
@@ -764,7 +767,7 @@
             }
 
 
-            //collect reviewers and viewers from html tables in array
+            //collect reviewers and viewers from html tables in javascript array
             var reviewerarr = new Array();
             //Loop through the Table rows and build a reviewers JSON array.
 
@@ -860,7 +863,7 @@
             DisplayProgressMessage(document.getElementById('btnsubmit'), "Processing SOP");
 
 
-            var sop = new FormData();   //to send upload file bytes we need to use Formdata object
+            var sop = new FormData();   //to send uploaded file bytes we need to use javascript Formdata object
 
             sop.append("UploadedFile", fileuploaded);
             sop.append("FileName", filenamenew);
@@ -886,11 +889,11 @@
                 data: sop,
                 //contentType: "application/json; charset=utf-8",
 
-                processData: false, //do not want jQuery to automatically convert the data to a query string so I'm setting processData to false.
+                processData: false, //send through body, do not want jQuery to automatically convert the data to a query string so I'm setting processData to false.
 
-                contentType: false,
+                contentType: false,  //content type is data type sending from client. It is false for sending file stream to upload file with other form data
 
-                dataType: "json",
+                dataType: "json",     //data type that we expect from server
                 success: function (response) {  //server sends OK 200 response to the client
 
                     //alert(response.redirecturl);
@@ -906,7 +909,7 @@
 
                     }
                 },
-                failure: function (response) {
+                failure: function (response) {     //other than 200 response, when failed to send desired response
                     alert(response.responseText);
 
                 },

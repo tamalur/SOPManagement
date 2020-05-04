@@ -1,0 +1,392 @@
+﻿@model SOPManagement.Models.SOPSignatureModel
+
+@*<p>
+        @Html.ActionLink("Create New", "Create")
+    </p>*@
+
+@{
+    ViewBag.Title = "Signing off SOP Changes";
+}
+
+<style type="text/css">
+    td {
+        padding: 0 15px;
+    }
+
+    th {
+        padding: 0 15px;
+    }
+</style>
+
+
+@using (Html.BeginForm())
+{
+
+
+    <div>
+
+        @*@Model.SOPNo
+            @Model.LoggedInUserEmail
+
+            @Html.Hidden("SOPNo", Model.SOPNo)  <br /><br />*@
+
+        <p>
+            <table>
+
+                <tr>
+                    <td>
+                        @Html.DisplayNameFor(model => model.SOPName)
+                    </td>
+                    <td>
+                        @Model.SOPName
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>
+                        @Html.DisplayNameFor(model => model.SOPNo)
+                    </td>
+                    <td>
+                        @Model.SOPNo
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.DisplayNameFor(model => model.SOPUrl)
+                    </td>
+                    <td>
+                        <a href="@Model.SOPUrl" target="_blank">@Model.SOPName SOP</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.DisplayNameFor(model => model.SOPFilePath)
+                    </td>
+                    <td>
+                        @Model.SOPFilePath
+                    </td>
+                </tr>
+
+            </table>
+        </p>
+
+
+        <p>
+            <table cellspacing="5">
+                <tr>
+                    <td>
+                        <b> You are signatory of SOP as: </b>
+                    </td>
+                </tr>
+                <tr>
+
+                    @if (Model.LoggedInUserIsOwner == "yes")
+                    {
+                        <td>
+                            Owner
+                            @Html.HiddenFor(model => model.LoggedInUserIsOwner)
+                        </td>
+                    }
+
+                    @if (Model.LoggedInUserIsApprover == "yes")
+                    {
+                        <td>
+                            Approver
+                            @Html.HiddenFor(model => model.LoggedInUserIsApprover)
+                        </td>
+                    }
+
+                    @if (Model.LoggedInUserIsReviewer == "yes")
+                    {
+                        <td>
+                            Reviewer
+                            @Html.HiddenFor(model => model.LoggedInUserIsReviewer)
+                        </td>
+                    }
+
+                </tr>
+
+
+            </table>
+
+        </p>
+
+
+        <p>
+
+            <div>
+                <table>
+                    <tr>
+                        <td>
+                            SOP Owner Signature
+                            <br />
+
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <th>
+                            @Html.Label("Owner Name")
+                        </th>
+                        <th>
+                            @Html.Label("Owner Title")
+                        </th>
+                        <th>
+                            @Html.Label("Owner Signature")
+                        </th>
+
+                        <th>
+                            @Html.Label("Owner Sign Date")
+                        </th>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            @Model.SOPOwnerSignature.userfullname
+                        </td>
+
+                        <td>
+                            @Model.SOPOwnerSignature.userjobtitle
+                        </td>
+
+
+                        @if (Model.LoggedInUserIsOwner == "yes")
+                        {
+                            <td>
+                                @Html.CheckBoxFor(model => model.LoggedInSigned)
+                            </td>
+                            <td>
+                                @Model.LoggedInSignDate.ToString("MMMM dd, yyyy");
+                            </td>
+                        }
+
+                        else
+                        {
+                            <td>
+                                @Model.SOPOwnerSignature.signstatus
+                            </td>
+                            <td>
+                                @if (Model.SOPOwnerSignature.signaturedate.Year > 80)
+                                {
+                                    @Model.SOPOwnerSignature.signaturedate.ToString("MMMM dd, yyyy");
+
+                                }
+                            </td>
+                        }
+
+
+
+                    </tr>
+
+                </table>
+            </div>
+
+            <div>
+                <table>
+                    <tr>
+                        <td>
+                            <br />
+                            SOP Approver Signature
+                            <br />
+
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <th>
+                            @Html.Label("Approver Name")
+                        </th>
+                        <th>
+                            @Html.Label("Title")
+                        </th>
+                        <th>
+                            @Html.Label("Signature")
+                        </th>
+
+                        <th>
+                            @Html.Label("Sign Date")
+                        </th>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            @Model.SOPApprvrSignature.userfullname
+                        </td>
+
+                        <td>
+                            @Model.SOPApprvrSignature.userjobtitle
+                        </td>
+
+
+                        @if (Model.LoggedInUserIsApprover == "yes")
+                        {
+                            <td>
+
+                                @Html.CheckBoxFor(model => model.LoggedInSigned)
+                            </td>
+                            <td>
+                                @Model.LoggedInSignDate.ToString("MMMM dd, yyyy");
+                            </td>
+                        }
+
+                        else
+                        {
+                            <td>
+                                @Model.SOPApprvrSignature.signstatus
+                            </td>
+                            <td>
+                                @if (Model.SOPApprvrSignature.signaturedate.Year > 80)
+                                {
+                                    @Model.SOPApprvrSignature.signaturedate.ToString("MMMM dd, yyyy");
+
+                                }
+                            </td>
+                        }
+
+
+
+                    </tr>
+
+                </table>
+
+            </div>
+
+            <div>
+                <table>
+
+                    <tr>
+                        <td>
+                            <br />
+                            SOP Reviewers' Signatures
+                            <br />
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            @Html.Label("Reviewer Name")
+
+                        </th>
+                        <th>
+                            @Html.Label("Title")
+
+                        </th>
+                        <th>
+                            @Html.Label("Signature")
+
+                        </th>
+                        <th>
+                            @Html.Label("Sign Date")
+
+                        </th>
+
+
+                    </tr>
+
+                    @foreach (var rvwr in Model.SOPRvwerSignatures)
+                    {
+                        <tr>
+                            <td>
+                                @rvwr.userfullname
+                            </td>
+
+                            <td>
+                                @rvwr.userjobtitle
+                            </td>
+
+                            @if (Model.LoggedInUserIsReviewer == "yes" && Model.LoggedInUserEmail == rvwr.useremailaddress)
+                            {
+
+                                <td>
+
+                                    @Html.CheckBoxFor(model => model.LoggedInSigned)
+                                </td>
+                                <td id="rvwrsigdtid">
+                                    @if (Model.LoggedInSignDate.Year > 80)
+                                    {
+                                        @Model.LoggedInSignDate.ToString("MMMM dd, yyyy");
+                                    }
+                                </td>
+
+
+                            }
+
+                            else
+
+                            {
+                                <td>
+                                    @rvwr.signstatus
+                                </td>
+
+                                <td>
+                                    @if (rvwr.signaturedate.Year > 80)
+                                    {
+                                        @rvwr.signaturedate.ToString("MMMM dd, yyyy");
+                                    }
+                                </td>
+
+                            }
+                        </tr>
+
+                    }
+
+                </table>
+            </div>
+
+
+        </p>
+
+        <p>
+            <table>
+
+                <tr>
+                    <td>
+                        <input type="checkbox" name="sgnagrmnt" value="false" id="chksignAgrmnt" onchange="isChecked(this, 'sopsubmit')" />
+                        <label for="sgnagrmnt"> Sign Agreement </label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+
+                        <b>
+                            By checking signature column under your name, you electronically sign this SOP document<br />
+                            and by unchecking you unsign this signed SOP. After submitting you will complete your electronic
+                            signature on current date.
+                            
+                        </b>
+
+                    </td>
+
+                </tr>
+
+                <tr>
+
+                    <td>
+                        <br />
+                        <input type="submit" value="Submit" disabled="disabled" id="sopsubmit" />
+                    </td>
+                </tr>
+
+
+            </table>
+        </p>
+
+    </div>
+
+
+
+}
+
+<script>
+
+    function isChecked(checkbox, sub1) {
+        var button = document.getElementById(sub1);
+
+        if (checkbox.checked === true) {
+            button.disabled = "";
+        } else {
+            button.disabled = "disabled";
+        }
+    }
+
+</script>
