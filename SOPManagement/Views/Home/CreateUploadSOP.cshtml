@@ -898,27 +898,31 @@
 
                     //alert(response.redirecturl);
 
-                    if (response.redirecturl != null && response.redirecturl != "")
+                    if (response.redirecturl != null && response.redirecturl != "")  
                         window.location.href = response.redirecturl;
-                    else {
-                        //alert(response.responseText);
-
+                    else {  
+                        //json field with success and responseText field
+                        //alert(response.success has two values success or failure that I did not check here as I have error message in session);
+                        //alert(response.responseText)
+ 
                         @*window.location.href = '@Url.Action("SOPMessage", "Home")/' + id;*@
 
                         window.location.href = '@Url.Action("SOPMessage", "Home")';
 
                     }
                 },
-                failure: function (response) {     //other than 200 response, when failed to send desired response
-                    alert(response.responseText);
+                failure: function (response) {     // Server errors (500–599). when failed to send desired response
+                   alert("Server Response Error:"+response.responseText);
+
 
                 },
 
-                error: function (response) {
+                error: function (response) {      //Client errors (400–499) i.e. uploaded file is too big more than 20 MB permitted in web.cofig
 
                   //  window.location.href = response.redirect;
 
-                     alert(response.responseText);
+                    alert("Client Error:" + response.responseText);
+
                     //Codes other than Http Success codes(200[OK]) will trigger the function in front of error: in client side(ajax).
                 }
 

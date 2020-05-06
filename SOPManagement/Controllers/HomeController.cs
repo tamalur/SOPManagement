@@ -353,7 +353,7 @@ namespace SOPManagement.Controllers
 
             oEmp.useremailaddress = Utility.GetCurrentLoggedInUserEmail();
 
-            Session["UserEmail"] = oEmp.useremailaddress;
+           // Session["UserEmail"] = oEmp.useremailaddress;
 
 
             //if (!oEmp.AuthenticateUser("approver", id))   //only approver can publish a signed SOP
@@ -470,8 +470,8 @@ namespace SOPManagement.Controllers
             //sensitive data even they get the config file
             //run this just one time to encrypt or one time to dycript
 
-         //   Utility.ProtectConfiguration();
-       //     Utility.UnProtectConfiguration();   //dycrip it when you need to change any data in config file
+          //  Utility.ProtectConfiguration();
+           // Utility.UnProtectConfiguration();   //dycrip it when you need to change any data in config file
 
             // ViewBag.Title = "Upload or Create SOP";  //I assigned in cshtml file
 
@@ -501,459 +501,454 @@ namespace SOPManagement.Controllers
             //Utility.ProtectConfiguration();
             //Utility.UnProtectConfiguration();
 
-            //reload employee in viewbag for loading emplyees ddl 
-            ViewBag.employees = (from c in ctx.users select new { c.useremailaddress, c.userfullname, c.userstatuscode, c.jobtitle }).Where(x => x.userstatuscode == 1).Distinct();
-
-
-            //  if (!ModelState.IsValid)   //we are supposed to use ModelState but we validated data through javascript so we don't use this
-
-
-
-            //start processing uploaded or new sop file 
-
-            bool bProcessCompleted = false;
-
-            if (sop.SubFolderName.Trim() == "Please select a subfolder")
-            {
-
-                sop.SubFolderName = "";
-
-            }
-
-
-            //1. [Authorized] attribute at the top of action authorizes the user by sopadmin role in domain 
-            // then check if session is expired, if so redirect to session timeout page. 
-
-            string user = "";
-            string loggedinusereml = "";
-
-            Session["SOPMsg"] = "";
-
-            if (Utility.IsSessionExpired())
-             {
-
-                //ViewBag.ErrorMessage = "SOP Create/Upload: Session not Timed out";
-                Session["SOPMsg"] = "SOP Create/Upload: Error - SOP Create/Upload: Session timed out";
-                //  return Json(new { redirecturl = "/Home/RedirectForErr" }, JsonRequestBehavior.AllowGet);
-                return RedirectToAction("SOPMessage");
-            }
-
-
-
-            loggedinusereml = Utility.GetCurrentLoggedInUserEmail();
-
-            // we turend off this code as I am authorizing through [Authorize]
-            //check admin user access, if not admin redirect to error page
-
-
-            //bool isadmin = false;
-
-            //isadmin = emp.AuthenticateUser("admin", loggedinusereml);
-
-            //if (!isadmin)
-            //{
-
-            //    Session["ErrorMsg"] = "SOP Application: Only admin user has access to this page. You are not a admin user. Please contact SOP team for access!";
-            //    return Json(new { redirecturl = "/Home/RedirectForErr" }, JsonRequestBehavior.AllowGet);
-
-            //}
-
-            //emp = null;
-
-            //2. if the doc file is new then copy sop template with new file name
-            //or if user uploads exsiting doc file with new template is uplaoded, then copy the uploaded
-            //file into project folder
-
-            //log DateTime:sop.SOPNO: start collecting user email
-
-
-            Employee emp = new Employee();
-
-            Employee[] rvwrItems = JsonConvert.DeserializeObject<Employee[]>(sop.FilereviewersArr[0]);
-
-            Employee[] vwrItems;
 
             SOPClass oSop = new SOPClass();
-
             Employee oEmp = new Employee();
 
-            oEmp.useremailaddress = loggedinusereml;
-
-            oEmp.GetUserByEmail();
-
-            oSop.FileChangeRqsterID = oEmp.userid;
-
-            oSop.DocumentLibName = "SOP";
-            oSop.SOPNo = sop.SOPNo;
-
-            //log DateTime:sop.SOPNO: end collecting user email
-
-            ViewBag.Message = "Upload SOP File";
-
-            //   bool fileloaded = false;
-
-            //log DateTime:sop.SOPNO: start saving new or updloaded to temp project folder
-
-            //string docpath = Server.MapPath("~/Content/DocFiles/");
-
-            string tmpfiledirpathnm = Utility.GetTempLocalDirPath();
-
-            string tmpfiledirmappath = Server.MapPath(tmpfiledirpathnm);
-
-            if (sop.FileName!=null && sop.FileName.Trim() != "")
-            {
-
-
-                oSop.FileName = sop.SOPNo + " " + sop.FileName.Trim() + ".docx";
-
-                oSop.FileTitle = sop.SOPNo + " "+sop.FileName.Trim();
-
-
-                //for new file copy from template to temp file
-
-                //System.IO.File.Copy(Server.MapPath("~/Content/docfiles/SOPTemplate.docx"), Server.MapPath("~/Content/docfiles/"+ oSop.FileName), true);
-
-
-                string tmpltmapfilepath = Server.MapPath(tmpfiledirpathnm + Utility.GetTemplateFileName());
-                string newmapfilepath = Server.MapPath(tmpfiledirpathnm + oSop.FileName);
-
-
-                //System.IO.File.Copy(Server.MapPath("~/Content/docfiles/SOPTemplate.docx"), Server.MapPath("~/Content/docfiles/" + oSop.FileName), true);
-
-                System.IO.File.Copy(tmpltmapfilepath, newmapfilepath, true);
-
-
-                bProcessCompleted = true;
-            }
-
-
-            else if (sop.UploadedFile != null)
+            try
 
             {
 
-                //for uploaded file copy it from posted file to temp file
+                //  if (!ModelState.IsValid)   //we are supposed to use ModelState but we validated data through javascript so we don't use this
 
-                oSop.FileName = Path.GetFileName(sop.UploadedFile.FileName);   
+                bool bProcessCompleted = true;
 
-                oSop.FileTitle = Path.ChangeExtension(oSop.FileName, null);    //without exctension
+                //reload employee in viewbag for loading emplyees ddl 
+                ViewBag.employees = (from c in ctx.users select new { c.useremailaddress, c.userfullname, c.userstatuscode, c.jobtitle }).Where(x => x.userstatuscode == 1).Distinct();
 
-     
-                if (!Directory.Exists(tmpfiledirmappath))
+                //start processing uploaded or new sop file 
+
+                if (sop.SubFolderName.Trim() == "Please select a subfolder")
+                    sop.SubFolderName = "";
+
+                //1. [Authorized] attribute at the top of action authorizes the user by sopadmin role in domain 
+                // then check if session is expired, if so redirect to session timeout page. 
+
+                string user = "";
+                string loggedinusereml = "";
+
+                Session["SOPMsg"] = "";
+
+                if (Utility.IsSessionExpired())
+                {
+
+                    Session["SOPMsg"] = "SOP Create/Upload: Error - SOP Create/Upload: Session timed out";
+
+                    bProcessCompleted = false;
+                }
+
+                loggedinusereml = Utility.GetCurrentLoggedInUserEmail();
+
+                // we turend off this code as I am authorizing through [Authorize]
+                //check admin user access, if not admin redirect to error page
+
+
+                //bool isadmin = false;
+
+                //isadmin = emp.AuthenticateUser("admin", loggedinusereml);
+
+                //if (!isadmin)
+                //{
+
+                //    Session["ErrorMsg"] = "SOP Application: Only admin user has access to this page. You are not a admin user. Please contact SOP team for access!";
+                //    return Json(new { redirecturl = "/Home/RedirectForErr" }, JsonRequestBehavior.AllowGet);
+
+                //}
+
+                //emp = null;
+
+                //2. if the doc file is new then copy sop template with new file name
+                //or if user uploads exsiting doc file with new template is uplaoded, then copy the uploaded
+                //file into project folder
+
+                //log DateTime:sop.SOPNO: start collecting user email
+
+                // Employee emp = new Employee();
+
+                //get values from view
+
+                Employee[] rvwrItems = JsonConvert.DeserializeObject<Employee[]>(sop.FilereviewersArr[0]);
+
+                Employee[] vwrItems;
+
+                oEmp.useremailaddress = loggedinusereml;
+
+                oEmp.GetUserByEmail();
+
+                oSop.FileChangeRqsterID = oEmp.userid;
+
+                oSop.DocumentLibName = "SOP";
+
+                oSop.SOPNo = sop.SOPNo;
+                //oSop.SOPNo = "IT-02";
+
+                //check duplicate SOP NO in DB table [deptsopfiles]
+                //it could be happened if in same directory last file was uploaded in 
+                //sharepoint online but data was not updated in DB through ms flow
+                //for delayed or broken process between SP and DB
+                //in this situation send error message that Last file upload is not 
+                //completed successfuly, please refresh Dashboard and check last file 
+                //was uploaed with this SOP NO 
+
+                if (oSop.HasDuplicateSOPNOInDB())
 
                 {
 
-                    Directory.CreateDirectory(tmpfiledirmappath);
+
+                    Session["SOPMsg"] = "SOP Create/Upload: Error - " + oSop.SOPNo + " is duplicated. Last SOP processing has not been completed yet." +
+                       " Please go to dashboard, refresh and check the same SOP No is in dash board with last file upload. If you still get this error " +
+                       " please contact IT";
+
+
+                    bProcessCompleted = false;
 
                 }
 
-                //  sop.UploadedFile.SaveAs(docpath + "SOPTemp.docx");
-
-                sop.UploadedFile.SaveAs(tmpfiledirmappath + oSop.FileName);
-
-                bProcessCompleted = true;
-
- 
-            }
-
-            //end step 2 saving new file or uploaded file in projetc folder
-
-
-            //3. Update cover sheet and revision history with file name, SOP No, reviewers, owner etc.
-            if (bProcessCompleted)
-            {
-                //DateTime:sop.SOPNo:file was saved in project temp folder successfully
-
-                //DateTime:sop.SOPNo:start updating covert sheet and rev history successfully
-
-                short supdfreq = Convert.ToInt16(sop.Updatefreq);
-
-                oSop.FileApproverEmail = sop.FileApproverEmail;
-                oSop.FileOwnerEmail =sop.FileOwnerEmail;
-                oSop.FileReviewers = rvwrItems; 
-                oSop.Updatefreq = supdfreq;
-                oSop.Updatefrequnit = sop.Updatefrequnit;
-                oSop.Updfrequnitcode = sop.Updfrequnitcode;
-                // oSop.SOPEffectiveDate = Convert.ToDateTime(sop.SOPEffectiveDate);
-
-                Employee oFileOwner = new Employee();
-                oFileOwner.useremailaddress = sop.FileOwnerEmail;
-                oFileOwner.GetUserByEmail();
-                oSop.FileOwner = oFileOwner;
-
-
-                oSop.FileLocalPath = tmpfiledirmappath + oSop.FileName;
-
-                //we don't have any revision history for new or first time uploaded file
-                //FileRevision[] oRevarr = new FileRevision[1];
-
-                //FileRevision rev1 = new FileRevision();
-
-                //rev1.RevisionNo = "";
-                //rev1.RevisionDate = DateTime.Now;
-                //rev1.Description = "";
-
-                //oRevarr[0] = rev1;
-
-                //oSop.FileRevisions = oRevarr;
-
-
-                oSop.SiteUrl = siteurl;
-                oSop.FileCurrVersion = "1";    //for new file version no is 1 
-
-
-                //udpate coverpage with sop basic info and owner, reviewers, approver
-
-                oSop.UpdateCoverRevhistPageDocX();
-
-               // oSop.UpdateCoverRevhistPage();
-
-                bProcessCompleted = true;
-
-            }
-            else    
-
-            {
-
-                bProcessCompleted = false;
-                //log it
-                //DateTime:sop.SOPNo:failed to save new or uploaded file in project temp folder
-            }
-
-            //end step 3 updating cover sheet
-
-
-            //4. Upload the updated file into sharepoint online SOP doc libray in correct department folder
-            //and sub folder enetred by user
-
-            if (bProcessCompleted)
-            {
-                //log it
-                //DateTime:sop.SOPNo:that successfully updated coversheet and rev history
-
-                //DateTime:sop.SOPNo:start uploading file in sharepoint online SOP doc library
-
-           //     Thread.Sleep(6000);
-
-                oSop.FolderName =sop.FolderName;
-                oSop.SubFolderName =sop.SubFolderName;
-
-                if (oSop.SubFolderName == "")
-                    oSop.FilePath = "SOP/" + oSop.FolderName + "/";
-                else
-                    oSop.FilePath = "SOP/" + oSop.FolderName + "/" + oSop.SubFolderName + "/";
-
-                oSop.FileStream = System.IO.File.ReadAllBytes(oSop.FileLocalPath);
-
-                oSop.UploadDocument();
-
-                bProcessCompleted = true;
-
-            }
-
-            else
-            {
-
-                //log this failure
-                //DateTime:sop.SOPNo:that failed updating coversheet and rev history
-
-                bProcessCompleted = false;
-
-            }
-
-            // end step 4 uploading file into sharepoint online sop doc lib
-
-            //5. Update SQL server tables with all info like, change request, reviewers, approvers etc.
-
-            if (bProcessCompleted)
-            {
-
-                //log 
-                //DateTime:sop.SOPNo:successfully uploaded file in SharePoint online SOP doc lib
-
-                //DateTime:sop.SOPNo:start updating SQL tables
-                oSop.FileID = oSop.FileID;
-
-                oSop.AddChangeRequest();
-                oSop.AddFileReviewers();
-                oSop.AddFileApprover();
-                oSop.AddFileOwner();
-                oSop.AddUpdateFreq();
-
-                bProcessCompleted = true;
-            }
-
-            else
-            {
-                //log this failure
-                //DateTime:sop.SOPNo:failed uploading SOP in sharepoint online SOP doc lib
-
-
-                bProcessCompleted = false;
-            }
-            //end step 5 SQL table upate
-
-
-            //6. assign proper permission for owner with full permission, reviewers with contribute permission, 
-            //and read permission to users according to admin users entry of users for read permission i.e read 
-            //permission to all, or a departement or custom users.
-
-            if (bProcessCompleted)
-            {
-                //log 
-                //DateTime:sop.SOPNo:successfully updated SQL tables
-                //DateTime:sop.SOPNo:start assigning permission to SOP file in sharepoint 
-
-                oSop.ViewAccessType = "";
-
-                if (sop.AllUsersReadAcc)   //by default all users have read permission
+                if (bProcessCompleted)
                 {
 
-                    oSop.ViewAccessType = "All Users";
+                    //log DateTime:sop.SOPNO: end collecting user email
 
-                    oSop.AddViewerAccessType();    // add new view type in SQL table 
+                    ViewBag.Message = "Upload SOP File";
 
-                }
+                    //   bool fileloaded = false;
 
-                else    //if All users are not permitted to view then customize the read permission according to either department or custom users
-
-                {
-                    //prepare viewers array
+                    //log DateTime:sop.SOPNO: start saving new or updloaded to temp project folder
 
 
-                    if (sop.DepartmentCode>0)  //if department is selected then preference is to get employees by department code
+                    string tmpfiledirpathnm = Utility.GetTempLocalDirPath();
+
+                    string tmpfiledirmappath = Server.MapPath(tmpfiledirpathnm);
+
+
+
+                    if (sop.FileName != null && sop.FileName.Trim() != "")
                     {
 
-                        short sdeptcode = sop.DepartmentCode;
-                        oEmp.departmentcode = sdeptcode;
+
+                        oSop.FileName = sop.FileName.Trim() + ".docx";
+
+                        oSop.FileTitle = Path.ChangeExtension(oSop.FileName, null);
 
 
-                        oEmp.GetEmployeesByDeptCode();
+                        //for new file copy from template to temp file
 
-                        vwrItems = oEmp.employees;
+                        string tmpltmapfilepath = Server.MapPath(tmpfiledirpathnm + Utility.GetTemplateFileName());
+                        string newmapfilepath = Server.MapPath(tmpfiledirpathnm + oSop.FileName);
 
-                        //first remove existing permission from the file, default is Watercooler Visitors
+                        System.IO.File.Copy(tmpltmapfilepath, newmapfilepath, true);
 
-                        oSop.RemoveAllFilePermissions();
+                    }
 
-                        //give read permission to all users who are in the selected department
 
-                        oSop.AssignFilePermission("add", "read", vwrItems);
+                    else if (sop.UploadedFile != null)
 
-                        //now add view access info by department in SQL Table
-                        //we need this to retrieve and change in admin page
+                    {
 
-                        oSop.DepartmentCode = sdeptcode;
-                        oSop.ViewAccessType = "By Department";
-                        oSop.AddViewerAccessType();
+                        //for uploaded file copy it from posted file to temp file
+
+                        oSop.FileName = Path.GetFileName(sop.UploadedFile.FileName);
+
+                        oSop.FileTitle = Path.ChangeExtension(oSop.FileName, null);    //without exctension
+
+
+                        if (!Directory.Exists(tmpfiledirmappath))
+
+                        {
+
+                            Directory.CreateDirectory(tmpfiledirmappath);
+
+                        }
+
+                        sop.UploadedFile.SaveAs(tmpfiledirmappath + oSop.FileName);
 
 
                     }
 
-                    else if (sop.FileviewersArr.Count() > 0)   //get employees from custom user list
+
+                    //end step 2 saving new file or uploaded file in projetc folder
+
+
+                    //3. Update cover sheet and revision history with file name, SOP No, reviewers, owner etc.
+                    //DateTime:sop.SOPNo:file was saved in project temp folder successfully
+
+                    //DateTime:sop.SOPNo:start updating covert sheet and rev history successfully
+
+                    short supdfreq = Convert.ToInt16(sop.Updatefreq);
+
+                    oSop.FileApproverEmail = sop.FileApproverEmail;
+                    oSop.FileOwnerEmail = sop.FileOwnerEmail;
+                    oSop.FileReviewers = rvwrItems;
+                    oSop.Updatefreq = supdfreq;
+                    oSop.Updatefrequnit = sop.Updatefrequnit;
+                    oSop.Updfrequnitcode = sop.Updfrequnitcode;
+                    // oSop.SOPEffectiveDate = Convert.ToDateTime(sop.SOPEffectiveDate);
+
+                    Employee oFileOwner = new Employee();
+                    oFileOwner.useremailaddress = sop.FileOwnerEmail;
+                    oFileOwner.GetUserByEmail();
+                    oSop.FileOwner = oFileOwner;
+
+
+                    oSop.FileLocalPath = tmpfiledirmappath + oSop.FileName;
+
+                    //we don't have any revision history for new or first time uploaded file
+                    //FileRevision[] oRevarr = new FileRevision[1];
+
+                    //FileRevision rev1 = new FileRevision();
+
+                    //rev1.RevisionNo = "";
+                    //rev1.RevisionDate = DateTime.Now;
+                    //rev1.Description = "";
+
+                    //oRevarr[0] = rev1;
+
+                    //oSop.FileRevisions = oRevarr;
+
+
+                    oSop.SiteUrl = siteurl;
+                    oSop.FileCurrVersion = "1";    //for new file version no is 1 
+
+
+                    //udpate coverpage with sop basic info and owner, reviewers, approver
+
+                    oSop.UpdateCoverRevhistPageDocX();
+
+                    // oSop.UpdateCoverRevhistPage();
+
+               
+
+                    //end step 3 updating cover sheet
+
+
+                    //4. Upload the updated file into sharepoint online SOP doc libray in correct department folder
+                    //and sub folder enetred by user
+
+                    //log it
+                    //DateTime:sop.SOPNo:that successfully updated coversheet and rev history
+
+                    //DateTime:sop.SOPNo:start uploading file in sharepoint online SOP doc library
+
+                    //     Thread.Sleep(6000);
+
+                    oSop.FolderName = sop.FolderName;
+                    oSop.SubFolderName = sop.SubFolderName;
+
+                    if (oSop.SubFolderName == "")
+                        oSop.FilePath = "SOP/" + oSop.FolderName + "/";
+                    else
+                        oSop.FilePath = "SOP/" + oSop.FolderName + "/" + oSop.SubFolderName + "/";
+
+                    oSop.FileStream = System.IO.File.ReadAllBytes(oSop.FileLocalPath);
+
+                    oSop.UploadDocument();
+
+
+                    // end step 4 uploading file into sharepoint online sop doc lib
+
+                    //5. Update SQL server tables with all info like, change request, reviewers, approvers etc.
+
+                    //log 
+                    //DateTime:sop.SOPNo:successfully uploaded file in SharePoint online SOP doc lib
+
+                    //DateTime:sop.SOPNo:start updating SQL tables
+                    oSop.FileID = oSop.FileID;
+
+                    oSop.AddChangeRequest();
+                    oSop.AddFileReviewers();
+                    oSop.AddFileApprover();
+                    oSop.AddFileOwner();
+                    oSop.AddUpdateFreq();
+
+
+                    //end step 5 SQL table upate
+
+
+                    //6. assign proper permission for owner with full permission, reviewers with contribute permission, 
+                    //and read permission to users according to admin users entry of users for read permission i.e read 
+                    //permission to all, or a departement or custom users.
+
+
+                    //log 
+                    //DateTime:sop.SOPNo:successfully updated SQL tables
+                    //DateTime:sop.SOPNo:start assigning permission to SOP file in sharepoint 
+
+                    oSop.ViewAccessType = "";
+
+                    if (sop.AllUsersReadAcc)   //by default all users have read permission
                     {
-                        vwrItems = JsonConvert.DeserializeObject<Employee[]>(sop.FileviewersArr[0]);
 
-                        //first remove existing permission from the file, default is Watercooler Visitors
+                        oSop.ViewAccessType = "All Users";
 
-                        oSop.RemoveAllFilePermissions();
-
-                        //give read permission to all custom viewers
-
-                        oSop.AssignFilePermission("add", "read", vwrItems);
-
-                        //now add view access info by custom users in SQL table
-                        //we need this to retrieve and change in admin page
-
-                        oSop.FileViewers = vwrItems;
-                        oSop.ViewAccessType = "By Users";
-                        oSop.AddViewerAccessType();
-                        oSop.AddFileViewers();
-
-
+                        oSop.AddViewerAccessType();    // add new view type in SQL table 
 
                     }
 
+                    else    //if All users are not permitted to view then customize the read permission according to either department or custom users
+
+                    {
+                        //prepare viewers array
+
+
+                        if (sop.DepartmentCode > 0)  //if department is selected then preference is to get employees by department code
+                        {
+
+                            short sdeptcode = sop.DepartmentCode;
+                            oEmp.departmentcode = sdeptcode;
+
+
+                            oEmp.GetEmployeesByDeptCode();
+
+                            vwrItems = oEmp.employees;
+
+                            //first remove existing permission from the file, default is Watercooler Visitors
+
+                            oSop.RemoveAllFilePermissions();
+
+                            //give read permission to all users who are in the selected department
+
+                            // oSop.AssignFilePermission("add", "read", vwrItems);  //this one hits sp server three times in a employee loop
+
+                            oSop.AssignFilePermissionToUsers("read", "add", vwrItems);
+
+                            //now add view access info by department in SQL Table
+                            //we need this to retrieve and change in admin page
+
+                            oSop.DepartmentCode = sdeptcode;
+                            oSop.ViewAccessType = "By Department";
+                            oSop.AddViewerAccessType();
+
+
+                        }
+
+                        else if (sop.FileviewersArr.Count() > 0)   //get employees from custom user list
+                        {
+                            vwrItems = JsonConvert.DeserializeObject<Employee[]>(sop.FileviewersArr[0]);
+
+                            //first remove existing permission from the file, default is Watercooler Visitors
+
+                            oSop.RemoveAllFilePermissions();
+
+                            //give read permission to all custom viewers
+
+                            // oSop.AssignFilePermission("add", "read", vwrItems);
+
+                            oSop.AssignFilePermissionToUsers("read", "add", vwrItems);
+
+
+                            //now add view access info by custom users in SQL table
+                            //we need this to retrieve and change in admin page
+
+                            oSop.FileViewers = vwrItems;
+                            oSop.ViewAccessType = "By Users";
+                            oSop.AddViewerAccessType();
+                            oSop.AddFileViewers();
+
+
+
+                        }
+
+                    }
+
+
+                    //give contribute permission to all reviewers
+
+                    //  oSop.AssignFilePermission("add", "contribute", rvwrItems);
+
+                    oSop.AssignFilePermissionToUsers("contribute", "add", rvwrItems);
+
+                    //give edit permission to approver
+
+
+                    //  oSop.AssignFilePermission("add", "edit", sop.FileApproverEmail);
+
+                    oSop.AssignFilePermissionToUsers("edit", "add", sop.FileApproverEmail);
+
+                    //give full permission to owner
+
+                    //oSop.AssignFilePermission("add", "full control", sop.FileOwnerEmail);
+
+                    oSop.AssignFilePermissionToUsers("full control", "add", sop.FileOwnerEmail);
+
+
+                    //end step 6 assiging permission to file in sharepoint
+
+                    //7. once all above steps are successfully completed, then send success jason message to MVC view html
+
+                    //8. if it fails at any step and cannot reach upto step 6 then pinpoint the error and the step 
+                    //that caused the error and log it in the background, then do reverse engineering to roll back 
+                    //any changes if possible. If roll back is not possible then send error message to user 
+                    //with json message to the mvc view advising him/her to contact IT with keeping screen shot of the 
+                    //error message. You must log the error in the backgroud so you can trace the error to rollback 
+                    //or complete it manually.
+
+                    //if error can be rolled back then send failed jason message to MVC view
+                    //with failed/error message and advise them to try again or contact IT to resolve this if error happend
+                    //again
+
+
+                    //server sends OK 200 response to the client
+
+
+
+                    //log 
+                    //DateTime:sop.SOPNo:successfully assigend permission and completed all SOP processing
+
+                    //  Send "Success" to ajax call back in view
+
+                    Session["SOPMsg"] = "SOP Create/Upload:The SOP " + sop.FileName + " with SOP NO "+ sop.SOPNo +" has been successfully processed!";
+
+                    return Json(new { success = true, responseText = "The SOP " + sop.FileName + " has been successfully processed!" }, JsonRequestBehavior.AllowGet);
+
+                }
+                else   //processing failed due to validation i.e. duplicate SOPNO or Session time out 
+                {
+                    //log 
+                    //DateTime:sop.SOPNo:failed assigend permission and SOP processing
+
+                    //Send failed
+
+                         Session["SOPMsg"] = "SOP Create/Upload:Failed to process SOP " + sop.FileName + " , please contact IT!";
+
+                    // sop.ErrorMessage = "Failed to process SOP with error:" + sop.ErrorMessage + ". Please try again or Contact IT";
+
+                      return Json(new { success = false, responseText = "Failed processing SOP " + sop.FileName + " , please contact IT!" }, JsonRequestBehavior.AllowGet);
+
+                    
                 }
 
-
-                //give contribute permission to all reviewers
-
-                oSop.AssignFilePermission("add", "contribute", rvwrItems);
+                //if any server failutre to send requested response other than OK 200 code then ajax will raise error event
 
 
-                //give edit permission to approver
+                // return View();
+                //return Json(sop);
 
 
-                oSop.AssignFilePermission("add", "edit", sop.FileApproverEmail);
 
-                //give full permission to owner
-
-                oSop.AssignFilePermission("add", "full control", sop.FileOwnerEmail);
-
-
-                bProcessCompleted = true;
 
             }
-
-            else
+            catch (Exception ex)
             {
 
-                bProcessCompleted = false;
-                //log this failure
-                //DateTime:sop.SOPNo:failed updating SQL table
-
-            }
-
-            //end step 6 assiging permission to file in sharepoint
-
-            //7. once all above steps are successfully completed, then send success jason message to MVC view html
-
-            //8. if it fails at any step and cannot reach upto step 6 then pinpoint the error and the step 
-            //that caused the error and log it in the background, then do reverse engineering to roll back 
-            //any changes if possible. If roll back is not possible then send error message to user 
-            //with json message to the mvc view advising him/her to contact IT with keeping screen shot of the 
-            //error message. You must log the error in the backgroud so you can trace the error to rollback 
-            //or complete it manually.
-
-            //if error can be rolled back then send failed jason message to MVC view
-            //with failed/error message and advise them to try again or contact IT to resolve this if error happend
-            //again
-
-
-            //server sends OK 200 response to the client
-
-            if (bProcessCompleted)  
-            {
-
-
-                //log 
-                //DateTime:sop.SOPNo:successfully assigend permission and completed all SOP processing
-
-                //  Send "Success" to ajax call back in view
-
-                Session["SOPMsg"] = "The SOP " + sop.FileName + " has been successfully processed!";
-
-                return Json(new { success = true, responseText = "The SOP " + sop.FileName + " has been successfully processed!" }, JsonRequestBehavior.AllowGet);
-
-            }
-            else
-            {
-                //log 
-                //DateTime:sop.SOPNo:failed assigend permission and SOP processing
-
-                //Send failed
-
-                Session["SOPMsg"] = "Failed processing SOP " + sop.FileName + " , please contact IT!";
-
-                // sop.ErrorMessage = "Failed to process SOP with error:" + sop.ErrorMessage + ". Please try again or Contact IT";
+                Session["SOPMsg"] = "SOP Create/Upload:Failed processing SOP "+ sop.FileName+" with error:" + ex.Message + " , please contact IT!";
                 return Json(new { success = false, responseText = "Failed processing SOP " + sop.FileName + " , please contact IT!" }, JsonRequestBehavior.AllowGet);
+
             }
 
-            //if any server failutre to send requested response other than OK 200 code then ajax will raise error event
+            finally
+            {
+                oSop = null;
+                oEmp = null;
+
+                GC.Collect();
+            }
+            
 
 
-            // return View();
-            //return Json(sop);
+
+
+
+
 
         }
 
@@ -1016,7 +1011,7 @@ namespace SOPManagement.Controllers
                     FileLink = x.SPFileLink,
                     SOPNo = x.SOPNo,
                     FileStatuscode=x.filestatuscode
-                }).Where(s => s.FilePath == "SOP/" + foldername + "/" && !s.FileName.Contains(".docx") && s.FileStatuscode==3);   //valid sub folder
+                }).Where(s => s.FilePath == "SOP/" + foldername + "/" && !s.FileName.Contains(".docx") && s.FileStatuscode==3).OrderBy(s=>s.FileName);   //valid sub folder
 
 
                 subfolderlist = subfolders.ToList();

@@ -1817,12 +1817,33 @@ namespace SOPManagement.Models
 
         }
 
+        public bool HasDuplicateSOPNOInDB()
+        {
+            bool hasdupsop = false;
+
+            string dupsop = "";
+
+            using (var dbctx = new RadiantSOPEntities())
+            {
+
+                dupsop = dbctx.deptsopfiles.Where(d => d.SOPNo.Trim().ToUpper() == SOPNo.Trim().ToUpper() && d.filestatuscode == 3).Select(d => d.SOPNo).FirstOrDefault();
+
+                if (dupsop != null && dupsop.Trim() != "")
+                    hasdupsop = true;
+            }
+
+            return hasdupsop;
+
+        }
+
         public void GetSOPNo()
         {
 
-            RadiantSOPEntities ctx = new RadiantSOPEntities();
+            using (var ctx = new RadiantSOPEntities())
+            {
 
-            SOPNo = ctx.GetLastSOPNO(FolderName, SubFolderName).FirstOrDefault().ToString();
+                SOPNo = ctx.GetLastSOPNO(FolderName, SubFolderName).FirstOrDefault().ToString();
+            }
 
 
         }
@@ -1862,21 +1883,28 @@ namespace SOPManagement.Models
                 Microsoft.SharePoint.Client.List documentsList = clientContext.Web.Lists.GetByTitle(DocumentLibName);
 
                 FileCreationInformation fileCreationInformation = new FileCreationInformation();
+
                 //Assign to content byte[] i.e. documentStream
+               // fileCreationInformation.Content = FileStream;
 
-                fileCreationInformation.Content = FileStream;
+                //fileCreationInformation.Content limits to less than 2 MB file
+                
+                //use ContentStream instead of Contentas it has no limit to file size
+                //however, recommended for: - SharePoint Server 2013. - SharePoint Online when the file is smaller than 10 MB.
+
+                fileCreationInformation.ContentStream = new MemoryStream(FileStream);
+
                 //Allow owerwrite of document
-
                 fileCreationInformation.Overwrite = true;
-                //Upload URL
 
+
+                //Upload URL
                 fileCreationInformation.Url = SiteUrl +"/"+ FilePath + FileName;
                 Microsoft.SharePoint.Client.File uploadFile = documentsList.RootFolder.Files.Add(fileCreationInformation);
 
                 //Update the metadata for a field having name "SOPNO"
                 //  string loginname = "tshaikh@radiantdelivers.com";
-
-                //string loginname = userName;   //email address of site admin
+                 //string loginname = userName;   //email address of site admin
 
                 User theUser = clientContext.Web.SiteUsers.GetByEmail(FileOwner.useremailaddress);
 
@@ -2455,6 +2483,185 @@ namespace SOPManagement.Models
                 FileReviewers = oRreviewersArr;
             }
 
+
+        }
+
+        public void AssignFilePermissionToUsers(string plabel, string addremove, Employee[] employees)
+        {
+
+            bool pdone = false;
+            ErrorMessage = "";
+
+            SecureString spassword = GetSecureString(password);
+
+            using (var ctx = new ClientContext(SiteUrl))
+            {
+
+                ctx.Credentials = new SharePointOnlineCredentials(userName, spassword);
+                ctx.Load(ctx.Web);
+
+                Web web = ctx.Web;
+
+                //The ServerRelativeUrl property returns a string in the following form, which excludes the name of
+                //    the server or root folder: / Site_Name / Subsite_Name / Folder_Name / File_Name.
+
+                ctx.Load(web, wb => wb.ServerRelativeUrl);
+                ctx.ExecuteQuery();
+
+                // string filerelurl = web.ServerRelativeUrl + "/SOP/Information Technology (IT)/" + "IT-07 OperationTestFile.docx";
+
+                string filerelurl = web.ServerRelativeUrl + "/" + FilePath.Trim() + FileName;
+
+                Microsoft.SharePoint.Client.File file = web.GetFileByServerRelativeUrl(filerelurl);
+
+                //need this valid users from sp to verify email that we get from employee list from watercooler
+                //if user is no longer in sp then it fails that we don't want
+                
+                var users = ctx.LoadQuery(ctx.Web.SiteUsers.Where(u => u.PrincipalType == Microsoft.SharePoint.Client.Utilities.PrincipalType.User && u.UserId.NameIdIssuer == "urn:federation:microsoftonline"));
+
+                ctx.ExecuteQuery();
+
+                bool emailfound;
+
+                RoleDefinitionBindingCollection rd = new RoleDefinitionBindingCollection(ctx);
+                rd.Add(ctx.Web.RoleDefinitions.GetByName(plabel));
+
+                Principal user;
+
+                if (ViewAccessType == "All Users")
+                    file.ListItemAllFields.BreakRoleInheritance(true, false);   //inherit permission for all users selection
+                else
+                    file.ListItemAllFields.BreakRoleInheritance(false, false);   //do not inherit if all users are not selected
+
+                foreach (Employee emp in employees)
+                {
+
+                    emailfound = false;
+
+                    foreach (User u in users)
+                    {
+                        if (u.Email.Trim().ToLower() == emp.useremailaddress.Trim().ToLower())
+
+                        {
+                            //userfullname = u.Title;
+                            emailfound = true;
+                            break;
+                        }
+                    }
+
+                    if (emailfound)
+                    {
+                        user = ctx.Web.EnsureUser(emp.useremailaddress);   //ensure breaks the process if user is not valid. that's why we checked valid users
+
+
+                        if (addremove == "add")
+                        {
+                            file.ListItemAllFields.RoleAssignments.Add(user, rd);
+                        }
+                        else if (addremove == "remove")
+                        {
+
+                            file.ListItemAllFields.RoleAssignments.GetByPrincipal(user).DeleteObject();
+
+                        }
+
+                        file.ListItemAllFields.Update();
+
+
+                    }
+
+
+                }  //end looping all employees
+
+                ctx.ExecuteQuery();   //update all permission in one shot. this is time saver here
+
+            } //end using site contex
+            
+        }
+
+        public void AssignFilePermissionToUsers(string plabel, string addremove, string empemail)
+        {
+
+            bool pdone = false;
+            ErrorMessage = "";
+
+            SecureString spassword = GetSecureString(password);
+
+            using (var ctx = new ClientContext(SiteUrl))
+            {
+
+                ctx.Credentials = new SharePointOnlineCredentials(userName, spassword);
+                ctx.Load(ctx.Web);
+
+                Web web = ctx.Web;
+
+                //The ServerRelativeUrl property returns a string in the following form, which excludes the name of
+                //    the server or root folder: / Site_Name / Subsite_Name / Folder_Name / File_Name.
+
+                ctx.Load(web, wb => wb.ServerRelativeUrl);
+                ctx.ExecuteQuery();
+
+                // string filerelurl = web.ServerRelativeUrl + "/SOP/Information Technology (IT)/" + "IT-07 OperationTestFile.docx";
+
+                string filerelurl = web.ServerRelativeUrl + "/" + FilePath.Trim() + FileName;
+
+                Microsoft.SharePoint.Client.File file = web.GetFileByServerRelativeUrl(filerelurl);
+
+                //need this valid users from sp to verify email that we get from employee list from watercooler
+                //if user is no longer in sp then it fails that we don't want
+
+                var users = ctx.LoadQuery(ctx.Web.SiteUsers.Where(u => u.PrincipalType == Microsoft.SharePoint.Client.Utilities.PrincipalType.User && u.UserId.NameIdIssuer == "urn:federation:microsoftonline"));
+
+                ctx.ExecuteQuery();
+
+                bool emailfound;
+
+                RoleDefinitionBindingCollection rd = new RoleDefinitionBindingCollection(ctx);
+                rd.Add(ctx.Web.RoleDefinitions.GetByName(plabel));   //get permission label, i.e. read , contribute etc.
+
+                Principal user;
+
+                if (ViewAccessType == "All Users")
+                    file.ListItemAllFields.BreakRoleInheritance(true, false);   //inherit permission for all users selection
+                else
+                    file.ListItemAllFields.BreakRoleInheritance(false, false);   //do not inherit if all users are not selected
+
+                emailfound = false;
+
+                foreach (User u in users)
+                {
+                    if (u.Email.Trim().ToLower() == empemail.Trim().ToLower())
+
+                    {
+                        //userfullname = u.Title;
+                        emailfound = true;
+                        break;
+                    }
+                }
+
+                if (emailfound)
+                {
+                    user = ctx.Web.EnsureUser(empemail.Trim());   //ensure breaks the process if user is not valid. that's why we checked valid users
+
+                    if (addremove == "add")
+                    {
+                        file.ListItemAllFields.RoleAssignments.Add(user, rd);
+                    }
+                    else if (addremove == "remove")
+                    {
+
+                        file.ListItemAllFields.RoleAssignments.GetByPrincipal(user).DeleteObject();
+
+                    }
+
+                    file.ListItemAllFields.Update();
+
+
+                }
+
+                ctx.ExecuteQuery();   //update all permission in one shot. this is time saver here
+
+            } //end using site contex
 
         }
 

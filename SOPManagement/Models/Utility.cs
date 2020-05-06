@@ -350,7 +350,7 @@ namespace SOPManagement.Models
                     SOPNo = x.SOPNo,
                     FileStatuscode = x.filestatuscode
 
-                }).Where(s => s.FilePath == "SOP/" && s.FileStatuscode == 3);
+                }).Where(s => s.FilePath == "SOP/" && s.FileStatuscode == 3).OrderBy(s=>s.FileName);
 
 
                 folderlist = folders.ToList();
