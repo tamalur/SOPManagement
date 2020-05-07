@@ -1,4 +1,8 @@
 ﻿
+@{
+    ViewBag.Title = "Publish SOP";
+}
+
 <div>
     <h3>Publishing SOP, DO NOT click any menu now, please wait...</h3>
 
@@ -9,10 +13,10 @@
 </div>
 
 <script>
- 
+
     window.onload = function () {
         //alert("window load complete");
-        window.location.href = '@Url.Action("ProcessPublish", "Home")' 
+        window.location.href = '@Url.Action("ProcessPublish", "Home")'
     }
 
 </script>

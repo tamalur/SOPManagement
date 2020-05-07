@@ -418,6 +418,8 @@
     <Content Include="webfonts\fa-brands-400.eot" />
     <Content Include="Views\Home\PublishFile.cshtml" />
     <Content Include="Views\Home\SignSOP.cshtml" />
+    <Content Include="Views\Home\CleintServerErr.cshtml" />
+    <Content Include="Views\Home\SOPChngeRequest.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -199,7 +199,7 @@ namespace SOPManagement.Models
 
         }
 
-        private void AddRvwractivities(int previewid)
+        public void AddRvwractivities(int previewid)
         {
             using (var dbcontex = new RadiantSOPEntities())
             {
@@ -215,7 +215,28 @@ namespace SOPManagement.Models
             }
         }
 
-        private void AddApproveractivities(int papproveid)
+
+        public void AddRvwractvtsWithChngRqst()
+        {
+
+            using (var dbctx = new RadiantSOPEntities())
+            {
+                var rvrwrs = (from c in dbctx.filereviewers where c.fileid == FileID select c);
+
+                foreach (var rvwr in rvrwrs)
+                {
+                    AddRvwractivities(rvwr.reviewid);
+
+                }
+
+            }
+
+
+
+        }
+
+
+        public void AddApproveractivities(int papproveid)
         {
             using (var dbcontext = new RadiantSOPEntities())
             {
@@ -231,7 +252,7 @@ namespace SOPManagement.Models
             }
         }
 
-        private void AddPublisheractivities(int ppublisherid)
+        public void AddPublisheractivities(int ppublisherid)
         {
             using (var dbcontext = new RadiantSOPEntities())
             {
@@ -248,7 +269,7 @@ namespace SOPManagement.Models
             }
         }
 
-        private void AddOwneractivities(int pownershipid)
+        public void AddOwneractivities(int pownershipid)
         {
             using (var dbcontext = new RadiantSOPEntities())
             {
@@ -868,7 +889,8 @@ namespace SOPManagement.Models
     
             catch (Exception ex)
             {
-                ErrorMessage = ex.Message;
+                // ErrorMessage = ex.Message;
+                throw ex;
 
             }
 
@@ -1756,6 +1778,18 @@ namespace SOPManagement.Models
 
         }
 
+        public short GetLastChngReqSOPStatusCode()
+        {
+            short laststatcode=0;
+
+            using (var dbctx = new RadiantSOPEntities())
+            {
+                laststatcode= Convert.ToInt16(dbctx.filechangerequestactivities.Where(f=>f.fileid==FileID).OrderByDescending(f=>f.changerequestid).Select(f => f.approvalstatuscode).FirstOrDefault());
+
+            }
+
+            return laststatcode;
+        }
 
 
         public void GetSOPInfo()
@@ -1778,7 +1812,7 @@ namespace SOPManagement.Models
                 }
 
                     // ApprovalStatus = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.ApprovalStatus).FirstOrDefault();
-                    AuthorName = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.CreatedBy).FirstOrDefault();
+                AuthorName = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.CreatedBy).FirstOrDefault();
                 SOPCreateDate = Convert.ToDateTime(ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.CreateDate).FirstOrDefault());
 
                 //data related to change request
@@ -1847,6 +1881,47 @@ namespace SOPManagement.Models
 
 
         }
+
+        public int GetOwnershipID()
+        {
+
+            int ownershipid = 0;
+            int fileownerid = 0;
+
+            using (var ctx = new RadiantSOPEntities())
+            {
+
+
+                fileownerid = ctx.fileowners.Where(o => o.fileid == FileID).Select(o => o.ownerid).FirstOrDefault();
+                ownershipid = ctx.fileowners.Where(o=>o.fileid == FileID && o.ownerid == fileownerid).Select(o=>o.ownershipid).FirstOrDefault();
+            }
+
+
+            return ownershipid;
+        }
+
+
+        public int GetApproveID()
+        {
+
+            int approveid = 0;
+            int approverid = 0;
+
+            using (var ctx = new RadiantSOPEntities())
+            {
+
+                approverid = ctx.fileapprovers.Where(a => a.fileid == FileID).Select(a => a.approverid).FirstOrDefault();
+
+                approveid = ctx.fileapprovers.Where(o => o.fileid == FileID && o.approverid == approverid).Select(o => o.approveid).FirstOrDefault();
+            }
+
+
+            return approveid;
+        }
+
+
+
+
         //this is for making password secured through channel
         private static SecureString GetSecureString(String Password)
         {
@@ -2473,6 +2548,7 @@ namespace SOPManagement.Models
                     oRvwr.userjobtitle = r.reviewertitle;
                     oRvwr.signaturedate = Convert.ToDateTime(r.signeddate);
                     oRvwr.signstatus = r.SignedStatus;
+                    oRvwr.signstatuscode = r.SignStatusCode;
 
                     oRreviewersArr[i] = oRvwr;
 

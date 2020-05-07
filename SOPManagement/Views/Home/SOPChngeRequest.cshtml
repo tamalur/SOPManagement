@@ -1,0 +1,23 @@
+﻿
+@{
+    ViewBag.Title = "Submit SOP Change Request";
+}
+
+
+<div>
+    <h3>Submitting SOP new Change Request, DO NOT click any menu now, please wait...</h3>
+
+</div>
+
+<div id="loading">
+    <img id="loading-image" src="~/Content/Images/soploading.gif" alt="Loading..." />
+</div>
+
+<script>
+
+    window.onload = function () {
+        //alert("window load complete");
+        window.location.href = '@Url.Action("ProcessChngRqst", "Home")'
+    }
+
+</script>

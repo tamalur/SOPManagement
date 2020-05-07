@@ -913,7 +913,7 @@
                 },
                 failure: function (response) {     // Server errors (500–599). when failed to send desired response
                    alert("Server Response Error:"+response.responseText);
-
+                    window.location.href = '@Url.Action("CleintServerErr", "Home")';
 
                 },
 
@@ -922,6 +922,10 @@
                   //  window.location.href = response.redirect;
 
                     alert("Client Error:" + response.responseText);
+
+                    window.location.href = '@Url.Action("CleintServerErr", "Home")';
+                  
+
 
                     //Codes other than Http Success codes(200[OK]) will trigger the function in front of error: in client side(ajax).
                 }

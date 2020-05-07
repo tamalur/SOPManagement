@@ -257,6 +257,24 @@ namespace SOPManagement.Models
         }
 
 
+        public static int GetLoggedInUserID()
+        {
+            string useremail="";
+            int userid = 0;
+
+            useremail = GetCurrentLoggedInUserEmail();
+
+
+            using (var dbctx = new RadiantSOPEntities())
+            {
+
+                userid = dbctx.users.Where(u => u.useremailaddress == useremail).Select(u => u.userid).FirstOrDefault();
+            }
+
+            return userid;
+
+        }
+
         public static string GetTempLocalDirPath()
         {
 

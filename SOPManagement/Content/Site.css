@@ -61,3 +61,23 @@ textarea {
     opacity: .5;
 }
 
+.signoffield {
+    background-color: lightgray;
+    width: 30%;
+    font-weight: bold;
+}
+
+table {
+    border-collapse: collapse;
+    width:80%;
+}
+
+td, th {
+    border: 1px solid black;
+    padding:5px;
+    text-align:left
+}
+
+th {
+    background-color: lightgray;
+}
