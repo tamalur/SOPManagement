@@ -178,7 +178,11 @@ namespace SOPManagement.Models
                     var rvwrtable = new filereviewer()
                     {
                         reviewerid = rvwrid,
-                        fileid = FileID
+                        fileid = FileID,
+                        reviewerstatuscode=1,      // 1= Current
+                        statusdate = DateTime.Today,
+                        statusbyuserid=Utility.GetLoggedInUserID()
+
 
                     };
                     dbcontext.filereviewers.Add(rvwrtable);
@@ -221,7 +225,8 @@ namespace SOPManagement.Models
 
             using (var dbctx = new RadiantSOPEntities())
             {
-                var rvrwrs = (from c in dbctx.filereviewers where c.fileid == FileID select c);
+                //only current active reviewers
+                var rvrwrs = (from c in dbctx.filereviewers where c.fileid == FileID && c.reviewerstatuscode==1 select c);
 
                 foreach (var rvwr in rvrwrs)
                 {
@@ -306,7 +311,10 @@ namespace SOPManagement.Models
                 var aprvrtable = new fileapprover()
                 {
                     approverid = apprvrid,
-                    fileid = FileID
+                    fileid = FileID,
+                    approverstatuscode = 1,   //current
+                    statusdate = DateTime.Today,
+                    statusbyuserid = Utility.GetLoggedInUserID()
 
                 };
                 dbcontext.fileapprovers.Add(aprvrtable);
@@ -431,7 +439,10 @@ namespace SOPManagement.Models
                 var ownertable = new fileowner()
                 {
                     ownerid = ownerid,
-                    fileid = FileID
+                    fileid = FileID,
+                    ownerstatuscode = 1,  //1=current
+                    statusdate = DateTime.Today,
+                    statusbyuserid = Utility.GetLoggedInUserID()
 
                 };
                 dbcontext.fileowners.Add(ownertable);
@@ -1870,6 +1881,35 @@ namespace SOPManagement.Models
 
         }
 
+        public bool AuthenticateChangeRequest()
+        {
+            bool authensop = false;
+
+            int ownerid = 0;
+            int approverid = 0;
+            int reviewerid = 0;
+            int loggedinuserid = Utility.GetLoggedInUserID();
+
+            using (var dbctx = new RadiantSOPEntities())
+            {
+                ownerid = dbctx.fileowners.Where(o => o.ownerid == loggedinuserid && o.fileid == FileID && o.ownerstatuscode == 1).Select(o => o.ownerid).FirstOrDefault();
+
+                approverid = dbctx.fileapprovers.Where(a => a.approverid == loggedinuserid && a.fileid == FileID && a.approverstatuscode == 1).Select(a => a.approverid).FirstOrDefault();
+
+                reviewerid = dbctx.filereviewers.Where(r => r.reviewerid == loggedinuserid && r.fileid == FileID && r.reviewerstatuscode == 1).Select(r => r.reviewerid).FirstOrDefault();
+
+                if (ownerid>0 || approverid>0 || reviewerid>0)
+                {
+                    authensop = true;
+
+                }
+            }
+
+
+
+             return authensop;
+        }
+
         public void GetSOPNo()
         {
 
@@ -1891,8 +1931,8 @@ namespace SOPManagement.Models
             using (var ctx = new RadiantSOPEntities())
             {
 
-
-                fileownerid = ctx.fileowners.Where(o => o.fileid == FileID).Select(o => o.ownerid).FirstOrDefault();
+                // only active current owner can make change request
+                fileownerid = ctx.fileowners.Where(o => o.fileid == FileID && o.ownerstatuscode==1).Select(o => o.ownerid).FirstOrDefault();
                 ownershipid = ctx.fileowners.Where(o=>o.fileid == FileID && o.ownerid == fileownerid).Select(o=>o.ownershipid).FirstOrDefault();
             }
 
@@ -1910,7 +1950,7 @@ namespace SOPManagement.Models
             using (var ctx = new RadiantSOPEntities())
             {
 
-                approverid = ctx.fileapprovers.Where(a => a.fileid == FileID).Select(a => a.approverid).FirstOrDefault();
+                approverid = ctx.fileapprovers.Where(a => a.fileid == FileID && a.approverstatuscode==1).Select(a => a.approverid).FirstOrDefault();
 
                 approveid = ctx.fileapprovers.Where(o => o.fileid == FileID && o.approverid == approverid).Select(o => o.approveid).FirstOrDefault();
             }

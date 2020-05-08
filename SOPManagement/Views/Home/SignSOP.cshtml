@@ -260,35 +260,37 @@
 
                 </tr>
 
-                @foreach (var rvwr in Model.SOPRvwerSignatures)
+                @for (int i=0; i<=Model.SOPRvwerSignatures.Count()-1; i++)
                 {
                     <tr>
                         <td>
-                            @rvwr.userfullname
+                            @Model.SOPRvwerSignatures[i].userfullname
                         </td>
 
                         <td>
-                            @rvwr.userjobtitle
+                            @Model.SOPRvwerSignatures[i].userjobtitle
                         </td>
 
-                        @if (Model.LoggedInUserIsReviewer == "yes" && Model.LoggedInUserEmail == rvwr.useremailaddress)
+                        @if (Model.LoggedInUserIsReviewer == "yes" && Model.LoggedInUserEmail.Trim().ToLower() == @Model.SOPRvwerSignatures[i].useremailaddress.Trim().ToLower())
                         {
 
                             <td>
-                                @if (rvwr.signstatuscode==1)  //signed
+                                @if (@Model.SOPRvwerSignatures[i].HasSignedSOP)  //signed
                                 {
-                                    @rvwr.signstatus
+                                    @Model.SOPRvwerSignatures[i].signstatus
                                 }
                                 else
                                 {
-                                    @Html.CheckBoxFor(model => model.LoggedInSignedAsReviewer)
+                                    @Html.CheckBox("LoggedInSignedAsReviewer",Model.SOPRvwerSignatures[i].HasSignedSOP)
                                 }
                             </td>
                             <td>
-                                @if (Model.LoggedInSignDate.Year > 80)
+                                @if (@Model.SOPRvwerSignatures[i].signaturedate.Year > 80)
                                 {
-                                    @Model.LoggedInSignDate.ToString("MMMM dd, yyyy")
+                                    @Model.SOPRvwerSignatures[i].signaturedate.ToString("MMMM dd, yyyy")
                                 }
+
+
                             </td>
 
 
@@ -298,13 +300,13 @@
 
                         {
                             <td>
-                                @rvwr.signstatus
+                                @Model.SOPRvwerSignatures[i].signstatus
                             </td>
 
                             <td>
-                                @if (rvwr.signaturedate.Year > 80)
+                                @if (Model.SOPRvwerSignatures[i].signaturedate.Year > 80)
                                 {
-                                    @rvwr.signaturedate.ToString("MMMM dd, yyyy")
+                                    @Model.SOPRvwerSignatures[i].signaturedate.ToString("MMMM dd, yyyy")
                                 }
                             </td>
 

@@ -83,6 +83,8 @@ warning 6002: The table/view 'RadiantYYZ.sop.codesuserstatus' does not have a pr
           <Property Name="approverid" Type="int" Nullable="false" />
           <Property Name="fileid" Type="int" Nullable="false" />
           <Property Name="approverstatuscode" Type="smallint" />
+          <Property Name="statusdate" Type="datetime" />
+          <Property Name="statusbyuserid" Type="int" />
         </EntityType>
         <EntityType Name="fileapproversactivities">
           <Key>
@@ -112,6 +114,8 @@ warning 6002: The table/view 'RadiantYYZ.sop.codesuserstatus' does not have a pr
           <Property Name="ownerid" Type="int" Nullable="false" />
           <Property Name="fileid" Type="int" Nullable="false" />
           <Property Name="ownerstatuscode" Type="smallint" />
+          <Property Name="statusdate" Type="datetime" />
+          <Property Name="statusbyuserid" Type="int" />
         </EntityType>
         <EntityType Name="fileownersactivities">
           <Key>
@@ -149,6 +153,9 @@ warning 6002: The table/view 'RadiantYYZ.sop.codesuserstatus' does not have a pr
           <Property Name="reviewid" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="reviewerid" Type="int" Nullable="false" />
           <Property Name="fileid" Type="int" Nullable="false" />
+          <Property Name="reviewerstatuscode" Type="smallint" />
+          <Property Name="statusdate" Type="datetime" />
+          <Property Name="statusbyuserid" Type="int" />
         </EntityType>
         <EntityType Name="filereviewersactivities">
           <Key>
@@ -210,7 +217,7 @@ warning 6002: The table/view 'RadiantYYZ.sop.v_sopreport' does not have a primar
           </Key>
           <Property Name="FileID" Type="int" Nullable="false" />
           <Property Name="SOPNo" Type="varchar" MaxLength="50" />
-          <Property Name="DeptFileName" Type="varchar" MaxLength="255" />
+          <Property Name="DeptFileName" Type="varchar" MaxLength="8000" />
           <Property Name="DeptSubFolderName" Type="varchar" MaxLength="255" />
           <Property Name="DeptSubFolderName2" Type="varchar" MaxLength="455" />
           <Property Name="SPFileLink" Type="varchar" MaxLength="455" />
@@ -638,6 +645,8 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           <Property Name="approverid" Type="Int32" Nullable="false" />
           <Property Name="fileid" Type="Int32" Nullable="false" />
           <Property Name="approverstatuscode" Type="Int16" />
+          <Property Name="statusdate" Type="DateTime" Precision="3" />
+          <Property Name="statusbyuserid" Type="Int32" />
         </EntityType>
         <EntityType Name="fileapproversactivity">
           <Key>
@@ -667,6 +676,8 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           <Property Name="ownerid" Type="Int32" Nullable="false" />
           <Property Name="fileid" Type="Int32" Nullable="false" />
           <Property Name="ownerstatuscode" Type="Int16" />
+          <Property Name="statusdate" Type="DateTime" Precision="3" />
+          <Property Name="statusbyuserid" Type="Int32" />
         </EntityType>
         <EntityType Name="fileownersactivity">
           <Key>
@@ -704,6 +715,9 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           <Property Name="reviewid" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="reviewerid" Type="Int32" Nullable="false" />
           <Property Name="fileid" Type="Int32" Nullable="false" />
+          <Property Name="reviewerstatuscode" Type="Int16" />
+          <Property Name="statusdate" Type="DateTime" Precision="3" />
+          <Property Name="statusbyuserid" Type="Int32" />
         </EntityType>
         <EntityType Name="filereviewersactivity">
           <Key>
@@ -766,7 +780,7 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
             <PropertyRef Name="FileID" />
           </Key>
           <Property Name="FileID" Type="Int32" Nullable="false" />
-          <Property Name="DeptFileName" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="DeptFileName" Type="String" MaxLength="8000" FixedLength="false" Unicode="false" />
           <Property Name="DeptSubFolderName" Type="String" MaxLength="255" FixedLength="false" Unicode="false" />
           <Property Name="DeptSubFolderName2" Type="String" MaxLength="455" FixedLength="false" Unicode="false" />
           <Property Name="SPFileLink" Type="String" MaxLength="455" FixedLength="false" Unicode="false" />
@@ -1063,6 +1077,8 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           <EntitySetMapping Name="fileapprovers">
             <EntityTypeMapping TypeName="RadiantYYZModel.fileapprover">
               <MappingFragment StoreEntitySet="fileapprovers">
+                <ScalarProperty Name="statusbyuserid" ColumnName="statusbyuserid" />
+                <ScalarProperty Name="statusdate" ColumnName="statusdate" />
                 <ScalarProperty Name="approveid" ColumnName="approveid" />
                 <ScalarProperty Name="approverid" ColumnName="approverid" />
                 <ScalarProperty Name="fileid" ColumnName="fileid" />
@@ -1095,6 +1111,8 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           <EntitySetMapping Name="fileowners">
             <EntityTypeMapping TypeName="RadiantYYZModel.fileowner">
               <MappingFragment StoreEntitySet="fileowners">
+                <ScalarProperty Name="statusbyuserid" ColumnName="statusbyuserid" />
+                <ScalarProperty Name="statusdate" ColumnName="statusdate" />
                 <ScalarProperty Name="ownershipid" ColumnName="ownershipid" />
                 <ScalarProperty Name="ownerid" ColumnName="ownerid" />
                 <ScalarProperty Name="fileid" ColumnName="fileid" />
@@ -1137,6 +1155,9 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           <EntitySetMapping Name="filereviewers">
             <EntityTypeMapping TypeName="RadiantYYZModel.filereviewer">
               <MappingFragment StoreEntitySet="filereviewers">
+                <ScalarProperty Name="statusbyuserid" ColumnName="statusbyuserid" />
+                <ScalarProperty Name="statusdate" ColumnName="statusdate" />
+                <ScalarProperty Name="reviewerstatuscode" ColumnName="reviewerstatuscode" />
                 <ScalarProperty Name="reviewid" ColumnName="reviewid" />
                 <ScalarProperty Name="reviewerid" ColumnName="reviewerid" />
                 <ScalarProperty Name="fileid" ColumnName="fileid" />

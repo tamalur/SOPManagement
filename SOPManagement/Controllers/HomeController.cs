@@ -154,8 +154,16 @@ namespace SOPManagement.Controllers
                 }
 
 
-                loggedinusereml = Utility.GetCurrentLoggedInUserEmail();
-                loggedinuserid = Utility.GetLoggedInUserID();
+                 loggedinusereml = Utility.GetCurrentLoggedInUserEmail();
+                 loggedinuserid = Utility.GetLoggedInUserID();
+
+                //loggedinusereml = "student05@radiantdelivers.com";
+                //loggedinuserid = 234;
+
+                //loggedinusereml = "tshaikh@radiantdelivers.com";
+                //loggedinuserid = 47;
+
+
 
                 string strchangereqid = Request.QueryString["chngreqid"];
                 int changereqid = 0;
@@ -163,12 +171,8 @@ namespace SOPManagement.Controllers
                 if (strchangereqid != null && strchangereqid != "")
                     changereqid = Convert.ToInt32(strchangereqid);
 
-                //id = 42;
-                // int chngrqid = 9 ;
                 TempData["FileID"] = id;
                 TempData["ChangeIReqID"] = changereqid;
-                //TempData["ChangeIReqID"] = chngrqid;      //changereqid;
-
 
                 //need this to keep activity id so we can update sign status after submit
                 oSM.FileID = Convert.ToInt32(id);
@@ -196,7 +200,7 @@ namespace SOPManagement.Controllers
                 if (loggedinusereml.ToLower().Trim() == oSOP.FileOwner.useremailaddress.ToLower().Trim())
                 {
                     oSM.LoggedInUserIsOwner = "yes";
-                    oSM.LoggedInUserAllStatus = "Onwer";
+                    oSM.LoggedInUserAllStatus = "Owner";
                     oSM.GetOwnerActivityID();
 
                     TempData["OwnerActivityID"] = oSM.OwnerActivityID;
@@ -223,42 +227,9 @@ namespace SOPManagement.Controllers
                         oSM.LoggedInSignDate = oSOP.FileApprover.signaturedate;
                     }
                     else
-                        oSM.LoggedInSignedAsApprover = false;
-
-
-                }
-
-                foreach (Employee rvwr in oSOP.FileReviewers)
-                {
-                    if (loggedinusereml.ToLower().Trim() == rvwr.useremailaddress.ToLower().Trim())
                     {
-                        oSM.LoggedInUserIsReviewer = "yes";
-                        oSM.LoggedInUserAllStatus = oSM.LoggedInUserAllStatus + "," + "Reviewer";
-                        oSM.GetReviewerActivityID();
-                        TempData["ReviewerActivityID"] = oSM.ReviewerActivityID;
-
-
-                        if (rvwr.signstatus.ToLower() == "signed")
-                        {
-                            oSM.LoggedInSignedAsReviewer = true;
-                            oSM.LoggedInSignDate = rvwr.signaturedate;
-                        }
-                        else
-                            oSM.LoggedInSignedAsReviewer = false;
-
-
-                        break;
+                        oSM.LoggedInSignedAsApprover = false;
                     }
-                }
-
-                //logged in user is no where in approvers so redirect him to unauthenticated error page
-                if (oSM.LoggedInUserIsOwner == "" && oSM.LoggedInUserIsApprover == "" && oSM.LoggedInUserIsReviewer == "")
-
-                {
-                    // ViewBag.ErrorMessage = "SOP Application: Session not Timed out";
-                    Session["SOPMsg"] = "SOP Sign: Failed loading approval page as you are not an authenticated approver of this SOP.";
-                    return RedirectToAction("SOPMessage");
-
 
                 }
 
@@ -275,7 +246,45 @@ namespace SOPManagement.Controllers
                 oSM.SOPApprvrSignature = oSOP.FileApprover;
                 oSM.SOPRvwerSignatures = oSOP.FileReviewers;
 
+            //    TempData["reviewers"] = oSM.SOPRvwerSignatures;
 
+
+                foreach (Employee rvwr in oSM.SOPRvwerSignatures)
+                {
+                    if (loggedinusereml.ToLower().Trim() == rvwr.useremailaddress.ToLower().Trim())
+                    {
+                        oSM.LoggedInUserIsReviewer = "yes";
+                        oSM.LoggedInUserAllStatus = oSM.LoggedInUserAllStatus + "," + "Reviewer";
+                        oSM.GetReviewerActivityID();
+                        TempData["ReviewerActivityID"] = oSM.ReviewerActivityID;
+
+
+                        if (rvwr.signstatus.ToLower() == "signed")
+                        {
+                            rvwr.HasSignedSOP = true;
+                        }
+                        else
+                        {
+                            rvwr.HasSignedSOP = false;
+                            rvwr.signaturedate = DateTime.Today;
+                        }
+
+                        break;
+                    }
+                }
+
+                //logged in user is no where in approvers so redirect him to unauthenticated error page
+                if (oSM.LoggedInUserIsOwner == "" && oSM.LoggedInUserIsApprover == "" && oSM.LoggedInUserIsReviewer == "")
+
+                {
+                    // ViewBag.ErrorMessage = "SOP Application: Session not Timed out";
+                    Session["SOPMsg"] = "SOP Sign: Failed loading approval page as you are not an authenticated approver of this SOP.";
+                    return RedirectToAction("SOPMessage");
+
+
+                }
+
+                
 
 
                 return View(oSM);
@@ -336,7 +345,7 @@ namespace SOPManagement.Controllers
                 }
 
 
-                
+                   
                 if (sm.UpdateSignatures())
                 {
                     sm.UpdateChangeReqstApproval();
@@ -347,7 +356,15 @@ namespace SOPManagement.Controllers
 
 
                 }
+                else
+                {
 
+                    Session["SOPMsg"] = "Signing Off SOP:Error: You have not signed SOP!";
+
+                    return RedirectToAction("SOPMessage");
+
+
+                }
 
             }
 
@@ -585,31 +602,36 @@ namespace SOPManagement.Controllers
             //http://localhost:58639/Home/SOPChngeRequest/92
 
             int id = 0;  //file id will be provide through dashboad
-            int changereqid = 0; //change request id 
 
             if (TempData["FileID"] != null)
                 id = Convert.ToInt32(TempData["FileID"]);
-            if (TempData["ChangeIReqID"] != null)
-                changereqid = Convert.ToInt32(TempData["ChangeIReqID"]);
 
-
-            Session["SOPMsg"] = "";
 
             SOPClass oSOP = new SOPClass();
-
-            Employee oEMP = new Employee();
-           
-            oSOP.FileID = id;
-
-
-            string oLoggedInUserEmail = "";
-
             int ownershipid = 0;
             int aproveid = 0;
 
 
+            oSOP.FileID = id;
+            Session["SOPMsg"] = "";
+
+
             try
             {
+
+                //first check whether logged in user is in owner, approver or reviewer group of this sop
+                //if not redirect to unauthenticated message page
+                //otherwise proceed with change request
+
+                if (!oSOP.AuthenticateChangeRequest())
+                 {
+                    Session["SOPMsg"] = "SOP Change Request: Failed to authenticate you to make a change request since your are not owner, approver, or reviewer of this SOP."; 
+
+                    return RedirectToAction("SOPMessage");
+
+
+                }
+
 
                 short lastchngstatcode = oSOP.GetLastChngReqSOPStatusCode();
 
@@ -624,15 +646,12 @@ namespace SOPManagement.Controllers
                 }
 
 
-                if (lastchngstatcode == 3)
+                if (lastchngstatcode == 3)   //last change request is approved so we can create new change request
 
                     {
 
-                    oLoggedInUserEmail = Utility.GetCurrentLoggedInUserEmail();
-                    oEMP.useremailaddress = oLoggedInUserEmail;
-                    oEMP.GetUserByEmail();
 
-                    oSOP.FileChangeRqsterID = oEMP.userid;
+                    oSOP.FileChangeRqsterID = Utility.GetLoggedInUserID();
 
                     oSOP.AddChangeRequest();   //it will get new chngreqid that will be used as follows
 
@@ -672,7 +691,7 @@ namespace SOPManagement.Controllers
             {
 
                 oSOP = null;
-                oEMP = null;
+                
                 GC.Collect();
 
             }
@@ -685,14 +704,7 @@ namespace SOPManagement.Controllers
             // http://localhost:58639/Home/SOPChngeRequest/97
 
 
-            string changereqid = Request.QueryString["chngreqid"];
-
-            //   ViewBag.FileID = id;
-            //   ViewBag.ChangeIReqID = changereqid;
-
             TempData["FileID"] = id;
-            TempData["ChangeIReqID"] = changereqid;
-
 
 
             return View();

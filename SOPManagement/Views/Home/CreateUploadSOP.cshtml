@@ -129,18 +129,19 @@
         <div class="form-group">
 
             @Html.Label("Add Reviewers", htmlAttributes: new { @class = "control-label col-md-2" })
+
+
             <div class="col-md-10">
-                <table id="tblReviewers" class="table" cellpadding="0" cellspacing="0">
+
+                <table id="tblReviewers" style="width:50%">
 
                     <thead>
 
                         <tr>
 
-                            <th style="width:150px">Full Name</th>
+                            <th>Full Name</th>
 
-                            <th style="width:150px">Email</th>
-
-                            @*<th style="width:150px">Job Title</th>*@
+                            <th>Email</th>
 
                             <th></th>
 
@@ -156,10 +157,6 @@
                             foreach (var usr in db.vwSOPReviewers.Where(x => x.fileid == -1))
 
                             {
-                                //  if (usr.fileid == 63)
-
-                                // {
-
 
                                 <tr>
 
@@ -174,7 +171,6 @@
 
 
                                 </tr>
-                                //   }
 
                             }
                         }
@@ -187,13 +183,13 @@
 
                             <td>
 
-                                @Html.DropDownList("userid", new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select", new { @id = "ddlEmployees" })
+                                @Html.DropDownList("userid", new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select a reviewer", new { @id = "ddlEmployees" })
                             </td>
 
 
 
 
-                            <td colspan="2"><input type="button" id="btnAddRvwer" value="Add" /></td>
+                            <td><input type="button" id="btnAddRvwer" value="Add" /></td>
 
                         </tr>
 
@@ -201,44 +197,46 @@
 
                 </table>
 
+
             </div>
-        </div>
+
+
+
+         </div>
 
 
         <div class="form-group">
-            @Html.Label("Read Access to All", htmlAttributes: new { @class = "control-label col-md-2" })
+                @Html.Label("Read Access to All", htmlAttributes: new { @class = "control-label col-md-2" })
 
-            <div class="col-md-10">
-                @Html.CheckBoxFor(model => model.AllUsersReadAcc, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.AllUsersReadAcc, "", new { @class = "text-danger" })
+                <div class="col-md-10">
+                    @Html.CheckBoxFor(model => model.AllUsersReadAcc, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.AllUsersReadAcc, "", new { @class = "text-danger" })
+                </div>
             </div>
-        </div>
 
         <div class="form-group">
-            @Html.Label("Read Access to a Department", htmlAttributes: new { @class = "control-label col-md-2" })
+                @Html.Label("Read Access to a Department", htmlAttributes: new { @class = "control-label col-md-2" })
 
-            <div class="col-md-10">
-                @Html.DropDownListFor(model => model.DepartmentCode, new SelectList(ViewBag.departments, "sopdeptcode", "sopdeptname"), "Select a department", new { @class = "form-control" })
-                @Html.ValidationMessageFor(model => model.DepartmentCode, "", new { @class = "text-danger" })
+                <div class="col-md-10">
+                    @Html.DropDownListFor(model => model.DepartmentCode, new SelectList(ViewBag.departments, "sopdeptcode", "sopdeptname"), "Select a department", new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.DepartmentCode, "", new { @class = "text-danger" })
+                </div>
             </div>
-        </div>
-
 
         <div class="form-group">
 
             @Html.Label("Add Viewers", htmlAttributes: new { @class = "control-label col-md-2" })
+
             <div class="col-md-10">
-                <table id="tblViewers" class="table" cellpadding="0" cellspacing="0">
+                <table id="tblViewers" style="width:50%">
 
                     <thead>
 
                         <tr>
 
-                            <th style="width:150px">Full Name</th>
+                            <th>Full Name</th> 
 
-                            <th style="width:150px">Email</th>
-
-                            @*<th style="width:150px">Job Title</th>*@
+                            <th>Email</th>
 
                             <th></th>
 
@@ -254,9 +252,6 @@
                             foreach (var usr in db.vwSOPReviewers.Where(x => x.fileid == -1))
 
                             {
-                                //  if (usr.fileid == 63)
-
-                                // {
 
 
                                 <tr>
@@ -272,7 +267,6 @@
 
 
                                 </tr>
-                                //   }
 
                             }
                         }
@@ -288,10 +282,7 @@
                                 @Html.DropDownList("userid", new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select a viewer", new { @id = "ddlViewers" })
                             </td>
 
-
-
-
-                            <td colspan="2"><input type="button" id="btnAddVwer" value="Add" /></td>
+                            <td><input type="button" id="btnAddVwer" value="Add" /></td>
 
                         </tr>
 
@@ -300,22 +291,17 @@
                 </table>
 
             </div>
+
         </div>
 
-        <div class="form-group">
-            <div class="col-md-offset-2 col-md-10">
-                @*<input type="submit" value="Create" id="btnSubmit" onclick="submit();" class="btn btn-default" />*@
 
-
-            </div>
-        </div>
 
     </div>
 
 
 }
 
-<div class="container" style="text-align:center">
+<div class="col-md-12" style="text-align:center">
         <button onclick="submit()" id="btnsubmit">Submit Form</button>
 </div>
 
@@ -488,6 +474,8 @@
                 return;
 
             }
+
+           
 
             //Add Row.
 
@@ -714,6 +702,17 @@
                 return true;
 
             }
+
+            if (sopnonew != "") {
+
+                if (!hasAlpha(sopnonew)) {
+
+                    alert("SOP No is not valid!")
+                    return true;
+
+                }
+            }
+
 
             //var sopeffdate = $('#SOPEffectiveDate').val();
 
@@ -963,6 +962,33 @@
 
             return true;
         }
+
+
+    function hasAlpha(str) {
+        var code, i, len;
+
+        for (i = 0, len = str.length; i < len; i++) {
+            code = str.charCodeAt(i);
+            if (code > 64 && code < 91)  // upper alpha (A-Z)
+                return true;
+        }
+        return false;
+    };
+
+
+    function isAlphaNumeric(str) {
+        var code, i, len;
+
+        for (i = 0, len = str.length; i < len; i++) {
+            code = str.charCodeAt(i);
+            if (!(code > 47 && code < 58) && // numeric (0-9)
+                !(code > 64 && code < 91) && // upper alpha (A-Z)
+                !(code > 96 && code < 123)) { // lower alpha (a-z)
+                return false;
+            }
+        }
+        return true;
+    };
 
 
 </script>

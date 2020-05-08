@@ -18,5 +18,7 @@ namespace SOPManagement.Models
         public int ownerid { get; set; }
         public int fileid { get; set; }
         public Nullable<short> ownerstatuscode { get; set; }
+        public Nullable<System.DateTime> statusdate { get; set; }
+        public Nullable<int> statusbyuserid { get; set; }
     }
 }
