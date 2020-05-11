@@ -7,24 +7,15 @@
 
     <div>
         <div class="col-md-12">
-            <h1>SOP Message:</h1>
+            <h1>SOP Alert:</h1>
         </div>
     </div>
     <div>
         <div class="col-md-12">
-            @*@ViewBag.ErrorMessage*@
 
-            @if ((Session["SOPMsg"].ToString().ToLower().Contains("failed"))
-                || (Session["SOPMsg"].ToString().ToLower().Contains("error")))
-            {
 
-                <h2> <font color="red">  @Session["SOPMsg"]  </font></h2>
-            }
-            else
-
-            {
-                <h2> @Session["SOPMsg"] </h2>
-            }
+            <h2> <font color="red"> The SOP @ViewBag.SOPTitle with SOP NO @ViewBag.SOPNO cannot be accessed now since
+                 this SOP is under publishing with all approved new changes. To get access, please contact SOP approver for publishing the new changes. </font></h2>
 
         </div>
         <div class="col-md-12">
@@ -43,3 +34,4 @@
         window.history.back();
     }
 </script>
+

@@ -421,6 +421,7 @@
     <Content Include="Views\Home\SignSOP.cshtml" />
     <Content Include="Views\Home\CleintServerErr.cshtml" />
     <Content Include="Views\Home\SOPChngeRequest.cshtml" />
+    <Content Include="Views\Home\SOPNoAcessMsg.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

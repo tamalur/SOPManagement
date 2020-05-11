@@ -44,6 +44,24 @@ namespace SOPManagement.Controllers
             return View();
         }
 
+
+        public ActionResult SOPNoAcessMsg(int? id)
+        {
+            SOPClass oSOP = new SOPClass();
+            oSOP.FileID = Convert.ToInt32(id);
+
+            oSOP.GetSOPName();
+
+            ViewBag.SOPTitle = oSOP.FileTitle;
+            ViewBag.SOPNO = oSOP.SOPNo;
+
+            oSOP = null;
+
+
+            return View();
+        }
+
+
         public ActionResult LogOff()
         {
             Session["UserID"] = null; //it's my session variable

@@ -1981,6 +1981,22 @@ namespace SOPManagement.Models
         }
 
 
+        public void GetSOPName()
+        {
+
+            using (var ctx = new RadiantSOPEntities())
+            {
+                FilePath = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SPFilePath).FirstOrDefault();
+                FileName = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.DeptFileName).FirstOrDefault();
+                SOPNo = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SOPNo).FirstOrDefault();
+                FileTitle = Path.ChangeExtension(FileName, null);
+
+            }
+
+
+
+        }
+
         public void GetSOPInfo()
         {
 
