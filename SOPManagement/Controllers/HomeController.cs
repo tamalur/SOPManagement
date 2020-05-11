@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Web;
 using System.Web.Mvc;
 using Newtonsoft.Json;
@@ -217,7 +218,11 @@ namespace SOPManagement.Controllers
                 if (loggedinusereml.ToLower().Trim() == oSOP.FileApprover.useremailaddress.ToLower().Trim())
                 {
                     oSM.LoggedInUserIsApprover = "yes";
-                    oSM.LoggedInUserAllStatus = oSM.LoggedInUserAllStatus + "," + "Approver";
+                    if (oSM.LoggedInUserAllStatus != "")
+                        oSM.LoggedInUserAllStatus = oSM.LoggedInUserAllStatus + "," + "Approver";
+                    else
+                        oSM.LoggedInUserAllStatus = "Approver";
+
                     oSM.GetApproverActivityID();
                     TempData["ApproverActivityID"] = oSM.ApproverActivityID;
 
@@ -254,7 +259,11 @@ namespace SOPManagement.Controllers
                     if (loggedinusereml.ToLower().Trim() == rvwr.useremailaddress.ToLower().Trim())
                     {
                         oSM.LoggedInUserIsReviewer = "yes";
-                        oSM.LoggedInUserAllStatus = oSM.LoggedInUserAllStatus + "," + "Reviewer";
+                        if (oSM.LoggedInUserAllStatus != "")
+                            oSM.LoggedInUserAllStatus = oSM.LoggedInUserAllStatus + "," + "Reviewer";
+                        else
+                            oSM.LoggedInUserAllStatus = "Reviewer";
+
                         oSM.GetReviewerActivityID();
                         TempData["ReviewerActivityID"] = oSM.ReviewerActivityID;
 
@@ -438,139 +447,187 @@ namespace SOPManagement.Controllers
 
             Session["Dashboardlink"] = Utility.GetDashBoardUrl();
 
+            Logger oLogger = new Logger();
+            oLogger.LogFileName = HttpContext.Server.MapPath(Utility.GetLogFilePath());
 
-            if (Utility.IsSessionExpired())
-            {
-
-                // ViewBag.ErrorMessage = "SOP Application: Session not Timed out";
-
-                Session["SOPMsg"] = "SOP Publish:Error - Session timed out";
-
-                return RedirectToAction("SOPMessage");
-
-            }
-
-
-
-            if (changereqid == 0)     //change request is required to publish aganist a change
-            {
-
-                Session["SOPMsg"] = "SOP Publish: Error validating File ID and Change Request ID required to publish the file!";
-
-                return RedirectToAction("SOPMessage");
-
-            }
-
-
-            Employee oEmp = new Employee();
-
-
-            oEmp.useremailaddress = Utility.GetCurrentLoggedInUserEmail();
-
-           // Session["UserEmail"] = oEmp.useremailaddress;
-
-
-            //if (!oEmp.AuthenticateUser("approver", id))   //only approver can publish a signed SOP
-
-            //{
-
-            //    Session["SOPMsg"] = "Failed to authenticate user as an approver of the file.Please contact IT!";
-            //    return RedirectToAction("SOPMessage");
-            //}
-
+            //Employee oEmp = new Employee();
             SOPClass oSOP = new SOPClass();
 
 
-            //assign SOP basic info
 
-            string templocaldirpath = Server.MapPath(Utility.GetTempLocalDirPath());
-
-            oSOP.SiteUrl = siteurl;
-            oSOP.FileID = id;
-            oSOP.DocumentLibName = "SOP";
-            oSOP.FileChangeRqstID = changereqid;
-
-            oSOP.GetSOPInfo();  //get updated reviewers, approver, owner, version, file name etc.
-
-            oSOP.FileLocalPath = templocaldirpath + oSOP.FileName;
-
-            //We need to check whether the SOP is signed by all parties (approver, reviewer, owner)
-            //we will check signed status code in changeactivities table, it must be 1 to publish the sop
-
-            if (oSOP.FileStatuscode == 2)  //not signed
+            try
             {
-                Session["SOPMsg"] = "SOP Publish: Failed to load page as : SOP " + oSOP.FileName + " has not been signed by all signatories!";
-
-                return RedirectToAction("SOPMessage");
+                oLogger.UpdateLogFile(DateTime.Now.ToString() + ":Publish SOP Action:Started publishing with File ID:" + id.ToString()+", change request id:"+ changereqid.ToString());
 
 
-            }
-
-
-            if (oSOP.FileStatuscode == 3)  //published 
-            {
-                Session["SOPMsg"] = "SOP Publish: Failed as SOP " + oSOP.FileName + " has already been publsihed!";
-
-                return RedirectToAction("SOPMessage");
-
-
-            }
-
-
-            //just before publishing we need to update the coversheet with signed status of reviewers, approver
-            //and owner as well as update version no, revision history etc.
-            
-
-            //string templocaldirpath = Server.MapPath("~/Content/DocFiles/");
-
-
-            if (oSOP.FileStatuscode == 1)  //signed and ready to publish
-            {
-
-                //download from sharepont online SOP lib so we can update it locally
-                
-                oSOP.DownloadFileFromSharePoint(templocaldirpath);
-
-                //update the cover page and rev history with xceed docx .net library
-
-                oSOP.UpdateCoverRevhistPageDocX(true);
-
-               // oSOP.UpdateCoverRevhistPage(true);     //interop com version does not work.
-
-                //upload the updated file again to the SOP lib in sharepoint online.
-
-
-                // Thread.Sleep(6000);
-
-                oSOP.FileStream = System.IO.File.ReadAllBytes(oSOP.FileLocalPath);
-
-                oSOP.UploadDocument();
-
-                // at last update status to approve in the so employees with given read access can access it
-                
-                if (oSOP.PublishFile())
+                if (Utility.IsSessionExpired())
                 {
 
-                    Session["SOPMsg"] = "SOP Publish: SOP " + oSOP.FileName + " has been successfully published!";
+                    // ViewBag.ErrorMessage = "SOP Application: Session not Timed out";
+
+                    Session["SOPMsg"] = "SOP Publish:Error - Session timed out";
 
                     return RedirectToAction("SOPMessage");
 
                 }
 
-                else
+
+
+                //start validating logged in user and SOP
+
+                //oEmp.useremailaddress = Utility.GetCurrentLoggedInUserEmail();
+
+                // Session["UserEmail"] = oEmp.useremailaddress;
+
+
+                //if (!oEmp.AuthenticateUser("approver", id))   //only approver can publish a signed SOP
+
+                //{
+
+                //    Session["SOPMsg"] = "Failed to authenticate user as an approver of the file.Please contact IT!";
+                //    return RedirectToAction("SOPMessage");
+                //}
+
+
+
+
+
+                if (changereqid == 0)     //change request is required to publish aganist a change
                 {
-                    Session["SOPMsg"] = "SOP Publish: Failed to publish SOP " + oSOP.FileName + oSOP.ErrorMessage + ".Please contact IT!";
+
+                    Session["SOPMsg"] = "SOP Publish: Error validating File ID and Change Request ID required to publish the file!";
+
                     return RedirectToAction("SOPMessage");
+
+                }
+
+                //assign SOP basic info
+
+                string templocaldirpath = Server.MapPath(Utility.GetTempLocalDirPath());
+
+                oSOP.SiteUrl = siteurl;
+                oSOP.FileID = id;
+                oSOP.DocumentLibName = "SOP";
+                oSOP.FileChangeRqstID = changereqid;
+
+                oSOP.GetSOPInfo();  //get updated reviewers, approver, owner, version, file name etc.
+
+                oSOP.FileLocalPath = templocaldirpath + oSOP.FileName;
+
+                //We need to check whether the SOP is signed by all parties (approver, reviewer, owner)
+                //we will check signed status code in changeactivities table, it must be 1 to publish the sop
+
+                if (oSOP.FileStatuscode == 2)  //not signed
+                {
+                    Session["SOPMsg"] = "SOP Publish: Failed to load page as : SOP " + oSOP.FileName + " has not been signed by all signatories!";
+
+                    return RedirectToAction("SOPMessage");
+
                 }
 
 
-            } //end checking signed status
+                if (oSOP.FileStatuscode == 3)  //published 
+                {
+                    Session["SOPMsg"] = "SOP Publish: Failed as SOP " + oSOP.FileName + " has already been publsihed!";
 
-            oSOP = null;
-            oEmp = null;
+                    return RedirectToAction("SOPMessage");
+
+                }
+
+                oLogger.UpdateLogFile(DateTime.Now.ToString() + ":Publish SOP Action:Successfully validated  SOP for publishing.");
 
 
-            return View();
+                //just before publishing we need to update the coversheet with signed status of reviewers, approver
+                //and owner as well as update version no, revision history etc.
+
+
+                //string templocaldirpath = Server.MapPath("~/Content/DocFiles/");
+
+
+                if (oSOP.FileStatuscode == 1)  //signed and ready to publish
+                {
+
+                    //download from sharepont online SOP lib so we can update it locally
+
+                    oSOP.DownloadFileFromSharePoint(templocaldirpath);
+
+                    oLogger.UpdateLogFile(DateTime.Now.ToString() + ":Publish SOP Action:Successfully downloaded SOP into local dir from SharePoint Online");
+
+
+                    //update the cover page and rev history with xceed docx .net library
+
+                    // oSOP.UpdateCoverRevhistPageDocX(true);
+
+                    oSOP.UpdateCoverRevhistPage(true);     //interop com version does not work.
+
+                    oLogger.UpdateLogFile(DateTime.Now.ToString() + ":Publish SOP Action:Successfully updated cover sheet with updated owner, approver etc. and revision history in SOP at local dir");
+
+
+                    //upload the updated file again to the SOP lib in sharepoint online.
+
+
+                  //  Thread.Sleep(6000);
+
+                    oSOP.FileStream = System.IO.File.ReadAllBytes(oSOP.FileLocalPath);
+
+                    oSOP.UploadDocument();
+
+                    oLogger.UpdateLogFile(DateTime.Now.ToString() + ":Publish SOP Action:Successfully uoloaded updated SOP in SharePoint Online SOP Library");
+
+
+                    // at last update status to approve in the so employees with given read access can access it
+
+                    if (oSOP.PublishFile())
+                    {
+
+                        oLogger.UpdateLogFile(DateTime.Now.ToString() + ":Publish SOP Action:Successfully published (approved) SOP in SharePoint Online SOP Library.");
+
+                        Session["SOPMsg"] = "SOP Publish: SOP " + oSOP.FileName + " has been successfully published!";
+
+                        return RedirectToAction("SOPMessage");
+
+                    }
+
+                    else
+                    {
+                        oLogger.UpdateLogFile(DateTime.Now.ToString() + ":Publish SOP Action:Failed to publish (approved) the SOP in SharePoint Online SOP Library with reaosn:"+oSOP.ErrorMessage);
+
+                        Session["SOPMsg"] = "SOP Publish: Failed to publish SOP " + oSOP.FileName + oSOP.ErrorMessage + ".Please contact IT!";
+                        return RedirectToAction("SOPMessage");
+                    }
+
+
+                } //end checking signed status
+
+
+                return View();
+
+
+
+            }   //end try
+
+            catch (Exception ex)
+            {
+
+                oLogger.UpdateLogFile(DateTime.Now.ToString() + ":Publish SOP Action:Failed to publish with error:" + ex.Message);
+
+                Session["SOPMsg"] = "SOP Publish: Failed to publish SOP " + oSOP.FileName +  " with error: " + ex.Message;
+                return RedirectToAction("SOPMessage");
+
+            }
+            finally
+            {
+
+                oSOP = null;
+                //oEmp = null;
+                oLogger = null;
+
+                
+
+            }
+           
+
+           // return View();
 
         }
 
@@ -763,11 +820,22 @@ namespace SOPManagement.Controllers
             SOPClass oSop = new SOPClass();
             Employee oEmp = new Employee();
 
+            string user = "";
+            string loggedinusereml = "";
+
+
+            Logger oLogger = new Logger();
+            oLogger.LogFileName= HttpContext.Server.MapPath(Utility.GetLogFilePath());
+
+
             try
 
             {
 
                 //  if (!ModelState.IsValid)   //we are supposed to use ModelState but we validated data through javascript so we don't use this
+
+
+                oLogger.UpdateLogFile(DateTime.Now.ToString() + ":CreateUpload Action:Started uploading or creating new SOP:"+sop.SOPNo);
 
                 bool bProcessCompleted = true;
 
@@ -782,8 +850,6 @@ namespace SOPManagement.Controllers
                 //1. [Authorized] attribute at the top of action authorizes the user by sopadmin role in domain 
                 // then check if session is expired, if so redirect to session timeout page. 
 
-                string user = "";
-                string loggedinusereml = "";
 
                 Session["SOPMsg"] = "";
 
@@ -795,72 +861,74 @@ namespace SOPManagement.Controllers
                     bProcessCompleted = false;
                 }
 
-                loggedinusereml = Utility.GetCurrentLoggedInUserEmail();
-
-                // we turend off this code as I am authorizing through [Authorize]
-                //check admin user access, if not admin redirect to error page
-
-
-                //bool isadmin = false;
-
-                //isadmin = emp.AuthenticateUser("admin", loggedinusereml);
-
-                //if (!isadmin)
-                //{
-
-                //    Session["ErrorMsg"] = "SOP Application: Only admin user has access to this page. You are not a admin user. Please contact SOP team for access!";
-                //    return Json(new { redirecturl = "/Home/RedirectForErr" }, JsonRequestBehavior.AllowGet);
-
-                //}
-
-                //emp = null;
-
-                //2. if the doc file is new then copy sop template with new file name
-                //or if user uploads exsiting doc file with new template is uplaoded, then copy the uploaded
-                //file into project folder
-
-                //log DateTime:sop.SOPNO: start collecting user email
-
-                // Employee emp = new Employee();
-
-                //get values from view
-
-                Employee[] rvwrItems = JsonConvert.DeserializeObject<Employee[]>(sop.FilereviewersArr[0]);
-
-                Employee[] vwrItems;
-
-                oEmp.useremailaddress = loggedinusereml;
-
-                oEmp.GetUserByEmail();
-
-                oSop.FileChangeRqsterID = oEmp.userid;
-
-                oSop.DocumentLibName = "SOP";
-
-                oSop.SOPNo = sop.SOPNo;
-                //oSop.SOPNo = "IT-02";
-
-                //check duplicate SOP NO in DB table [deptsopfiles]
-                //it could be happened if in same directory last file was uploaded in 
-                //sharepoint online but data was not updated in DB through ms flow
-                //for delayed or broken process between SP and DB
-                //in this situation send error message that Last file upload is not 
-                //completed successfuly, please refresh Dashboard and check last file 
-                //was uploaed with this SOP NO 
-
-                if (oSop.HasDuplicateSOPNOInDB())
-
+                if (bProcessCompleted)
                 {
 
+                    loggedinusereml = Utility.GetCurrentLoggedInUserEmail();
 
-                    Session["SOPMsg"] = "SOP Create/Upload: Error - " + oSop.SOPNo + " is duplicated. Last SOP processing has not been completed yet." +
-                       " Please go to dashboard, refresh and check the same SOP No is in dash board with last file upload. If you still get this error " +
-                       " please contact IT";
+                    // we turend off this code as I am authorizing through [Authorize]
+                    //check admin user access, if not admin redirect to error page
 
 
-                    bProcessCompleted = false;
+                    //bool isadmin = false;
 
-                }
+                    //isadmin = emp.AuthenticateUser("admin", loggedinusereml);
+
+                    //if (!isadmin)
+                    //{
+
+                    //    Session["ErrorMsg"] = "SOP Application: Only admin user has access to this page. You are not a admin user. Please contact SOP team for access!";
+                    //    return Json(new { redirecturl = "/Home/RedirectForErr" }, JsonRequestBehavior.AllowGet);
+
+                    //}
+
+                    //emp = null;
+
+                    //2. if the doc file is new then copy sop template with new file name
+                    //or if user uploads exsiting doc file with new template is uplaoded, then copy the uploaded
+                    //file into project folder
+
+                    //log DateTime:sop.SOPNO: start collecting user email
+
+                    // Employee emp = new Employee();
+
+                    //get values from view
+
+
+                    oEmp.useremailaddress = loggedinusereml;
+
+                    oEmp.GetUserByEmail();
+
+                    oSop.FileChangeRqsterID = oEmp.userid;
+
+                    oSop.DocumentLibName = "SOP";
+
+                    oSop.SOPNo = sop.SOPNo;
+
+                    //check duplicate SOP NO in DB table [deptsopfiles]
+                    //it could be happened if in same directory last file was uploaded in 
+                    //sharepoint online but data was not updated in DB through ms flow
+                    //for delayed or broken process between SP and DB
+                    //in this situation send error message that Last file upload is not 
+                    //completed successfuly, please refresh Dashboard and check last file 
+                    //was uploaed with this SOP NO 
+
+                    if (oSop.HasDuplicateSOPNOInDB())
+
+                    {
+
+
+                        Session["SOPMsg"] = "SOP Create/Upload: Error - " + oSop.SOPNo + " is duplicated. Last SOP processing has not been completed yet." +
+                           " Please go to dashboard, refresh and check the same SOP No is in dash board with last file upload. If you still get this error " +
+                           " please contact IT";
+
+
+                        bProcessCompleted = false;
+
+                    }
+
+                }  //end checking if session is alive
+
 
                 if (bProcessCompleted)
                 {
@@ -877,6 +945,10 @@ namespace SOPManagement.Controllers
                     string tmpfiledirpathnm = Utility.GetTempLocalDirPath();
 
                     string tmpfiledirmappath = Server.MapPath(tmpfiledirpathnm);
+
+                    Employee[] vwrItems;
+
+                    Employee[] rvwrItems = JsonConvert.DeserializeObject<Employee[]>(sop.FilereviewersArr[0]);
 
 
 
@@ -923,6 +995,7 @@ namespace SOPManagement.Controllers
 
                     }
 
+                    oLogger.UpdateLogFile(DateTime.Now.ToString() + ":CreateUpload Action:Successfully saved file in local temp directory.");
 
                     //end step 2 saving new file or uploaded file in projetc folder
 
@@ -970,11 +1043,12 @@ namespace SOPManagement.Controllers
 
                     //udpate coverpage with sop basic info and owner, reviewers, approver
 
-                    oSop.UpdateCoverRevhistPageDocX();
+                  //  oSop.UpdateCoverRevhistPageDocX();
 
-                    // oSop.UpdateCoverRevhistPage();
+                     oSop.UpdateCoverRevhistPage();
 
-               
+                    oLogger.UpdateLogFile(DateTime.Now.ToString() + ":CreateUpload Action:Successfully updated cover sheet in SOP doc file in local temp dir.");
+
 
                     //end step 3 updating cover sheet
 
@@ -987,7 +1061,7 @@ namespace SOPManagement.Controllers
 
                     //DateTime:sop.SOPNo:start uploading file in sharepoint online SOP doc library
 
-                    //     Thread.Sleep(6000);
+                    //  Thread.Sleep(7000);
 
                     oSop.FolderName = sop.FolderName;
                     oSop.SubFolderName = sop.SubFolderName;
@@ -997,10 +1071,12 @@ namespace SOPManagement.Controllers
                     else
                         oSop.FilePath = "SOP/" + oSop.FolderName + "/" + oSop.SubFolderName + "/";
 
+
                     oSop.FileStream = System.IO.File.ReadAllBytes(oSop.FileLocalPath);
 
                     oSop.UploadDocument();
 
+                    oLogger.UpdateLogFile(DateTime.Now.ToString() + ":CreateUpload Action:Successfully uploaded SOP file in SharePoint Online SOP doc library.");
 
                     // end step 4 uploading file into sharepoint online sop doc lib
 
@@ -1010,13 +1086,17 @@ namespace SOPManagement.Controllers
                     //DateTime:sop.SOPNo:successfully uploaded file in SharePoint online SOP doc lib
 
                     //DateTime:sop.SOPNo:start updating SQL tables
-                    oSop.FileID = oSop.FileID;
+
+                    //oSop.FileID got assigned after successfull uplaod in previous step
 
                     oSop.AddChangeRequest();
-                    oSop.AddFileReviewers();
-                    oSop.AddFileApprover();
+
                     oSop.AddFileOwner();
+                    oSop.AddFileApprover();
+                    oSop.AddFileReviewers();
                     oSop.AddUpdateFreq();
+
+                    oLogger.UpdateLogFile(DateTime.Now.ToString() + ":CreateUpload Action:Successfully updated all SQL server table with owner, approver, reviewer etc.");
 
 
                     //end step 5 SQL table upate
@@ -1128,6 +1208,8 @@ namespace SOPManagement.Controllers
 
                     oSop.AssignFilePermissionToUsers("full control", "add", sop.FileOwnerEmail);
 
+                    oLogger.UpdateLogFile(DateTime.Now.ToString() + ":CreateUpload Action:Successfully assigned all permissions with SOP file in SharePoint and completed processing SOP:"+sop.SOPNo);
+
 
                     //end step 6 assiging permission to file in sharepoint
 
@@ -1162,9 +1244,8 @@ namespace SOPManagement.Controllers
                 else   //processing failed due to validation i.e. duplicate SOPNO or Session time out 
                 {
                     //log 
-                    //DateTime:sop.SOPNo:failed assigend permission and SOP processing
 
-                    //Send failed
+                    oLogger.UpdateLogFile(DateTime.Now.ToString() + ":CreateUpload Action:Failed to validate SOP entry i.e. session timed out, duplicate SOP.");
 
                     if (Session["SOPMsg"]==null || Session["SOPMsg"].ToString()=="")
                          Session["SOPMsg"] = "SOP Create/Upload:Failed to process SOP " + sop.FileName + " , please contact IT!";
@@ -1189,6 +1270,8 @@ namespace SOPManagement.Controllers
             catch (Exception ex)
             {
 
+                oLogger.UpdateLogFile(DateTime.Now.ToString() + ":CreateUpload Action:Failed uplaoding or creating SOP with error:"+ex.Message);
+
                 Session["SOPMsg"] = "SOP Create/Upload:Failed processing SOP "+ sop.FileName+" with error:" + ex.Message + " , please contact IT!";
                 return Json(new { success = false, responseText = "Failed processing SOP " + sop.FileName + " , please contact IT!" }, JsonRequestBehavior.AllowGet);
 
@@ -1198,6 +1281,7 @@ namespace SOPManagement.Controllers
             {
                 oSop = null;
                 oEmp = null;
+                oLogger = null;
 
                 GC.Collect();
             }

@@ -20,6 +20,7 @@ using Paragraph = Xceed.Document.NET.Paragraph;
 using Section = Xceed.Document.NET.Section;
 using Table = Xceed.Document.NET.Table;
 using System.Drawing;
+using System.Runtime.InteropServices;
 
 namespace SOPManagement.Models
 {
@@ -157,6 +158,69 @@ namespace SOPManagement.Models
         }
 
 
+
+        public void UpdatePrevOwnerStatus()
+        {
+
+            using (var dbcontext = new RadiantSOPEntities())
+            {
+                foreach (var result in dbcontext.fileowners.Where(b => b.fileid == FileID).ToList())
+                {
+
+                    result.ownerstatuscode = 2;    //change status 2 of previous owner of same file if a file is replaced during upload and create
+                    result.statusdate = DateTime.Today;
+                    result.statusbyuserid = Utility.GetLoggedInUserID();
+                }
+            
+                dbcontext.SaveChanges();
+                
+            }
+
+        }
+
+        public void UpdatePrevApproverStatus()
+        {
+
+            using (var dbcontext = new RadiantSOPEntities())
+            {
+                foreach (var result in dbcontext.fileapprovers.Where(b => b.fileid == FileID).ToList())
+                {
+
+                    result.approverstatuscode = 2;    //change status of previous owner if a file is replaced during upload and create
+                    result.statusdate = DateTime.Today;
+                    result.statusbyuserid = Utility.GetLoggedInUserID();
+
+                }
+
+                dbcontext.SaveChanges();
+
+            }
+
+
+        }
+
+
+        public void UpdatePrevReviewersStatus()
+        {
+            using (var dbcontext = new RadiantSOPEntities())
+            {
+                foreach (var result in dbcontext.filereviewers.Where(b => b.fileid == FileID).ToList())
+                {
+
+                    result.reviewerstatuscode = 2;    //change status of previous owner if a file is replaced during upload and create
+                    result.statusdate = DateTime.Today;
+                    result.statusbyuserid = Utility.GetLoggedInUserID();
+
+                }
+
+                dbcontext.SaveChanges();
+
+            }
+
+
+
+        }
+
         public void AddFileReviewers()
         {
 
@@ -165,6 +229,10 @@ namespace SOPManagement.Models
             int rvwrid;
 
             OperationSuccess = false;
+
+            UpdatePrevReviewersStatus();    //update previous reviewers status with 2 if same file name exists
+
+
 
             foreach (Employee rvwr in FileReviewers)
             {
@@ -280,7 +348,7 @@ namespace SOPManagement.Models
             {
                 var owneractvts = new fileownersactivity()
                 {
-                    changerequestid = FileChangeRqstID,
+                    changerequestid = FileChangeRqstID,   //got this value during creating change request
                     ownershipid = pownershipid,
                     approvalstatuscode = 2  //not signed
                                             //  statusdatetime = DateTime.Today   //no sign no date
@@ -304,6 +372,10 @@ namespace SOPManagement.Models
             emp.useremailaddress = FileApproverEmail;
             emp.GetUserByEmail();
             apprvrid = emp.userid;
+
+            // update prev approver with status code 2 for file replacement
+            UpdatePrevApproverStatus();
+
 
             using (var dbcontext = new RadiantSOPEntities())
             {
@@ -432,6 +504,13 @@ namespace SOPManagement.Models
             emp.useremailaddress = FileOwnerEmail;
             emp.GetUserByEmail();
             ownerid = emp.userid;
+
+
+            //first update previous owner if any. During upload or new creation, it happens when a file is replaced with same file name 
+            //that was created before 
+
+            UpdatePrevOwnerStatus();
+                       
 
             using (var dbcontext = new RadiantSOPEntities())
             {
@@ -564,6 +643,8 @@ namespace SOPManagement.Models
 
 
                 var wdoc = DocX.Load(savePath);
+
+                
 
                 //  add row in table and data in cell
 
@@ -1249,6 +1330,7 @@ namespace SOPManagement.Models
 
                     wdoc.Save();
 
+
                     wdoc = null;
 
                     
@@ -1300,16 +1382,25 @@ namespace SOPManagement.Models
             object path = savePath;
             Microsoft.Office.Interop.Word.Application app = new Microsoft.Office.Interop.Word.Application();
 
-           // Microsoft.Office.Interop.Word.ApplicationClass app = new ApplicationClass();
+          //  app.DisplayAlerts =WdAlertLevel.wdAlertsNone;
+
+            // Microsoft.Office.Interop.Word.ApplicationClass app = new ApplicationClass();
+
+            Microsoft.Office.Interop.Word.Document wdoc= app.Documents.Open(ref path, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj);
+
+            if (wdoc == null)
+                oLogger.UpdateLogFile(DateTime.Now.ToString() + "UpdateCoverRevhistPage:wdoc is null");
+
+
 
             try
             {
 
 
               //  System.IO.File.Copy(HttpContext.Current.Server.MapPath("~/Content/docfiles/SOPTemp.docx"), HttpContext.Current.Server.MapPath("~/Content/docfiles/" + FileName), true);
-
-                Microsoft.Office.Interop.Word.Document wdoc = app.Documents.Open(ref path, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj);
-
+                
+               
+                wdoc.TrackRevisions =false;
 
                 //  add row in table and data in cell
 
@@ -1415,10 +1506,18 @@ namespace SOPManagement.Models
                         emp.useremailaddress = rvwr.useremailaddress;
                         emp.GetUserByEmail();
 
+                        tab2.Rows[tab2.Rows.Count].Cells[1].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
                         tab2.Rows[tab2.Rows.Count].Cells[1].Range.Text = rvwr.userfullname;
+
+                        tab2.Rows[tab2.Rows.Count].Cells[2].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
                         tab2.Rows[tab2.Rows.Count].Cells[2].Range.Text = emp.userjobtitle;
+
+                        tab2.Rows[tab2.Rows.Count].Cells[3].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
                         tab2.Rows[tab2.Rows.Count].Cells[3].Range.Text = "";
+
+                        tab2.Rows[tab2.Rows.Count].Cells[4].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
                         tab2.Rows[tab2.Rows.Count].Cells[4].Range.Text = "";
+
 
                         rvwrcnt = rvwrcnt + 1;
 
@@ -1435,9 +1534,16 @@ namespace SOPManagement.Models
                     Microsoft.Office.Interop.Word.Range range3 = tab3.Range;
 
                     // Write new vaules to each cell of row 3. One row always as there will be one approver
+                    tab3.Rows[2].Cells[1].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
                     tab3.Rows[2].Cells[1].Range.Text = approverfullname;
+
+                    tab3.Rows[2].Cells[2].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
                     tab3.Rows[2].Cells[2].Range.Text = approvertitle;
+
+                    tab3.Rows[2].Cells[3].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
                     tab3.Rows[2].Cells[3].Range.Text = "";  //reset approver signature
+
+                    tab3.Rows[2].Cells[4].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
                     tab3.Rows[2].Cells[4].Range.Text = "";  //reset signdate
 
                     //end updating 3rd table for approver
@@ -1506,7 +1612,6 @@ namespace SOPManagement.Models
 
                     //    filevercount = filevercount + 1;
 
-                    //}
 
                 }
 
@@ -1519,10 +1624,16 @@ namespace SOPManagement.Models
                     footerRange.Tables[1].Cell(1, 1).Range.Text = FileTitle;
 
                 }
-                
+
+                wdoc.TrackRevisions = true;
+
                 wdoc.SaveAs2(savePath);   //save in actual file from tempalte
 
-                oLogger.UpdateLogFile(DateTime.Today.ToString("MM/dd/yyyy HH:mm:ss") + ":Successfully updated cover page");
+
+                //wdoc.Close();
+
+
+                //    oLogger.UpdateLogFile(DateTime.Now.ToString() + ":Successfully updated cover page");
 
             }
 
@@ -1530,14 +1641,37 @@ namespace SOPManagement.Models
             {
                 ErrorMessage = ex.Message;
 
-                oLogger.UpdateLogFile(DateTime.Today.ToString("MM/dd/yyyy HH:mm:ss") + ":UpdateCoverRevhistPage:Error:" + ex.Message);
+                oLogger.UpdateLogFile(DateTime.Now.ToString() + ":UpdateCoverRevhistPage:Error:" + ex.Message);
 
             }
 
             finally
             {
-                app.Application.Quit();
-                oLogger.UpdateLogFile(DateTime.Today.ToString("MM/dd/yyyy HH:mm:ss") + ":UpdateCoverRevhistPage:Application was closed successfully during cover page update:");
+
+
+
+                if (wdoc != null)
+                {
+                    wdoc.Close(false); // Close the Word Document.
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(wdoc);
+
+                }
+                if (app != null)
+                {
+                    app.Quit(false); // Close Word Application.
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(app);
+
+                }
+
+                wdoc = null;
+                app = null;
+
+                oLogger.UpdateLogFile(DateTime.Now.ToString() + ":UpdateCoverRevhistPage():Application was closed successfully during cover page update:");
+
+                oLogger = null;
+
+                GC.Collect();
+
 
             }
 
@@ -1555,14 +1689,16 @@ namespace SOPManagement.Models
 
             object missObj = System.Reflection.Missing.Value;
             object path = savePath;
+
             Microsoft.Office.Interop.Word.Application app = new Microsoft.Office.Interop.Word.Application();
+            Microsoft.Office.Interop.Word.Document wdoc = app.Documents.Open(ref path, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj);
+
 
             try
             {
 
 
-                Microsoft.Office.Interop.Word.Document wdoc = app.Documents.Open(ref path, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj);
-
+                wdoc.TrackRevisions = false;
 
                 int totalTables = wdoc.Tables.Count;
                 bool donotaddrow = false;
@@ -1584,7 +1720,7 @@ namespace SOPManagement.Models
 
                     // Write new vaules to each cell.
                     tab1.Rows[1].Cells[2].Range.Text = FileTitle;
-                    tab1.Rows[2].Cells[2].Range.Text = SOPNo;
+                 //   tab1.Rows[2].Cells[2].Range.Text = SOPNo;
                     tab1.Rows[2].Cells[4].Range.Text = FileCurrVersion;
                     tab1.Rows[3].Cells[2].Range.Text = DateTime.Today.ToString("MMMM dd, yyyy"); //current bcs it will publish now
                     tab1.Rows[4].Cells[2].Range.Text =FileOwner.userfullname;
@@ -1652,9 +1788,16 @@ namespace SOPManagement.Models
 
                             // Write new vaules to each cell.
 
+                            tab2.Rows[tab2.Rows.Count].Cells[1].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
                             tab2.Rows[tab2.Rows.Count].Cells[1].Range.Text = r.reviewername;
+
+                            tab2.Rows[tab2.Rows.Count].Cells[2].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
                             tab2.Rows[tab2.Rows.Count].Cells[2].Range.Text = r.reviewertitle;
+
+                            tab2.Rows[tab2.Rows.Count].Cells[3].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
                             tab2.Rows[tab2.Rows.Count].Cells[3].Range.Text = r.SignedStatus;
+
+                            tab2.Rows[tab2.Rows.Count].Cells[4].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
                             tab2.Rows[tab2.Rows.Count].Cells[4].Range.Text = Convert.ToDateTime(r.signeddate).ToString("MMMM dd, yyyy");
 
                             rvwrcnt = rvwrcnt + 1;
@@ -1670,9 +1813,17 @@ namespace SOPManagement.Models
                     Microsoft.Office.Interop.Word.Table tab3 = wdoc.Tables[3];
                     Microsoft.Office.Interop.Word.Range range3 = tab3.Range;
 
+
+                    tab3.Rows[2].Cells[1].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
                     tab3.Rows[2].Cells[1].Range.Text = FileApprover.userfullname;
+
+                    tab3.Rows[2].Cells[2].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
                     tab3.Rows[2].Cells[2].Range.Text =FileApprover.userjobtitle;
+
+                    tab3.Rows[2].Cells[3].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
                     tab3.Rows[2].Cells[3].Range.Text = FileApprover.signstatus;
+
+                    tab3.Rows[2].Cells[4].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
                     tab3.Rows[2].Cells[4].Range.Text = FileApprover.signaturedate.ToString("MMMM dd, yyyy");
 
 
@@ -1738,8 +1889,14 @@ namespace SOPManagement.Models
 
 
                             // Write new vaules to each cell.
+
+                            tab.Rows[tab.Rows.Count].Cells[1].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
                             tab.Rows[tab.Rows.Count].Cells[1].Range.Text = rev.RevisionNo;
+
+                            tab.Rows[tab.Rows.Count].Cells[2].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
                             tab.Rows[tab.Rows.Count].Cells[2].Range.Text = rev.RevisionDate.ToString("MMMM dd, yyyy");
+
+                            tab.Rows[tab.Rows.Count].Cells[3].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
                             tab.Rows[tab.Rows.Count].Cells[3].Range.Text = rev.Description;
 
                             filevercount = filevercount + 1;
@@ -1762,24 +1919,45 @@ namespace SOPManagement.Models
 
                 }
 
+                wdoc.TrackRevisions = true;
+
                 wdoc.SaveAs2(savePath);   //save in actual file from tempalte
-
-                oLogger.UpdateLogFile(DateTime.Today.ToString("MM/dd/yyyy HH:mm:ss") + ":UpdateCoverRevhistPage(publish true):Interop successfuly saved doc file");
-
 
             }
 
             catch (Exception ex)
             {
                 ErrorMessage = ex.Message;
-                oLogger.UpdateLogFile(DateTime.Today.ToString("MM/dd/yyyy HH:mm:ss") + ":UpdateCoverRevhistPage(publish true):Error:" + ex.Message);
+                oLogger.UpdateLogFile(DateTime.Now.ToString() + ":UpdateCoverRevhistPage(publish true):Failed to update cover page with error:" + ex.Message);
 
+                throw ex;
             }
 
             finally
             {
-                app.Application.Quit();
-                oLogger.UpdateLogFile(DateTime.Today.ToString("MM/dd/yyyy HH:mm:ss") + ":UpdateCoverRevhistPage(publish true):Interop closed word application successfully");
+
+
+                if (wdoc != null)
+                {
+                    wdoc.Close(false); // Close the Word Document.
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(wdoc);
+
+                }
+                if (app != null)
+                {
+                    app.Quit(false); // Close Word Application.
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(app);
+
+                }
+
+                wdoc = null;
+                app = null;
+
+                oLogger.UpdateLogFile(DateTime.Now.ToString() + ":UpdateCoverRevhistPage(Publish true):Application was closed successfully during cover page update:");
+
+                oLogger = null;
+
+                GC.Collect();
 
             }
 
@@ -2017,9 +2195,7 @@ namespace SOPManagement.Models
                 fileCreationInformation.Url = SiteUrl +"/"+ FilePath + FileName;
                 Microsoft.SharePoint.Client.File uploadFile = documentsList.RootFolder.Files.Add(fileCreationInformation);
 
-                //Update the metadata for a field having name "SOPNO"
-                //  string loginname = "tshaikh@radiantdelivers.com";
-                 //string loginname = userName;   //email address of site admin
+              //  Update the metadata for a field having name "SOPNO", file owner
 
                 User theUser = clientContext.Web.SiteUsers.GetByEmail(FileOwner.useremailaddress);
 
@@ -2028,7 +2204,7 @@ namespace SOPManagement.Models
 
 
 
-                uploadFile.ListItemAllFields["SOPNO"] = SOPNo;
+               uploadFile.ListItemAllFields["SOPNO"] = SOPNo;
 
 
                 uploadFile.ListItemAllFields.Update();
@@ -2844,7 +3020,7 @@ namespace SOPManagement.Models
 
             {
                 pdone = false;
-                ErrorMessage = ".It is already published";
+                ErrorMessage = "It is already published";
 
             }
 

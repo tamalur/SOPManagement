@@ -51,7 +51,7 @@
 
     @*Add this JavaScript in _Layout (when session end 1 minute before this code makes redirect, it makes count time after user last action, not first visit on site)*@
 
-    <script>
+    @*<script>
     //session end
     var sessionTimeoutWarning = @Session.Timeout- 1;
 
@@ -75,7 +75,7 @@
             myTimeReminder = setTimeout('doReminder()', sessionTimeReminder);
             myTimeOut = setTimeout('doRedirect()', sessionTimeout);
         } 
-    </script>
+    </script>*@
 
 </body>
 </html>

@@ -74,7 +74,8 @@ namespace SOPManagement.Models
 
             using (var dbctx = new RadiantSOPEntities())
             {
-                ownershipid = dbctx.fileowners.Where(o => o.ownerid == LoggedInUserID && o.fileid==FileID).Select(o => o.ownershipid).FirstOrDefault();
+                //verify logged in user is activer owner
+                ownershipid = dbctx.fileowners.Where(o => o.ownerid == LoggedInUserID && o.fileid==FileID && o.ownerstatuscode==1).Select(o => o.ownershipid).FirstOrDefault();
 
                 owneractvityid = dbctx.fileownersactivities.Where(o => o.ownershipid == ownershipid && o.changerequestid == ChangeRequestID).Select(o => o.owneractivityid).FirstOrDefault();
                 OwnerActivityID = owneractvityid;
@@ -91,7 +92,7 @@ namespace SOPManagement.Models
 
             using (var dbctx = new RadiantSOPEntities())
             {
-                approveid = dbctx.fileapprovers.Where(o => o.approverid == LoggedInUserID && o.fileid == FileID).Select(o => o.approveid).FirstOrDefault();
+                approveid = dbctx.fileapprovers.Where(o => o.approverid == LoggedInUserID && o.fileid == FileID && o.approverstatuscode==1).Select(o => o.approveid).FirstOrDefault();
 
                 aprvractvityid = dbctx.fileapproversactivities.Where(o => o.approveid == approveid && o.changerequestid == ChangeRequestID).Select(o => o.approveractivityid).FirstOrDefault();
                 ApproverActivityID = aprvractvityid;
@@ -108,7 +109,7 @@ namespace SOPManagement.Models
 
             using (var dbctx = new RadiantSOPEntities())
             {
-                reviewid = dbctx.filereviewers.Where(o => o.reviewerid == LoggedInUserID && o.fileid == FileID).Select(o => o.reviewid).FirstOrDefault();
+                reviewid = dbctx.filereviewers.Where(o => o.reviewerid == LoggedInUserID && o.fileid == FileID && o.reviewerstatuscode==1).Select(o => o.reviewid).FirstOrDefault();
 
                 rvwractvityid = dbctx.filereviewersactivities.Where(o => o.reviewid == reviewid && o.changerequestid == ChangeRequestID).Select(o => o.revieweractivityid).FirstOrDefault();
                 ReviewerActivityID = rvwractvityid;

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security;
 using System.Web;
 
+
 namespace SOPManagement.Models
 {
     public static class  Utility
@@ -187,27 +188,39 @@ namespace SOPManagement.Models
         //Session.IsNewSession property tells us if session is created during current request or not.
         //If value is true, it is a new session.If value is false, it is existing active session created before.
 
+        //public static bool IsSessionExpired()
+        //{
+        //    if (System.Web.HttpContext.Current.Session != null)
+        //    {
+        //        if (System.Web.HttpContext.Current.Session.IsNewSession)
+        //        {
+        //            string CookieHeaders = System.Web.HttpContext.Current.Request.Headers["Cookie"];
+
+        //            if ((null != CookieHeaders) && (CookieHeaders.IndexOf("ASP.NET_SessionId") >= 0))
+        //            {
+        //                // IsNewSession is true, but session cookie exists,
+        //                // so, ASP.NET session is expired
+        //                return true;
+        //            }
+        //        }
+        //    }
+
+        //    // Session is not expired and function will return false,
+        //    // could be new session, or existing active session
+        //    return false;
+        //}
+
         public static bool IsSessionExpired()
         {
-            if (System.Web.HttpContext.Current.Session != null)
-            {
-                if (System.Web.HttpContext.Current.Session.IsNewSession)
-                {
-                    string CookieHeaders = System.Web.HttpContext.Current.Request.Headers["Cookie"];
+            bool isSessionOut = false;
 
-                    if ((null != CookieHeaders) && (CookieHeaders.IndexOf("ASP.NET_SessionId") >= 0))
-                    {
-                        // IsNewSession is true, but session cookie exists,
-                        // so, ASP.NET session is expired
-                        return true;
-                    }
-                }
-            }
+            if (HttpContext.Current.Session["UserFullName"] == null)
+                isSessionOut = true;
 
-            // Session is not expired and function will return false,
-            // could be new session, or existing active session
-            return false;
+            return isSessionOut;
+
         }
+
 
 
         public static bool IsNumeric(string value)
