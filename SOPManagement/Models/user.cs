@@ -21,5 +21,6 @@ namespace SOPManagement.Models
         public Nullable<short> userstatuscode { get; set; }
         public string userfullname { get; set; }
         public string jobtitle { get; set; }
+        public Nullable<short> subdeptcode { get; set; }
     }
 }

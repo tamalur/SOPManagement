@@ -33,6 +33,7 @@
         <EntityTypeShape EntityType="RadiantYYZModel.vwOwnerSignature" Width="1.5" PointX="13.375" PointY="7.75" />
         <EntityTypeShape EntityType="RadiantYYZModel.vwRvwrsSignature" Width="1.5" PointX="13.375" PointY="11.75" />
         <EntityTypeShape EntityType="RadiantYYZModel.codesSOPDepartment" Width="1.5" PointX="15.375" PointY="0.75" />
+        <EntityTypeShape EntityType="RadiantYYZModel.vwOwnrsSOPDeptCode" Width="1.5" PointX="0.75" PointY="15.75" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

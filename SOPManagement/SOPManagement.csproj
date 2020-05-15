@@ -261,6 +261,7 @@
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\Logger.cs" />
+    <Compile Include="Models\SessionTimeoutAttribute.cs" />
     <Compile Include="Models\SOPClass.cs" />
     <Compile Include="Models\SOPEDM.Context.cs">
       <AutoGen>True</AutoGen>
@@ -292,6 +293,9 @@
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\vwOwnerSignature.cs">
+      <DependentUpon>SOPEDM.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\vwOwnrsSOPDeptCode.cs">
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\vwRvwrsSignature.cs">
@@ -422,6 +426,7 @@
     <Content Include="Views\Home\CleintServerErr.cshtml" />
     <Content Include="Views\Home\SOPChngeRequest.cshtml" />
     <Content Include="Views\Home\SOPNoAcessMsg.cshtml" />
+    <Content Include="Views\Home\LogIn.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

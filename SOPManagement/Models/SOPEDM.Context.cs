@@ -55,6 +55,7 @@ namespace SOPManagement.Models
         public virtual DbSet<vwOwnerSignature> vwOwnerSignatures { get; set; }
         public virtual DbSet<vwRvwrsSignature> vwRvwrsSignatures { get; set; }
         public virtual DbSet<codesSOPDepartment> codesSOPDepartments { get; set; }
+        public virtual DbSet<vwOwnrsSOPDeptCode> vwOwnrsSOPDeptCodes { get; set; }
     
         public virtual ObjectResult<Nullable<int>> sp_getSOPNo(string deptfolder, string deptsubfolder)
         {

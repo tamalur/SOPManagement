@@ -11,34 +11,60 @@ using SOPManagement.Models;
 //this controller was developed by Tamalur from April 10 to April 22, 2020
 namespace SOPManagement.Controllers
 {
+   
+   
     [Authorize]
-    public class HomeController : Controller
+    public class HomeController : BaseController
     {
-
-        //string siteurl = "https://radiantdelivers.sharepoint.com/sites/watercooler";
 
         string siteurl = Utility.GetSiteUrl();
 
         RadiantSOPEntities ctx = new RadiantSOPEntities();
-     
 
+        
         public ActionResult Index()
         {
 
-            Session["UserFullName"] = Utility.GetLoggedInUserFullName();
+            if (Utility.IsSessionExpired())
+            {
+
+                return RedirectToAction("LogIn");
+
+
+            }
+
+
+            return View();
+        }
+        public ActionResult LogIn()
+        {
 
             return View();
         }
 
         public ActionResult About()
         {
+
+            if (Utility.IsSessionExpired())
+                return RedirectToAction("LogIn");
+
             ViewBag.Message = "Your application description page.";
 
             return View();
         }
 
+       
         public ActionResult Contact()
         {
+
+            if (Utility.IsSessionExpired())
+            {
+
+                return RedirectToAction("LogIn");
+
+
+            }
+
             ViewBag.Message = "Your contact page.";
 
             return View();
@@ -62,25 +88,33 @@ namespace SOPManagement.Controllers
         }
 
 
+        public ActionResult CleintServerErr()
+        {
+            if (Session["UserFullName"] == null)
+                return RedirectToAction("LogIn");
+
+            return View();
+        }
+
+
         public ActionResult LogOff()
         {
-            Session["UserID"] = null; //it's my session variable
+            Session["UserFullName"] = null; //it's my session variable
             Session.Clear();
             Session.Abandon();
         //    FormsAuthentication.SignOut(); //you write this when you use FormsAuthentication
-            return RedirectToAction("Sessionouterr", "Home");
+            return RedirectToAction("LogIn", "Home");
         }
         public ActionResult CreateUploadSOPAuth()
         {
 
-            Session["SOPMsg"] = "";
 
             if (Utility.IsSessionExpired())
             {
 
-                ViewBag.ErrorMessage = "SOP Application: Session not Timed out";
-                Session["SOPMsg"] = "SOP Application: Session not Timed out";
-                return RedirectToAction("SOPMessage");
+                //ViewBag.ErrorMessage = "SOP Application: Session not Timed out";
+                //Session["SOPMsg"] = "SOP Application: Session not Timed out";
+                return RedirectToAction("LogIn");
 
 
             }
@@ -117,18 +151,6 @@ namespace SOPManagement.Controllers
         }
 
 
-        [HttpGet]
-        public ActionResult CleintServerErr(string resp)
-        {
-            ViewBag.CSError = resp;
-            
-            return View();
-
-        }
-
-
-
-
 
         public ActionResult ApproveSOP(int? id)
         {
@@ -163,17 +185,13 @@ namespace SOPManagement.Controllers
 
             {
 
+
                 if (Utility.IsSessionExpired())
-                {
-
-                    //ViewBag.ErrorMessage = "SOP Application: Session not Timed out";
-                    Session["SOPMsg"] = "SOP Sign: Session timed out";
-                    return RedirectToAction("SOPMessage");
-
-                }
+                    return RedirectToAction("LogIn");
 
 
-                 loggedinusereml = Utility.GetCurrentLoggedInUserEmail();
+
+                loggedinusereml = Utility.GetCurrentLoggedInUserEmail();
                  loggedinuserid = Utility.GetLoggedInUserID();
 
                 //loggedinusereml = "student05@radiantdelivers.com";
@@ -345,6 +363,11 @@ namespace SOPManagement.Controllers
 
             {
 
+                if (Utility.IsSessionExpired())
+                    return RedirectToAction("LogIn");
+
+
+
                 if (TempData["ChangeIReqID"] != null && TempData["ChangeIReqID"].ToString() != "")
                 {
 
@@ -417,11 +440,22 @@ namespace SOPManagement.Controllers
         public ActionResult SOPDashboard()
         {
             // do your logging here
+
+            if (Utility.IsSessionExpired())
+                return RedirectToAction("LogIn");
+
+
             return Redirect("http://camis1-bioasp01/Reports/Pages/Report.aspx?ItemPath=%2fSOP+Reports%2fSOP+Dashboard");
         }
 
         public ActionResult UploadSOPFile()
         {
+
+            if (Utility.IsSessionExpired())
+                return RedirectToAction("LogIn");
+
+
+
             ViewBag.Message = "Upload SOP File";
 
 
@@ -472,41 +506,36 @@ namespace SOPManagement.Controllers
             SOPClass oSOP = new SOPClass();
 
 
+            string templocaldirpath; 
+
+            oSOP.SiteUrl = siteurl;
+            oSOP.FileID = id;
+            oSOP.DocumentLibName = "SOP";
+            oSOP.FileChangeRqstID = changereqid;
+
+
 
             try
             {
+
+                templocaldirpath = Server.MapPath(Utility.GetTempLocalDirPath());
+
                 oLogger.UpdateLogFile(DateTime.Now.ToString() + ":Publish SOP Action:Started publishing with File ID:" + id.ToString()+", change request id:"+ changereqid.ToString());
 
 
                 if (Utility.IsSessionExpired())
-                {
-
-                    // ViewBag.ErrorMessage = "SOP Application: Session not Timed out";
-
-                    Session["SOPMsg"] = "SOP Publish:Error - Session timed out";
-
-                    return RedirectToAction("SOPMessage");
-
-                }
-
+                    return RedirectToAction("LogIn");
 
 
                 //start validating logged in user and SOP
 
-                //oEmp.useremailaddress = Utility.GetCurrentLoggedInUserEmail();
+                if (!oSOP.AuthenticateUser("publish"))   //only approver can publish a signed SOP
 
-                // Session["UserEmail"] = oEmp.useremailaddress;
+                {
 
-
-                //if (!oEmp.AuthenticateUser("approver", id))   //only approver can publish a signed SOP
-
-                //{
-
-                //    Session["SOPMsg"] = "Failed to authenticate user as an approver of the file.Please contact IT!";
-                //    return RedirectToAction("SOPMessage");
-                //}
-
-
+                    Session["SOPMsg"] = "Failed to authenticate user as an approver of the file.Please contact IT!";
+                    return RedirectToAction("SOPMessage");
+                }
 
 
 
@@ -520,13 +549,6 @@ namespace SOPManagement.Controllers
                 }
 
                 //assign SOP basic info
-
-                string templocaldirpath = Server.MapPath(Utility.GetTempLocalDirPath());
-
-                oSOP.SiteUrl = siteurl;
-                oSOP.FileID = id;
-                oSOP.DocumentLibName = "SOP";
-                oSOP.FileChangeRqstID = changereqid;
 
                 oSOP.GetSOPInfo();  //get updated reviewers, approver, owner, version, file name etc.
 
@@ -595,10 +617,18 @@ namespace SOPManagement.Controllers
 
                     // at last update status to approve in the so employees with given read access can access it
 
+
+                    //reassing approvers permission as reader before publishing
+
+                    oSOP.ViewAccessType = "Inherit";
+
+                    oSOP.AssignSignatoresReadPermission();
+
+
                     if (oSOP.PublishFile())
                     {
 
-                        oLogger.UpdateLogFile(DateTime.Now.ToString() + ":Publish SOP Action:Successfully published (approved) SOP in SharePoint Online SOP Library.");
+                       oLogger.UpdateLogFile(DateTime.Now.ToString() + ":Publish SOP Action:Successfully published (approved) SOP in SharePoint Online SOP Library.");
 
                         Session["SOPMsg"] = "SOP Publish: SOP " + oSOP.FileName + " has been successfully published!";
 
@@ -655,6 +685,10 @@ namespace SOPManagement.Controllers
             //give this url to Elhadj to link to dashboard
             // http://localhost:58639/Home/PublishFile/40?chngreqid=6
 
+            if (Utility.IsSessionExpired())
+                return RedirectToAction("LogIn");
+
+
 
             string changereqid = Request.QueryString["chngreqid"];
 
@@ -674,6 +708,12 @@ namespace SOPManagement.Controllers
         {
 
 
+
+            if (Utility.IsSessionExpired())
+                return RedirectToAction("LogIn");
+
+
+
             //http://localhost:58639/Home/SOPChngeRequest/92
 
             int id = 0;  //file id will be provide through dashboad
@@ -687,7 +727,7 @@ namespace SOPManagement.Controllers
             int aproveid = 0;
 
 
-            oSOP.FileID = id;
+            oSOP.FileID = id;   //asign file id
             Session["SOPMsg"] = "";
 
 
@@ -698,7 +738,7 @@ namespace SOPManagement.Controllers
                 //if not redirect to unauthenticated message page
                 //otherwise proceed with change request
 
-                if (!oSOP.AuthenticateChangeRequest())
+                if (!oSOP.AuthenticateUser("changerequest"))
                  {
                     Session["SOPMsg"] = "SOP Change Request: Failed to authenticate you to make a change request since your are not owner, approver, or reviewer of this SOP."; 
 
@@ -725,6 +765,7 @@ namespace SOPManagement.Controllers
 
                     {
 
+                    oSOP.SiteUrl = siteurl;
 
                     oSOP.FileChangeRqsterID = Utility.GetLoggedInUserID();
 
@@ -740,6 +781,16 @@ namespace SOPManagement.Controllers
 
                     oSOP.AddRvwractvtsWithChngRqst();
 
+                    //reassign edit permission permissions to all current signatories with new change request
+                    //so they can start editing file
+
+
+                    oSOP.GetSOPInfo();
+
+                    //we must inheirt permissions so we don't loose previous permissions
+                    oSOP.ViewAccessType = "Inherit";
+
+                    oSOP.AssignSigatoriesPermission();
 
                     Session["SOPMsg"] = "SOP Change Request: Successfully submitted change request with this SOP! You can change SOP through Dashboard now.";
 
@@ -779,6 +830,10 @@ namespace SOPManagement.Controllers
             // http://localhost:58639/Home/SOPChngeRequest/97
 
 
+            if (Utility.IsSessionExpired())
+                return RedirectToAction("LogIn");
+
+
             TempData["FileID"] = id;
 
 
@@ -798,13 +853,17 @@ namespace SOPManagement.Controllers
         public ActionResult CreateUploadSOP()
         {
 
+            if (Utility.IsSessionExpired())
+                return RedirectToAction("LogIn");
+
+
 
             //run this protect configuration to encrypt config file so hacker cannot read 
             //sensitive data even they get the config file
             //run this just one time to encrypt or one time to dycript
 
-          //  Utility.ProtectConfiguration();
-           // Utility.UnProtectConfiguration();   //dycrip it when you need to change any data in config file
+            //  Utility.ProtectConfiguration();
+            // Utility.UnProtectConfiguration();   //dycrip it when you need to change any data in config file
 
             // ViewBag.Title = "Upload or Create SOP";  //I assigned in cshtml file
 
@@ -828,6 +887,11 @@ namespace SOPManagement.Controllers
         {
 
 
+            //if (Utility.IsSessionExpired())
+            //    return RedirectToAction("LogIn");
+
+
+
             //run this protect configuration to encrypt config file so hacker cannot read 
             //sensitive data even they get the config file
             //run this just one time to encrypt or one time to dycript
@@ -836,10 +900,11 @@ namespace SOPManagement.Controllers
 
 
             SOPClass oSop = new SOPClass();
+
             Employee oEmp = new Employee();
 
             string user = "";
-            string loggedinusereml = "";
+          //  string loggedinusereml = "";
 
 
             Logger oLogger = new Logger();
@@ -868,85 +933,88 @@ namespace SOPManagement.Controllers
                 //1. [Authorized] attribute at the top of action authorizes the user by sopadmin role in domain 
                 // then check if session is expired, if so redirect to session timeout page. 
 
+                string failurename="";
 
                 Session["SOPMsg"] = "";
 
                 if (Utility.IsSessionExpired())
                 {
 
-                    Session["SOPMsg"] = "SOP Create/Upload: Error - SOP Create/Upload: Session timed out";
+                   // Session["SOPMsg"] = "SOP Create/Upload: Error - SOP Create/Upload: Session timed out";
 
                     bProcessCompleted = false;
+
+                    failurename = "sessiontimeout";
                 }
 
                 if (bProcessCompleted)
                 {
 
-                    loggedinusereml = Utility.GetCurrentLoggedInUserEmail();
+                //    loggedinusereml = Utility.GetCurrentLoggedInUserEmail();
 
-                    // we turend off this code as I am authorizing through [Authorize]
-                    //check admin user access, if not admin redirect to error page
+                    oSop.FolderName = sop.FolderName;
+                    oSop.SubFolderName = sop.SubFolderName;
+
+                    //now authenticate the logged in user by Folder name 
 
 
-                    //bool isadmin = false;
+                     //I turned it off as this is managed in client side ajax control in folder change event   
 
-                    //isadmin = emp.AuthenticateUser("admin", loggedinusereml);
-
-                    //if (!isadmin)
+                    //if (!oSop.AuthenticateUser("createupload"))
                     //{
+                    //    Session["SOPMsg"] = "SOP Create/Upload: Error - You are not authorized to create/upload SOP. Only owner of any file of the selected department can upload/create SOP.";
 
-                    //    Session["ErrorMsg"] = "SOP Application: Only admin user has access to this page. You are not a admin user. Please contact SOP team for access!";
-                    //    return Json(new { redirecturl = "/Home/RedirectForErr" }, JsonRequestBehavior.AllowGet);
+
+                    //    bProcessCompleted = false;
+
+                    //    failurename = "accessdenied";
+
 
                     //}
 
-                    //emp = null;
 
-                    //2. if the doc file is new then copy sop template with new file name
-                    //or if user uploads exsiting doc file with new template is uplaoded, then copy the uploaded
-                    //file into project folder
-
-                    //log DateTime:sop.SOPNO: start collecting user email
-
-                    // Employee emp = new Employee();
-
-                    //get values from view
-
-
-                    oEmp.useremailaddress = loggedinusereml;
-
-                    oEmp.GetUserByEmail();
-
-                    oSop.FileChangeRqsterID = oEmp.userid;
-
-                    oSop.DocumentLibName = "SOP";
-
-                    oSop.SOPNo = sop.SOPNo;
-
-                    //check duplicate SOP NO in DB table [deptsopfiles]
-                    //it could be happened if in same directory last file was uploaded in 
-                    //sharepoint online but data was not updated in DB through ms flow
-                    //for delayed or broken process between SP and DB
-                    //in this situation send error message that Last file upload is not 
-                    //completed successfuly, please refresh Dashboard and check last file 
-                    //was uploaed with this SOP NO 
-
-                    if (oSop.HasDuplicateSOPNOInDB())
-
+                    if (bProcessCompleted)
                     {
 
+                        //oEmp.useremailaddress = loggedinusereml;
 
-                        Session["SOPMsg"] = "SOP Create/Upload: Error - " + oSop.SOPNo + " is duplicated. Last SOP processing has not been completed yet." +
-                           " Please go to dashboard, refresh and check the same SOP No is in dash board with last file upload. If you still get this error " +
-                           " please contact IT";
+                        //oEmp.GetUserByEmail();
+
+                        //oSop.FileChangeRqsterID = oEmp.userid
+
+                        oSop.FileChangeRqsterID = Utility.GetLoggedInUserID();
+
+                        oSop.DocumentLibName = "SOP";
+
+                        oSop.SOPNo = sop.SOPNo;
 
 
-                        bProcessCompleted = false;
+                        //check duplicate SOP NO in DB table [deptsopfiles]
+                        //it could be happened if in same directory last file was uploaded in 
+                        //sharepoint online but data was not updated in DB through ms flow
+                        //for delayed or broken process between SP and DB
+                        //in this situation send error message that Last file upload is not 
+                        //completed successfuly, please refresh Dashboard and check last file 
+                        //was uploaed with this SOP NO 
+
+                        if (oSop.HasDuplicateSOPNOInDB())
+
+                        {
+
+
+                            Session["SOPMsg"] = "SOP Create/Upload: Error - " + oSop.SOPNo + " is duplicated. Last SOP processing has not been completed yet." +
+                               " Please go to dashboard, refresh and check the same SOP No is in dash board with last file upload. If you still get this error " +
+                               " please contact IT";
+
+
+                            bProcessCompleted = false;
+
+                            failurename = "duplicatesop";
+
+                        }
 
                     }
-
-                }  //end checking if session is alive
-
+                }   //end checking if session is alive
 
                 if (bProcessCompleted)
                 {
@@ -1033,10 +1101,10 @@ namespace SOPManagement.Controllers
                     oSop.Updfrequnitcode = sop.Updfrequnitcode;
                     // oSop.SOPEffectiveDate = Convert.ToDateTime(sop.SOPEffectiveDate);
 
-                    Employee oFileOwner = new Employee();
-                    oFileOwner.useremailaddress = sop.FileOwnerEmail;
-                    oFileOwner.GetUserByEmail();
-                    oSop.FileOwner = oFileOwner;
+                    //Employee oFileOwner = new Employee();
+                    //oFileOwner.useremailaddress = sop.FileOwnerEmail;
+                    //oFileOwner.GetUserByEmail();
+                    //oSop.FileOwner = oFileOwner;
 
 
                     oSop.FileLocalPath = tmpfiledirmappath + oSop.FileName;
@@ -1081,8 +1149,6 @@ namespace SOPManagement.Controllers
 
                     //  Thread.Sleep(7000);
 
-                    oSop.FolderName = sop.FolderName;
-                    oSop.SubFolderName = sop.SubFolderName;
 
                     if (oSop.SubFolderName == "")
                         oSop.FilePath = "SOP/" + oSop.FolderName + "/";
@@ -1206,25 +1272,14 @@ namespace SOPManagement.Controllers
 
                     }
 
+                    //give read permission to sinatories so they cannot modify file before submitting any change request.
 
-                    //give contribute permission to all reviewers
+                    //oSop.AssignFilePermissionToUsers("read", "add", rvwrItems);
+                    //oSop.AssignFilePermissionToUsers("read", "add", sop.FileApproverEmail);
+                    //oSop.AssignFilePermissionToUsers("read", "add", sop.FileOwnerEmail);
 
-                    //  oSop.AssignFilePermission("add", "contribute", rvwrItems);
-
-                    oSop.AssignFilePermissionToUsers("contribute", "add", rvwrItems);
-
-                    //give edit permission to approver
-
-
-                    //  oSop.AssignFilePermission("add", "edit", sop.FileApproverEmail);
-
-                    oSop.AssignFilePermissionToUsers("edit", "add", sop.FileApproverEmail);
-
-                    //give full permission to owner
-
-                    //oSop.AssignFilePermission("add", "full control", sop.FileOwnerEmail);
-
-                    oSop.AssignFilePermissionToUsers("full control", "add", sop.FileOwnerEmail);
+                   
+                    oSop.AssignSigatoriesPermission();
 
                     oLogger.UpdateLogFile(DateTime.Now.ToString() + ":CreateUpload Action:Successfully assigned all permissions with SOP file in SharePoint and completed processing SOP:"+sop.SOPNo);
 
@@ -1268,11 +1323,14 @@ namespace SOPManagement.Controllers
                     if (Session["SOPMsg"]==null || Session["SOPMsg"].ToString()=="")
                          Session["SOPMsg"] = "SOP Create/Upload:Failed to process SOP " + sop.FileName + " , please contact IT!";
 
-                    // sop.ErrorMessage = "Failed to process SOP with error:" + sop.ErrorMessage + ". Please try again or Contact IT";
 
-                      return Json(new { success = false, responseText = "Failed processing SOP " + sop.FileName + " , please contact IT!" }, JsonRequestBehavior.AllowGet);
+                    if (failurename=="sessiontimeout")
+                      return Json(new { success = false, responseText = "sessontimeout" }, JsonRequestBehavior.AllowGet);
 
-                    
+                    else if (failurename == "duplicatesop")
+                        return Json(new { success = false, responseText = "duplicatesop" }, JsonRequestBehavior.AllowGet);
+                    else
+                        return Json(new { success = false, responseText = "othererror" }, JsonRequestBehavior.AllowGet);
                 }
 
                 //if any server failutre to send requested response other than OK 200 code then ajax will raise error event
@@ -1340,6 +1398,25 @@ namespace SOPManagement.Controllers
 
         public ActionResult GetSubFolderList(string foldername)
         {
+
+
+            //SOPClass oSOP = new SOPClass();
+
+            //oSOP.FolderName = foldername;
+
+
+            //if (!oSOP.AuthenticateUser("createupload"))
+            //{
+            //    Session["SOPMsg"] = "SOP Create/Upload: Error - You are not authorized to create/upload SOP. Only owner of any file of the selected department can upload/create SOP.";
+
+            //    return RedirectToAction("SOPMessage");
+
+
+
+            //}
+
+            //oSOP = null;
+
             List<SOPClass> subfolderlist;
 
             using (RadiantSOPEntities ctx = new RadiantSOPEntities())
@@ -1381,6 +1458,33 @@ namespace SOPManagement.Controllers
                 return Json(new { success = true, sopno = lsopno });
             else
                 return Json(new { success = false });
+
+        }
+
+
+        public JsonResult AuthenticateUpload(string foldername)
+        {
+
+            SOPClass oSOP = new SOPClass();
+            oSOP.FolderName = foldername;
+
+
+            //now authenticate the logged in user by Folder name 
+
+
+            if (!oSOP.AuthenticateUser("createupload"))
+            {
+                Session["SOPMsg"] = "SOP Create/Upload: Error - You are not authorized to create/upload SOP. Only owner of any file of the selected department can upload/create SOP.";
+
+                oSOP = null;
+                return Json(new { success = false, message = "SOP Create/Upload: Error - You are not authorized to create/upload SOP" });
+            }
+            else
+            {
+                oSOP = null;
+                return Json(new { success = true, message = "yes" });
+            }
+             
 
         }
 
@@ -1689,4 +1793,64 @@ namespace SOPManagement.Controllers
         }
     }
 
+
+    public class BaseController : Controller
+
+    {
+
+        protected override void OnActionExecuting (ActionExecutingContext filterContext)
+
+        {
+
+            // If session exists
+
+            if (filterContext.HttpContext.Session != null)
+
+            {
+
+                //if new session
+
+                if (filterContext.HttpContext.Session.IsNewSession)
+
+                {
+
+                    //for brand new session IsNewSession will be true and cookie will be null 
+                    //for expired session IsNewSession will be true and cookie will not be null for previous session
+
+                    string cookie = filterContext.HttpContext.Request.Headers["Cookie"];
+
+                    //if cookie exists and sessionid index is greater than zero
+
+                    if ((cookie != null) && (cookie.IndexOf("ASP.NET_SessionId") >= 0))
+
+                    {
+
+                        //redirect to desired session 
+
+                        //expiration action and controller
+
+                        filterContext.Result = RedirectToAction("LogIn", "Home");
+
+                        return;
+
+                    }
+
+                    else
+                        HttpContext.Session["UserFullName"] = Utility.GetLoggedInUserFullName();
+
+                }
+
+            }
+
+            //otherwise continue with action
+
+            base.OnActionExecuting(filterContext);
+
+        }
+
+    }
+
 }
+
+
+

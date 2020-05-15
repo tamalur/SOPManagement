@@ -350,58 +350,86 @@
 
                 var ifoldername = $(this).val();
 
-                $.ajax(
-                    {
-
-                        type: "post",
-                        url: "/Home/GetSubFolderList?foldername=" + ifoldername,
-                        contentType: "html",
-                        success: function (response) {
-                            //  debugger
-                            $("#SubFolderName").empty();
-                            $("#SubFolderName").append(response);
-
-                        }  //end success
-
-                    })    //end ajax call function for getting subfolders by selected folder
-
 
                 $.ajax(
                     {
-
                         type: "post",
-                        url: "/Home/GetSOPNO",
+                        url: "/Home/AuthenticateUpload?foldername=" + ifoldername,
                         contentType: 'application/json',
                         dataType: 'json',
-                        data: JSON.stringify({ foldername: ifoldername, subfoldername: "" }),
-
-                        success: function (data) {
-                            //  debugger
-                            if (data.success) {
-
-                                //  document.getElementById("newsopno").value = data.sopno;
-
-
-                                var n1 = ifoldername.indexOf("(");
-
-                                var n2 = ifoldername.indexOf(")");
-
-
-                                var sopcode = ifoldername.substring(n1 + 1, n2);
-
-                                var currsopno = parseInt(data.sopno) + 1;
-
-                                newsopno = sopcode + "-" + zeroPad(currsopno, 2);
-                                document.getElementById("SOPNo").value = newsopno;
-
-
+                        success: function(data)
+                        {
+                            if (data.success == false) {
+                               // window.location.href = '@Url.Action("SOPMessage", "Home")';
+                                document.getElementById("SOPNo").value = "";
+                                document.getElementById("btnsubmit").disabled = true; 
+                                alert(data.message)
                             }
+
                             else {
-                                alert('invalid SOP' + data.success);
+
+                                document.getElementById("btnsubmit").disabled = false; 
+
+                                $.ajax(
+                                    {
+
+                                        type: "post",
+                                        url: "/Home/GetSubFolderList?foldername=" + ifoldername,
+                                        contentType: "html",
+                                        success: function (response) {
+                                            //  debugger
+                                            $("#SubFolderName").empty();
+                                            $("#SubFolderName").append(response);
+
+                                        }  //end success
+
+                                    })    //end ajax call function for getting subfolders by selected folder
+
+
+                                $.ajax(
+                                    {
+
+                                        type: "post",
+                                        url: "/Home/GetSOPNO",
+                                        contentType: 'application/json',
+                                        dataType: 'json',
+                                        data: JSON.stringify({ foldername: ifoldername, subfoldername: "" }),
+
+                                        success: function (data) {
+                                            //  debugger
+                                            if (data.success) {
+
+                                                //  document.getElementById("newsopno").value = data.sopno;
+
+
+                                                var n1 = ifoldername.indexOf("(");
+
+                                                var n2 = ifoldername.indexOf(")");
+
+
+                                                var sopcode = ifoldername.substring(n1 + 1, n2);
+
+                                                var currsopno = parseInt(data.sopno) + 1;
+
+                                                newsopno = sopcode + "-" + zeroPad(currsopno, 2);
+                                                document.getElementById("SOPNo").value = newsopno;
+
+
+                                            }
+                                            else {
+                                                alert('invalid SOP' + data.success);
+                                            }
+                                        }
+                                    })  //end ajax call for getting new SOPNo by folder name
+
+
                             }
                         }
-                    })  //end ajax call for getting new SOPNo by folder name
+                    })
 
+
+
+  
             })   //end folder change function
 
             $("#SubFolderName").change(function () {
@@ -906,12 +934,16 @@
  
                         @*window.location.href = '@Url.Action("SOPMessage", "Home")/' + id;*@
 
-                        window.location.href = '@Url.Action("SOPMessage", "Home")';
+                        if (response.success == false && response.responseText == "sessiontimeout")
+                            window.location.href = '@Url.Action("logIn", "Home")';
+
+                         else 
+                            window.location.href = '@Url.Action("SOPMessage", "Home")';
 
                     }
                 },
                 failure: function (response) {     // Server errors (500–599). when failed to send desired response
-                   alert("Server Response Error:"+response.responseText);
+                 //  alert("Server Response Error:"+response.responseText);
                     window.location.href = '@Url.Action("CleintServerErr", "Home")';
 
                 },
@@ -920,7 +952,7 @@
 
                   //  window.location.href = response.redirect;
 
-                    alert("Client Error:" + response.responseText);
+                   // alert("Client Error:" + response.responseText);
 
                     window.location.href = '@Url.Action("CleintServerErr", "Home")';
                   

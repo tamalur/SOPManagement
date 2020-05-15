@@ -258,6 +258,7 @@ namespace SOPManagement.Models
 
             clddomainnm = ConfigurationManager.AppSettings["clouddomainname"];
 
+         
             loggedinuser = HttpContext.Current.User.Identity.Name;
 
             loggedinuser = loggedinuser.Split('\\').Last();
@@ -287,6 +288,31 @@ namespace SOPManagement.Models
             return userid;
 
         }
+
+        public static short GetLoggedInUserSOPDeptCode()
+        {
+            string useremail = GetCurrentLoggedInUserEmail();
+            int userid = 0;
+            short deptcode = 0;
+
+            short sopdeptcode = 0;
+
+            userid = GetLoggedInUserID();
+
+
+            using (var dbctx = new RadiantSOPEntities())
+            {
+
+                deptcode = Convert.ToInt16(dbctx.users.Where(u => u.useremailaddress == useremail).Select(u => u.departmentcode).FirstOrDefault());
+                sopdeptcode= Convert.ToInt16(dbctx.codesdepartments.Where(u => u.departmentcode == deptcode).Select(u => u.sopdeptcode).FirstOrDefault());
+
+            }
+
+            return sopdeptcode;
+
+        }
+
+
 
         public static string GetTempLocalDirPath()
         {
@@ -399,4 +425,7 @@ namespace SOPManagement.Models
      
 
     }
+
+
+
 }

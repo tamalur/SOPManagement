@@ -202,12 +202,13 @@ warning 6002: The table/view 'RadiantYYZ.sop.codesuserstatus' does not have a pr
             <PropertyRef Name="userid" />
           </Key>
           <Property Name="userid" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="windowsusername" Type="varchar" MaxLength="60" />
+          <Property Name="windowsusername" Type="varchar" MaxLength="150" />
           <Property Name="departmentcode" Type="smallint" />
-          <Property Name="userfullname" Type="nvarchar" MaxLength="50" Nullable="false" />
-          <Property Name="useremailaddress" Type="nvarchar" MaxLength="50" />
+          <Property Name="userfullname" Type="nvarchar" MaxLength="350" Nullable="false" />
+          <Property Name="useremailaddress" Type="nvarchar" MaxLength="350" />
           <Property Name="userstatuscode" Type="smallint" />
-          <Property Name="jobtitle" Type="varchar" MaxLength="60" />
+          <Property Name="jobtitle" Type="varchar" MaxLength="400" />
+          <Property Name="subdeptcode" Type="smallint" />
         </EntityType>
         <!--Errors Found During Generation:
 warning 6002: The table/view 'RadiantYYZ.sop.v_sopreport' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
@@ -220,6 +221,7 @@ warning 6002: The table/view 'RadiantYYZ.sop.v_sopreport' does not have a primar
           <Property Name="DeptFileName" Type="varchar" MaxLength="8000" />
           <Property Name="DeptSubFolderName" Type="varchar" MaxLength="255" />
           <Property Name="DeptSubFolderName2" Type="varchar" MaxLength="455" />
+          <Property Name="DeptSubDepartment" Type="varchar" MaxLength="8000" />
           <Property Name="SPFileLink" Type="varchar" MaxLength="455" />
           <Property Name="CreateDate" Type="datetime" />
           <Property Name="CreatedBy" Type="varchar" MaxLength="65" />
@@ -259,6 +261,9 @@ warning 6002: The table/view 'RadiantYYZ.sop.v_sopreport' does not have a primar
           <Property Name="NextUpdateDate" Type="date" />
           <Property Name="changerequestid" Type="int" />
           <Property Name="PublishURL" Type="varchar" MaxLength="74" />
+          <Property Name="SignURL" Type="varchar" MaxLength="70" />
+          <Property Name="ChangeRequestURL" Type="varchar" MaxLength="57" />
+          <Property Name="SPFilePath_Error" Type="varchar" MaxLength="55" />
         </EntityType>
         <!--Errors Found During Generation:
 warning 6002: The table/view 'RadiantYYZ.sop.vwApprvrsSignatures' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
@@ -345,6 +350,17 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwOwnerSignatures' does not have a 
           <Property Name="ownerSignedStatus" Type="varchar" MaxLength="50" />
           <Property Name="ownerSignedStatCode" Type="smallint" Nullable="false" />
           <Property Name="ownersigneddate" Type="datetime" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'RadiantYYZ.sop.vwOwnrsSOPDeptCode' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="vwOwnrsSOPDeptCode">
+          <Key>
+            <PropertyRef Name="fileid" />
+            <PropertyRef Name="ownerid" />
+          </Key>
+          <Property Name="fileid" Type="int" Nullable="false" />
+          <Property Name="ownerid" Type="int" Nullable="false" />
+          <Property Name="sopdeptcode" Type="smallint" />
         </EntityType>
         <!--Errors Found During Generation:
 warning 6002: The table/view 'RadiantYYZ.sop.vwRvwrsSignatures' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
@@ -458,6 +474,7 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
     [v_sopreport].[DeptFileName] AS [DeptFileName], 
     [v_sopreport].[DeptSubFolderName] AS [DeptSubFolderName], 
     [v_sopreport].[DeptSubFolderName2] AS [DeptSubFolderName2], 
+    [v_sopreport].[DeptSubDepartment] AS [DeptSubDepartment], 
     [v_sopreport].[SPFileLink] AS [SPFileLink], 
     [v_sopreport].[CreateDate] AS [CreateDate], 
     [v_sopreport].[CreatedBy] AS [CreatedBy], 
@@ -496,7 +513,10 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
     [v_sopreport].[EffectiveDate] AS [EffectiveDate], 
     [v_sopreport].[NextUpdateDate] AS [NextUpdateDate], 
     [v_sopreport].[changerequestid] AS [changerequestid], 
-    [v_sopreport].[PublishURL] AS [PublishURL]
+    [v_sopreport].[PublishURL] AS [PublishURL], 
+    [v_sopreport].[SignURL] AS [SignURL], 
+    [v_sopreport].[ChangeRequestURL] AS [ChangeRequestURL], 
+    [v_sopreport].[SPFilePath_Error] AS [SPFilePath_Error]
     FROM [sop].[v_sopreport] AS [v_sopreport]</DefiningQuery>
           </EntitySet>
           <EntitySet Name="vwApprvrsSignatures" EntityType="Self.vwApprvrsSignatures" store:Type="Views" store:Schema="sop">
@@ -564,6 +584,13 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
     [vwOwnerSignatures].[ownerSignedStatCode] AS [ownerSignedStatCode], 
     [vwOwnerSignatures].[ownersigneddate] AS [ownersigneddate]
     FROM [sop].[vwOwnerSignatures] AS [vwOwnerSignatures]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="vwOwnrsSOPDeptCode" EntityType="Self.vwOwnrsSOPDeptCode" store:Type="Views" store:Schema="sop">
+            <DefiningQuery>SELECT 
+    [vwOwnrsSOPDeptCode].[fileid] AS [fileid], 
+    [vwOwnrsSOPDeptCode].[ownerid] AS [ownerid], 
+    [vwOwnrsSOPDeptCode].[sopdeptcode] AS [sopdeptcode]
+    FROM [sop].[vwOwnrsSOPDeptCode] AS [vwOwnrsSOPDeptCode]</DefiningQuery>
           </EntitySet>
           <EntitySet Name="vwRvwrsSignatures" EntityType="Self.vwRvwrsSignatures" store:Type="Views" store:Schema="sop">
             <DefiningQuery>SELECT 
@@ -747,12 +774,13 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
             <PropertyRef Name="userid" />
           </Key>
           <Property Name="userid" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="windowsusername" Type="String" MaxLength="60" FixedLength="false" Unicode="false" />
+          <Property Name="windowsusername" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
           <Property Name="departmentcode" Type="Int16" />
-          <Property Name="useremailaddress" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="useremailaddress" Type="String" MaxLength="350" FixedLength="false" Unicode="true" />
           <Property Name="userstatuscode" Type="Int16" />
-          <Property Name="userfullname" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="jobtitle" Type="String" MaxLength="60" FixedLength="false" Unicode="false" />
+          <Property Name="userfullname" Type="String" Nullable="false" MaxLength="350" FixedLength="false" Unicode="true" />
+          <Property Name="jobtitle" Type="String" MaxLength="400" FixedLength="false" Unicode="false" />
+          <Property Name="subdeptcode" Type="Int16" />
         </EntityType>
         <EntityType Name="codesapprovalstatu">
           <Key>
@@ -823,6 +851,10 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           <Property Name="NextUpdateDate" Type="DateTime" Precision="0" />
           <Property Name="changerequestid" Type="Int32" />
           <Property Name="PublishURL" Type="String" MaxLength="74" FixedLength="false" Unicode="false" />
+          <Property Name="DeptSubDepartment" Type="String" MaxLength="8000" FixedLength="false" Unicode="false" />
+          <Property Name="SignURL" Type="String" MaxLength="70" FixedLength="false" Unicode="false" />
+          <Property Name="ChangeRequestURL" Type="String" MaxLength="57" FixedLength="false" Unicode="false" />
+          <Property Name="SPFilePath_Error" Type="String" MaxLength="55" FixedLength="false" Unicode="false" />
         </EntityType>
         <EntityType Name="vwDepartmentFolder">
           <Key>
@@ -917,6 +949,7 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           <EntitySet Name="vwOwnerSignatures" EntityType="RadiantYYZModel.vwOwnerSignature" />
           <EntitySet Name="vwRvwrsSignatures" EntityType="RadiantYYZModel.vwRvwrsSignature" />
           <EntitySet Name="codesSOPDepartments" EntityType="RadiantYYZModel.codesSOPDepartment" />
+          <EntitySet Name="vwOwnrsSOPDeptCodes" EntityType="RadiantYYZModel.vwOwnrsSOPDeptCode" />
         </EntityContainer>
         <EntityType Name="vwSOPReviewer">
           <Key>
@@ -1037,6 +1070,15 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           </Key>
           <Property Name="sopdeptcode" Type="Int16" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="sopdeptname" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="vwOwnrsSOPDeptCode">
+          <Key>
+            <PropertyRef Name="fileid" />
+            <PropertyRef Name="ownerid" />
+          </Key>
+          <Property Name="fileid" Type="Int32" Nullable="false" />
+          <Property Name="ownerid" Type="Int32" Nullable="false" />
+          <Property Name="sopdeptcode" Type="Int16" />
         </EntityType>
       </Schema>
     </edmx:ConceptualModels>
@@ -1192,6 +1234,7 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           <EntitySetMapping Name="users">
             <EntityTypeMapping TypeName="RadiantYYZModel.user">
               <MappingFragment StoreEntitySet="users">
+                <ScalarProperty Name="subdeptcode" ColumnName="subdeptcode" />
                 <ScalarProperty Name="jobtitle" ColumnName="jobtitle" />
                 <ScalarProperty Name="userfullname" ColumnName="userfullname" />
                 <ScalarProperty Name="userid" ColumnName="userid" />
@@ -1229,6 +1272,10 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           <EntitySetMapping Name="v_sopreport">
             <EntityTypeMapping TypeName="RadiantYYZModel.v_sopreport">
               <MappingFragment StoreEntitySet="v_sopreport">
+                <ScalarProperty Name="SPFilePath_Error" ColumnName="SPFilePath_Error" />
+                <ScalarProperty Name="ChangeRequestURL" ColumnName="ChangeRequestURL" />
+                <ScalarProperty Name="SignURL" ColumnName="SignURL" />
+                <ScalarProperty Name="DeptSubDepartment" ColumnName="DeptSubDepartment" />
                 <ScalarProperty Name="PublishURL" ColumnName="PublishURL" />
                 <ScalarProperty Name="changerequestid" ColumnName="changerequestid" />
                 <ScalarProperty Name="NextUpdateDate" ColumnName="NextUpdateDate" />
@@ -1433,6 +1480,15 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
               <MappingFragment StoreEntitySet="codesSOPDepartments">
                 <ScalarProperty Name="sopdeptname" ColumnName="sopdeptname" />
                 <ScalarProperty Name="sopdeptcode" ColumnName="sopdeptcode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="vwOwnrsSOPDeptCodes">
+            <EntityTypeMapping TypeName="RadiantYYZModel.vwOwnrsSOPDeptCode">
+              <MappingFragment StoreEntitySet="vwOwnrsSOPDeptCode">
+                <ScalarProperty Name="sopdeptcode" ColumnName="sopdeptcode" />
+                <ScalarProperty Name="ownerid" ColumnName="ownerid" />
+                <ScalarProperty Name="fileid" ColumnName="fileid" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

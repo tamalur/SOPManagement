@@ -58,5 +58,9 @@ namespace SOPManagement.Models
         public Nullable<System.DateTime> NextUpdateDate { get; set; }
         public Nullable<int> changerequestid { get; set; }
         public string PublishURL { get; set; }
+        public string DeptSubDepartment { get; set; }
+        public string SignURL { get; set; }
+        public string ChangeRequestURL { get; set; }
+        public string SPFilePath_Error { get; set; }
     }
 }

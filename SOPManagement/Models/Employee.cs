@@ -31,7 +31,7 @@ namespace SOPManagement.Models
 
         public short signstatuscode { get; set; }
 
-        public bool AuthenticateUser(string pAuthtype, int pFileid)
+        public bool AuthenticateUserWithSOP(string pAuthtype, int pFileid)
         {
             bool bAuthenticate = false;
 

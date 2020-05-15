@@ -1260,8 +1260,8 @@ namespace SOPManagement.Models
                                 celend = tabrh.Rows[i].Cells[2];
                                 celend.SetBorder(TableCellBorderType.Right, new Xceed.Document.NET.Border(BorderStyle.Tcbs_none, BorderSize.one, 1, Color.Transparent));
 
-                                celend.Paragraphs[0].Remove(false);
-                                celend.Paragraphs[0].Append(FileRevisions[rhno].Description);
+                              //  celend.Paragraphs[0].Remove(false);
+                              //  celend.Paragraphs[0].Append(FileRevisions[rhno].Description);
 
 
                                 rhno = rhno + 1;
@@ -1677,6 +1677,299 @@ namespace SOPManagement.Models
 
         }
 
+        public void UpdateCoverRevhistPageBack(bool pUpdSignatureRev)
+        {
+
+            //this version replaces all version history from begining
+
+
+            Logger oLogger = new Logger();
+            oLogger.LogFileName = HttpContext.Current.Server.MapPath(Utility.GetLogFilePath());
+
+            string tmpfiledirnm = Utility.GetTempLocalDirPath();
+            string savePath = HttpContext.Current.Server.MapPath(tmpfiledirnm + FileName);
+
+            object missObj = System.Reflection.Missing.Value;
+            object path = savePath;
+
+            Microsoft.Office.Interop.Word.Application app = new Microsoft.Office.Interop.Word.Application();
+            Microsoft.Office.Interop.Word.Document wdoc = app.Documents.Open(ref path, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj, ref missObj);
+
+
+            try
+            {
+
+
+                wdoc.TrackRevisions = false;
+
+                int totalTables = wdoc.Tables.Count;
+                bool donotaddrow = false;
+
+
+                //Add data into reviewer table  - 2nd table in the cover page
+
+                if (totalTables > 0)
+                {
+
+
+                    //update 1st table in cover page, file title, SOP #, Rev #, Eff date, owner
+
+                    Microsoft.Office.Interop.Word.Table tab1 = wdoc.Tables[1];
+                    Microsoft.Office.Interop.Word.Range range1 = tab1.Range;
+
+                    // Select the last row as source row.
+                    int selectedRow1 = tab1.Rows.Count;
+
+                    // Write new vaules to each cell.
+                    tab1.Rows[1].Cells[2].Range.Text = FileTitle;
+                    //   tab1.Rows[2].Cells[2].Range.Text = SOPNo;
+                    tab1.Rows[2].Cells[4].Range.Text = FileCurrVersion;
+                    tab1.Rows[3].Cells[2].Range.Text = DateTime.Today.ToString("MMMM dd, yyyy"); //current bcs it will publish now
+                    tab1.Rows[4].Cells[2].Range.Text = FileOwner.userfullname;
+
+                    //update 2nd table in  cover page for updating reviewers
+
+                    Microsoft.Office.Interop.Word.Table tab2 = wdoc.Tables[2];
+                    Microsoft.Office.Interop.Word.Range range2 = tab2.Range;
+
+                    // Select the last row as source row.
+                    int selectedRow2 = tab2.Rows.Count;
+
+                    //keep only 2 rows if there are more than 2 rows in table
+
+                    int rowstodel;
+                    if (selectedRow2 > 2)
+                    {
+                        rowstodel = selectedRow2 - 2;
+                        for (int i = 1; i <= rowstodel; i++)
+                        {
+                            tab2.Rows[3].Delete();
+
+                        }
+                        selectedRow2 = tab2.Rows.Count;
+                    }
+
+                    // Select and copy content of the source row.
+                    range2.Start = tab2.Rows[selectedRow2].Cells[1].Range.Start;
+                    range2.End = tab2.Rows[selectedRow2].Cells[tab2.Rows[selectedRow2].Cells.Count].Range.End;
+                    range2.Copy();
+
+                    // Insert a new row after the last row if it is not first row to add data
+
+                    //Get reviewers with signatures of this file and request
+
+                    int rvwrcnt = 1;
+
+                    using (var ctx = new RadiantSOPEntities())
+                    {
+
+                        var rvrwrs = (from c in ctx.vwRvwrsSignatures where c.fileid == FileID && c.changerequestid == FileChangeRqstID select c);
+
+                        foreach (var r in rvrwrs)
+                        {
+
+                            if (selectedRow2 == 2 && rvwrcnt == 1)
+                            {
+
+                                donotaddrow = true;
+
+                            }
+                            else
+                                donotaddrow = false;
+
+                            if (!donotaddrow)
+                                tab2.Rows.Add(ref missObj);
+
+
+                            // Moves the cursor to the first cell of target row.
+                            range2.Start = tab2.Rows[tab2.Rows.Count].Cells[1].Range.Start;
+                            range2.End = range2.Start;
+
+                            // Paste values to target row.
+                            range2.Paste();
+
+                            // Write new vaules to each cell.
+
+                            tab2.Rows[tab2.Rows.Count].Cells[1].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
+                            tab2.Rows[tab2.Rows.Count].Cells[1].Range.Text = r.reviewername;
+
+                            tab2.Rows[tab2.Rows.Count].Cells[2].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
+                            tab2.Rows[tab2.Rows.Count].Cells[2].Range.Text = r.reviewertitle;
+
+                            tab2.Rows[tab2.Rows.Count].Cells[3].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
+                            tab2.Rows[tab2.Rows.Count].Cells[3].Range.Text = r.SignedStatus;
+
+                            tab2.Rows[tab2.Rows.Count].Cells[4].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
+                            tab2.Rows[tab2.Rows.Count].Cells[4].Range.Text = Convert.ToDateTime(r.signeddate).ToString("MMMM dd, yyyy");
+
+                            rvwrcnt = rvwrcnt + 1;
+
+
+                        }
+                    }
+
+                    //end updating 2nd reviewers table
+
+                    //update 3rd table for approver
+
+                    Microsoft.Office.Interop.Word.Table tab3 = wdoc.Tables[3];
+                    Microsoft.Office.Interop.Word.Range range3 = tab3.Range;
+
+
+                    tab3.Rows[2].Cells[1].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
+                    tab3.Rows[2].Cells[1].Range.Text = FileApprover.userfullname;
+
+                    tab3.Rows[2].Cells[2].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
+                    tab3.Rows[2].Cells[2].Range.Text = FileApprover.userjobtitle;
+
+                    tab3.Rows[2].Cells[3].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
+                    tab3.Rows[2].Cells[3].Range.Text = FileApprover.signstatus;
+
+                    tab3.Rows[2].Cells[4].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
+                    tab3.Rows[2].Cells[4].Range.Text = FileApprover.signaturedate.ToString("MMMM dd, yyyy");
+
+
+                    //end updating 3rd table for approver
+
+                    //update last table to add data into Revison history table 
+
+                    Microsoft.Office.Interop.Word.Table tab = wdoc.Tables[totalTables];
+                    Microsoft.Office.Interop.Word.Range range = tab.Range;
+
+                    // Select the last row as source row.
+                    int selectedRow = tab.Rows.Count;
+
+
+                    //delete rows if the table has more than three rows 
+
+                    if (selectedRow > 2)
+                    {
+                        rowstodel = selectedRow - 2;
+                        for (int i = 1; i <= rowstodel; i++)
+                        {
+                            tab.Rows[3].Delete();   //keep first two rows
+
+                        }
+                        selectedRow = tab.Rows.Count;
+                    }
+
+                    // Select and copy content of the source row.
+                    range.Start = tab.Rows[selectedRow].Cells[1].Range.Start;
+                    range.End = tab.Rows[selectedRow].Cells[tab.Rows[selectedRow].Cells.Count].Range.End;
+                    range.Copy();
+
+
+                    donotaddrow = false;
+
+                    int filevercount = 1;
+
+                    foreach (FileRevision rev in FileRevisions)
+                    {
+                        decimal drevno;
+                        drevno = Convert.ToDecimal(rev.RevisionNo);
+
+                        if ((drevno % 1) == 0)   //only approved version will show here
+                        {
+
+                            if (selectedRow == 2 && filevercount == 1)
+                            {
+                                donotaddrow = true;
+                            }
+
+                            else
+                                donotaddrow = false;
+
+                            if (!donotaddrow)
+                                tab.Rows.Add(ref missObj);
+
+                            // Moves the cursor to the first cell of target row.
+                            range.Start = tab.Rows[tab.Rows.Count].Cells[1].Range.Start;
+                            range.End = range.Start;
+
+                            // Paste values to target row.
+                            range.Paste();
+
+
+                            // Write new vaules to each cell.
+
+                            tab.Rows[tab.Rows.Count].Cells[1].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
+                            tab.Rows[tab.Rows.Count].Cells[1].Range.Text = rev.RevisionNo;
+
+                            tab.Rows[tab.Rows.Count].Cells[2].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
+                            tab.Rows[tab.Rows.Count].Cells[2].Range.Text = rev.RevisionDate.ToString("MMMM dd, yyyy");
+
+                            //  tab.Rows[tab.Rows.Count].Cells[3].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
+                            //  tab.Rows[tab.Rows.Count].Cells[3].Range.Text = rev.Description;
+
+                            filevercount = filevercount + 1;
+
+
+
+                        }  //end checking approved version
+
+                    }  //end for loop
+
+                }
+
+
+                // Set footers
+                foreach (Microsoft.Office.Interop.Word.Section wordSection in wdoc.Sections)
+                {
+                    Microsoft.Office.Interop.Word.Range footerRange = wordSection.Footers[Microsoft.Office.Interop.Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].Range;
+
+                    footerRange.Tables[1].Cell(1, 1).Range.Text = FileTitle;
+
+                }
+
+                wdoc.TrackRevisions = true;
+
+                wdoc.SaveAs2(savePath);   //save in actual file from tempalte
+
+            }
+
+            catch (Exception ex)
+            {
+                ErrorMessage = ex.Message;
+                oLogger.UpdateLogFile(DateTime.Now.ToString() + ":UpdateCoverRevhistPage(publish true):Failed to update cover page with error:" + ex.Message);
+
+                throw ex;
+            }
+
+            finally
+            {
+
+
+                if (wdoc != null)
+                {
+                    wdoc.Close(false); // Close the Word Document.
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(wdoc);
+
+                }
+                if (app != null)
+                {
+                    app.Quit(false); // Close Word Application.
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(app);
+
+                }
+
+                wdoc = null;
+                app = null;
+
+                oLogger.UpdateLogFile(DateTime.Now.ToString() + ":UpdateCoverRevhistPage(Publish true):Application was closed successfully during cover page update:");
+
+                oLogger = null;
+
+                GC.Collect();
+
+            }
+
+
+
+
+
+        }
+
+
         public void UpdateCoverRevhistPage(bool pUpdSignatureRev)
         {
 
@@ -1773,7 +2066,11 @@ namespace SOPManagement.Models
 
                             }
                             else
-                                donotaddrow = false;
+                            {
+                                
+                               donotaddrow = false;
+                            }
+
 
                             if (!donotaddrow)
                                 tab2.Rows.Add(ref missObj);
@@ -1829,7 +2126,7 @@ namespace SOPManagement.Models
 
                     //end updating 3rd table for approver
 
-                    //update last table to add data into Revison history table 
+                    //update last table to add new revision data into Revison history table 
 
                     Microsoft.Office.Interop.Word.Table tab = wdoc.Tables[totalTables];
                     Microsoft.Office.Interop.Word.Range range = tab.Range;
@@ -1840,18 +2137,20 @@ namespace SOPManagement.Models
 
                     //delete rows if the table has more than three rows 
 
-                    if (selectedRow > 2)
-                    {
-                        rowstodel = selectedRow - 2;
-                        for (int i = 1; i <= rowstodel; i++)
-                        {
-                            tab.Rows[3].Delete();
+                    //if (selectedRow > 2)
+                    //{
+                    //    rowstodel = selectedRow - 2;
+                    //    for (int i = 1; i <= rowstodel; i++)
+                    //    {
+                    //        tab.Rows[3].Delete();   //keep first two rows
 
-                        }
-                        selectedRow = tab.Rows.Count;
-                    }
+                    //    }
+                    //    selectedRow = tab.Rows.Count;
+                    //}
 
+                    
                     // Select and copy content of the source row.
+                    
                     range.Start = tab.Rows[selectedRow].Cells[1].Range.Start;
                     range.End = tab.Rows[selectedRow].Cells[tab.Rows[selectedRow].Cells.Count].Range.End;
                     range.Copy();
@@ -1859,27 +2158,47 @@ namespace SOPManagement.Models
 
                     donotaddrow = false;
 
-                    int filevercount = 1;
+                    bool lastrowtoupd ;
+
+                   // int filevercount = 1;
 
                     foreach (FileRevision rev in FileRevisions)
                     {
                         decimal drevno;
                         drevno = Convert.ToDecimal(rev.RevisionNo);
 
-                        if ((drevno % 1) == 0)   //only approved version will show here
-                        {
+                        //check whether this revision is already in table. if not then only
+                        // add new revision so we do not replace historical revision description
 
-                            if (selectedRow == 2 && filevercount == 1)
+                        donotaddrow = false;
+                        lastrowtoupd = false;
+
+                        // this loop ensures we do not replace existing revision history 
+                        for (int i = 2; i <= tab.Rows.Count; i++)
+                        {
+                            if (rev.RevisionNo.Trim() == tab.Rows[i].Cells[1].Range.Text.Replace("\r\a", "").Trim())
                             {
                                 donotaddrow = true;
+                                break;
                             }
 
-                            else
-                                donotaddrow = false;
+                        }
 
-                            if (!donotaddrow)
-                                tab.Rows.Add(ref missObj);
+                        //if this is first revision history rev no 1, then do not add row  
+                        if (selectedRow ==2 && tab.Rows[2].Cells[1].Range.Text.Replace("\r\a", "").Trim()=="" && rev.RevisionNo.Trim()=="1")
+                        {
+                            donotaddrow = true;
+                            lastrowtoupd = true;  //ensure new data
+                        }
 
+                        if (!donotaddrow)
+                        {
+                            tab.Rows.Add(ref missObj);
+                            lastrowtoupd = true;   //ensure new data
+                        }
+
+                        if (lastrowtoupd) //update last row only if it is new data
+                        {
                             // Moves the cursor to the first cell of target row.
                             range.Start = tab.Rows[tab.Rows.Count].Cells[1].Range.Start;
                             range.End = range.Start;
@@ -1899,13 +2218,12 @@ namespace SOPManagement.Models
                             tab.Rows[tab.Rows.Count].Cells[3].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
                             tab.Rows[tab.Rows.Count].Cells[3].Range.Text = rev.Description;
 
-                            filevercount = filevercount + 1;
 
+                        }
 
+                   //     filevercount = filevercount + 1;
 
-                        }  //end checking approved version
-
-                    }  //end for loop
+                    }  //end for loop of revision history
 
                 }
 
@@ -2019,10 +2337,15 @@ namespace SOPManagement.Models
                     // ApprovalStatus = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.ApprovalStatus).FirstOrDefault();
                 AuthorName = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.CreatedBy).FirstOrDefault();
                 SOPCreateDate = Convert.ToDateTime(ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.CreateDate).FirstOrDefault());
+                ViewAccessType = ctx.fileviewaccesstypes.Where(v => v.fileid == FileID).Select(v => v.viewtypename).FirstOrDefault();
 
-                //data related to change request
+                if (ViewAccessType == null)
+                    ViewAccessType = "";
 
-                Employee oSOPOwner = new Employee();
+
+                    //data related to change request
+
+                    Employee oSOPOwner = new Employee();
 
                 oSOPOwner.useremailaddress = ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.owneremail).FirstOrDefault();
                 oSOPOwner.GetUserByEmail();
@@ -2030,6 +2353,8 @@ namespace SOPManagement.Models
                 oSOPOwner.signstatus= ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.ownerSignedStatus).FirstOrDefault();
 
                 FileOwner = oSOPOwner;
+                FileOwnerEmail = oSOPOwner.useremailaddress;
+
 
                 Employee oSOPApprover = new Employee();
 
@@ -2040,10 +2365,13 @@ namespace SOPManagement.Models
 
 
                 FileApprover = oSOPApprover;
-
+                FileApproverEmail = oSOPApprover.useremailaddress;
 
                 FileStatuscode = ctx.filechangerequestactivities.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.approvalstatuscode).FirstOrDefault();
                 
+               
+
+
             }
 
 
@@ -2075,7 +2403,7 @@ namespace SOPManagement.Models
 
         }
 
-        public bool AuthenticateChangeRequest()
+        public bool AuthenticateUser(string pAuthType)
         {
             bool authensop = false;
 
@@ -2083,25 +2411,81 @@ namespace SOPManagement.Models
             int approverid = 0;
             int reviewerid = 0;
             int loggedinuserid = Utility.GetLoggedInUserID();
+            short usersopdeptcode = Utility.GetLoggedInUserSOPDeptCode();
 
-            using (var dbctx = new RadiantSOPEntities())
+            short sopfolderdeptcode=0;
+
+
+            if (pAuthType == "publish" || pAuthType == "changerequest" || pAuthType == "admin")
             {
-                ownerid = dbctx.fileowners.Where(o => o.ownerid == loggedinuserid && o.fileid == FileID && o.ownerstatuscode == 1).Select(o => o.ownerid).FirstOrDefault();
 
-                approverid = dbctx.fileapprovers.Where(a => a.approverid == loggedinuserid && a.fileid == FileID && a.approverstatuscode == 1).Select(a => a.approverid).FirstOrDefault();
-
-                reviewerid = dbctx.filereviewers.Where(r => r.reviewerid == loggedinuserid && r.fileid == FileID && r.reviewerstatuscode == 1).Select(r => r.reviewerid).FirstOrDefault();
-
-                if (ownerid>0 || approverid>0 || reviewerid>0)
+                using (var dbctx = new RadiantSOPEntities())
                 {
-                    authensop = true;
+                    ownerid = dbctx.fileowners.Where(o => o.ownerid == loggedinuserid && o.fileid == FileID && o.ownerstatuscode == 1).Select(o => o.ownerid).FirstOrDefault();
+
+                    approverid = dbctx.fileapprovers.Where(a => a.approverid == loggedinuserid && a.fileid == FileID && a.approverstatuscode == 1).Select(a => a.approverid).FirstOrDefault();
+
+                    reviewerid = dbctx.filereviewers.Where(r => r.reviewerid == loggedinuserid && r.fileid == FileID && r.reviewerstatuscode == 1).Select(r => r.reviewerid).FirstOrDefault();
 
                 }
+
+
+                if (pAuthType == "publish")  // looged in user must be a approver to publish sop 
+                {
+                    if (approverid > 0)
+                        authensop = true;
+                }
+
+
+                if (pAuthType == "changerequest")   //looged user must be a signatory 
+                {
+                    if (ownerid > 0 || approverid > 0 || reviewerid > 0)
+                    {
+                        authensop = true;
+
+                    }
+                }
+
+                if (pAuthType == "admin")  // looged in user must be a approver to publish sop 
+                {
+                    if (ownerid > 0)
+                        authensop = true;
+                }
+
+
+
+
+            }  //end checking autype pf publish or chng req
+
+            if (pAuthType=="createupload")
+            {
+                //get loggedin user sop department code
+                //if his/her department is not same as the deaprtmetn he/selected to create file 
+                //then deny access, if same then go to next check
+
+
+                using (var dbctx = new RadiantSOPEntities())
+                {
+                    sopfolderdeptcode = dbctx.codesSOPDepartments.Where(d => d.sopdeptname.Trim().ToUpper() == FolderName.Trim().ToUpper()).Select(d => d.sopdeptcode).FirstOrDefault();
+
+                    if (sopfolderdeptcode == usersopdeptcode)  //user belongs to same sop department as the dept of the selected folder name 
+                                                               //then find if he/she is owner of any file in that sop department, if so then authentoicate
+                    {
+                        ownerid = dbctx.vwOwnrsSOPDeptCodes.Where(o => o.ownerid == loggedinuserid && o.sopdeptcode == usersopdeptcode).Select(o => o.ownerid).FirstOrDefault();
+
+                        if (ownerid > 0)
+                            authensop = true;
+                    }
+                    
+
+                }
+
+
             }
 
 
 
-             return authensop;
+            return authensop;
         }
 
         public void GetSOPNo()
@@ -2211,9 +2595,11 @@ namespace SOPManagement.Models
                 fileCreationInformation.Url = SiteUrl +"/"+ FilePath + FileName;
                 Microsoft.SharePoint.Client.File uploadFile = documentsList.RootFolder.Files.Add(fileCreationInformation);
 
-              //  Update the metadata for a field having name "SOPNO", file owner
+                //  Update the metadata for a field having name "SOPNO", file owner
 
-                User theUser = clientContext.Web.SiteUsers.GetByEmail(FileOwner.useremailaddress);
+                // User theUser = clientContext.Web.SiteUsers.GetByEmail(FileOwner.useremailaddress);
+
+                User theUser = clientContext.Web.SiteUsers.GetByEmail(FileOwnerEmail);
 
 
                 uploadFile.ListItemAllFields["Owner"] = theUser;
@@ -2836,7 +3222,7 @@ namespace SOPManagement.Models
 
                 Principal user;
 
-                if (ViewAccessType == "All Users")
+                if (ViewAccessType == "All Users" || ViewAccessType == "Inherit")
                     file.ListItemAllFields.BreakRoleInheritance(true, false);   //inherit permission for all users selection
                 else
                     file.ListItemAllFields.BreakRoleInheritance(false, false);   //do not inherit if all users are not selected
@@ -2929,7 +3315,7 @@ namespace SOPManagement.Models
 
                 Principal user;
 
-                if (ViewAccessType == "All Users")
+                if (ViewAccessType == "All Users" || ViewAccessType == "Inherit")
                     file.ListItemAllFields.BreakRoleInheritance(true, false);   //inherit permission for all users selection
                 else
                     file.ListItemAllFields.BreakRoleInheritance(false, false);   //do not inherit if all users are not selected
@@ -3048,6 +3434,56 @@ namespace SOPManagement.Models
 
                 return pdone;
         }
+
+
+        public void AssignSigatoriesPermission()
+        {
+
+
+            //give contribute permission to all reviewers
+
+            AssignFilePermissionToUsers("contribute", "add", FileReviewers);
+
+            //give edit permission to approver
+
+            AssignFilePermissionToUsers("edit", "add", FileApproverEmail);
+
+            //give full permission to owner
+
+            AssignFilePermissionToUsers("full control", "add", FileOwnerEmail);
+
+
+
+        }
+
+
+        public void AssignSignatoresReadPermission()
+        {
+
+
+            //remove all edit permission as they might edit after publishing that we don't want
+            //we will give edit permission to approvers during change request
+
+    
+            AssignFilePermissionToUsers("contribute", "remove", FileReviewers);
+
+            AssignFilePermissionToUsers("edit", "remove", FileApproverEmail);
+ 
+            AssignFilePermissionToUsers("full control", "remove", FileOwnerEmail);
+
+            //now reassign them as reader
+
+            AssignFilePermissionToUsers("read", "add", FileReviewers);
+
+            AssignFilePermissionToUsers("read", "add", FileApproverEmail);
+
+            AssignFilePermissionToUsers("read", "add", FileOwnerEmail);
+
+
+
+
+        }
+
 
         //download file from sharepoint so system can modify cover page and revision history
         public void DownloadFileFromSharePoint(string tempLocation)
