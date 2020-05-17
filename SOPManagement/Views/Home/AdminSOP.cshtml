@@ -1,0 +1,425 @@
+﻿@model SOPManagement.Models.SOPClass
+
+@*<p>
+        @Html.ActionLink("Create New", "Create")
+    </p>*@
+
+@{
+    ViewBag.Title = "SOP Administration";
+}
+
+
+@using (Html.BeginForm("AdminSOP", "Home", FormMethod.Post))
+{
+
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 60%;
+        }
+
+        tr.no-bottom-border td {
+            border-bottom: none
+        }
+    </style>
+    <div>
+
+
+        <p>
+            <table>
+
+                <tr>
+                    <td class="signoffield">
+
+                        @Html.DisplayNameFor(model => model.FileTitle)
+
+                    </td>
+                    <td>
+                        @Model.FileTitle
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="signoffield">
+                        @Html.DisplayNameFor(model => model.SOPNo)
+                    </td>
+                    <td>
+                        @Model.SOPNo
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="signoffield">
+                        @Html.DisplayNameFor(model => model.FileUrl)
+                    </td>
+                    <td>
+                        <a href="@Model.FileLink" target="_blank">@Model.FileTitle</a>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="signoffield">
+                        @Html.DisplayNameFor(model => model.FilePath)
+                    </td>
+                    <td>
+                        @Model.FilePath
+                    </td>
+                </tr>
+
+
+            </table>
+        </p>
+
+
+        <p>
+
+            <table>
+                <tr>
+                    <td class="signoffield">
+                        @Html.LabelFor(model => model.Updatefreq)
+
+                    </td>
+                    <td>
+                        @Html.EditorFor(model => model.Updatefreq, new { htmlAttributes = new { @class = "form-control" } })
+                        @Html.ValidationMessageFor(model => model.Updatefreq, "", new { @class = "text-danger" })
+
+                    </td>
+
+                </tr>
+
+                <tr>
+                    <td class="signoffield">
+                        @Html.LabelFor(model => model.Updatefrequnit)
+
+                    </td>
+
+                    <td>
+                        @if (ViewBag.updfrequnits != null)
+                        {
+                            @Html.DropDownListFor(model => model.Updfrequnitcode, new SelectList(ViewBag.updfrequnits, "unitcode", "Unitname", 1), "Please select freq. unit", new { @class = "form-control" })
+                            @Html.ValidationMessageFor(model => model.Updfrequnitcode, "", new { @class = "text-danger" })
+                        }
+
+
+                    </td>
+                </tr>
+
+
+            </table>
+        </p>
+
+        <p>
+
+            <table>
+                <tr>
+                    <td class="signoffield">
+                        SOP Owner
+                    </td>
+
+                </tr>
+
+                <tr>
+                    <td>
+
+                        @Html.DropDownListFor(model => model.FileOwnerEmail, new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select SOP owner", new { @class = "form-control" })
+                        @Html.ValidationMessageFor(model => model.FileOwnerEmail, "", new { @class = "text-danger" })
+
+
+                    </td>
+
+                </tr>
+
+            </table>
+        </p>
+
+        <p>
+
+            <table>
+                <tr>
+                    <td class="signoffield">
+                        SOP Approver
+                    </td>
+
+                </tr>
+
+                <tr>
+                    <td>
+
+                        @Html.DropDownListFor(model => model.FileApproverEmail, new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select SOP approver", new { @class = "form-control" })
+                        @Html.ValidationMessageFor(model => model.FileApproverEmail, "", new { @class = "text-danger" })
+
+
+                    </td>
+
+                </tr>
+
+            </table>
+        </p>
+
+
+        <p>
+
+            <table>
+
+                <tr class="no-bottom-border" id="revhrow">
+                    <td class="signoffield">
+                        SOP Reviewers
+                    </td>
+
+                </tr>
+            </table>
+
+            <table id="tblReviewers">
+                <thead>
+
+
+                    <tr>
+
+                        <th>Full Name</th>
+
+                        <th>Email</th>
+
+                        <th></th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @using (var db = new SOPManagement.Models.RadiantSOPEntities())
+                    {
+
+                        foreach (var usr in db.vwSOPReviewers.Where(x => x.fileid == Model.FileID))
+
+                        {
+
+                            <tr>
+
+                                <td> @usr.userfullname </td>
+
+                                <td> @usr.useremailaddress </td>
+
+                                @*<td> @usr.jobtitle </td>*@
+
+                                <td><input type="button" value="Remove" onclick="Remove(this,'#tblReviewers')" /></td>
+
+
+
+                            </tr>
+
+                        }
+                    }
+
+                </tbody>
+
+                <tfoot>
+
+                    <tr>
+
+                        <td>
+
+                            @Html.DropDownList("userid", new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select a reviewer", new { @id = "ddlEmployees" })
+                        </td>
+
+
+
+
+                        <td><input type="button" id="btnAddRvwer" value="Add" /></td>
+
+                    </tr>
+
+                </tfoot>
+
+            </table>
+
+
+
+        </p>
+
+        <p>
+
+            <table>
+
+                <tr class="no-bottom-border" id="revhrow">
+                    <td class="signoffield">
+                        Read Accesss to
+                    </td>
+
+                </tr>
+            </table>
+
+
+            <table>
+
+                <tr>
+                    <td class="signoffield">
+
+                        @Html.DisplayNameFor(model => model.AllUsersReadAcc)
+
+                    </td>
+
+                    <td>
+
+                        @Html.CheckBoxFor(model => model.AllUsersReadAcc, new { htmlAttributes = new { @class = "form-control" } })
+                        @Html.ValidationMessageFor(model => model.AllUsersReadAcc, "", new { @class = "text-danger" })
+
+
+                    </td>
+
+                </tr>
+
+                <tr>
+                    <td class="signoffield">
+
+                        @Html.DisplayNameFor(model => model.DepartmentName)
+
+                    </td>
+
+                    <td>
+
+                        @Html.DropDownListFor(model => model.DepartmentCode, new SelectList(ViewBag.departments, "sopdeptcode", "sopdeptname"), "Select a department", new { @class = "form-control" })
+
+                        @Html.ValidationMessageFor(model => model.DepartmentCode, "", new { @class = "text-danger" })
+
+
+                    </td>
+
+                </tr>
+
+
+                <tr>
+                    <td class="signoffield">
+
+                        @Html.DisplayNameFor(model => model.FileViewers)
+
+                    </td>
+
+                    <td>
+
+                        <table id="tblViewers" style="width:50%">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>Full Name</th>
+
+                                    <th>Email</th>
+
+                                    <th></th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                                @using (var db = new SOPManagement.Models.RadiantSOPEntities())
+                                {
+
+                                    foreach (var usr in db.vwSOPViewers.Where(x => x.fileid == Model.FileID))
+
+                                    {
+
+
+                                        <tr>
+
+                                            <td> @usr.userfullname </td>
+
+                                            <td> @usr.useremailaddress </td>
+
+                                            @*<td> @usr.jobtitle </td>*@
+
+                                            <td><input type="button" value="Remove" onclick="Remove(this,'#tblViewers')" /></td>
+
+
+
+                                        </tr>
+
+                                    }
+                                }
+
+                            </tbody>
+
+                            <tfoot>
+
+                                <tr>
+
+                                    <td>
+
+                                        @Html.DropDownList("userid", new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select a viewer", new { @id = "ddlViewers" })
+                                    </td>
+
+                                    <td><input type="button" id="btnAddVwer" value="Add" /></td>
+
+                                </tr>
+
+                            </tfoot>
+
+                        </table>
+
+
+                    </td>
+
+                </tr>
+
+
+
+            </table>
+
+
+        </p>
+
+        <p>
+
+            <table>
+
+                <tr>
+                    <td style="text-align:center">
+                        <input type="submit" value="Archive" onclick="confirmarchive();" name="archive" id="sopsubmit" />
+                    </td>
+                    <td style="text-align:center">
+                        <input type="submit" value="Submit Changes" name="save" disabled="disabled" id="soparchive" />
+                    </td>
+                </tr>
+
+            </table>
+        </p>
+
+    </div>
+
+
+
+}
+
+
+<script src="~/Scripts/jquery-3.3.1.min.js"></script>
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+
+
+}
+
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+
+<script type="text/javascript" src="http://ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js"></script>
+
+
+<script src="~/Scripts/SOP.js"></script>
+
+<script>
+
+    function confirmarchive() {
+
+        var answer = window.confirm("Are you sure to Archive?")
+        if (answer) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+</script>

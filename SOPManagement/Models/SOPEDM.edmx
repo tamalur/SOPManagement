@@ -395,10 +395,24 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwSOPReviewers' does not have a pri
           <Property Name="reviewid" Type="int" Nullable="false" />
           <Property Name="reviewerid" Type="int" Nullable="false" />
           <Property Name="fileid" Type="int" Nullable="false" />
-          <Property Name="userfullname" Type="nvarchar" MaxLength="50" Nullable="false" />
-          <Property Name="useremailaddress" Type="nvarchar" MaxLength="50" />
-          <Property Name="jobtitle" Type="varchar" MaxLength="60" />
+          <Property Name="userfullname" Type="nvarchar" MaxLength="350" Nullable="false" />
+          <Property Name="useremailaddress" Type="nvarchar" MaxLength="350" />
+          <Property Name="jobtitle" Type="varchar" MaxLength="400" />
           <Property Name="departmentname" Type="nvarchar" MaxLength="100" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'RadiantYYZ.sop.vwSOPViewers' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="vwSOPViewers">
+          <Key>
+            <PropertyRef Name="userfullname" />
+            <PropertyRef Name="fileid" />
+            <PropertyRef Name="viewtypename" />
+          </Key>
+          <Property Name="userfullname" Type="nvarchar" MaxLength="350" Nullable="false" />
+          <Property Name="useremailaddress" Type="nvarchar" MaxLength="350" />
+          <Property Name="fileid" Type="int" Nullable="false" />
+          <Property Name="departmentcode" Type="smallint" />
+          <Property Name="viewtypename" Type="varchar" MaxLength="60" Nullable="false" />
         </EntityType>
         <!--Errors Found During Generation:
 warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
@@ -616,6 +630,15 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
     [vwSOPReviewers].[jobtitle] AS [jobtitle], 
     [vwSOPReviewers].[departmentname] AS [departmentname]
     FROM [sop].[vwSOPReviewers] AS [vwSOPReviewers]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="vwSOPViewers" EntityType="Self.vwSOPViewers" store:Type="Views" store:Schema="sop">
+            <DefiningQuery>SELECT 
+    [vwSOPViewers].[userfullname] AS [userfullname], 
+    [vwSOPViewers].[useremailaddress] AS [useremailaddress], 
+    [vwSOPViewers].[fileid] AS [fileid], 
+    [vwSOPViewers].[departmentcode] AS [departmentcode], 
+    [vwSOPViewers].[viewtypename] AS [viewtypename]
+    FROM [sop].[vwSOPViewers] AS [vwSOPViewers]</DefiningQuery>
           </EntitySet>
           <EntitySet Name="vwUsers" EntityType="Self.vwUsers" store:Type="Views" store:Schema="sop">
             <DefiningQuery>SELECT 
@@ -950,6 +973,7 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           <EntitySet Name="vwRvwrsSignatures" EntityType="RadiantYYZModel.vwRvwrsSignature" />
           <EntitySet Name="codesSOPDepartments" EntityType="RadiantYYZModel.codesSOPDepartment" />
           <EntitySet Name="vwOwnrsSOPDeptCodes" EntityType="RadiantYYZModel.vwOwnrsSOPDeptCode" />
+          <EntitySet Name="vwSOPViewers" EntityType="RadiantYYZModel.vwSOPViewer" />
         </EntityContainer>
         <EntityType Name="vwSOPReviewer">
           <Key>
@@ -961,10 +985,10 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           <Property Name="reviewid" Type="Int32" Nullable="false" />
           <Property Name="reviewerid" Type="Int32" Nullable="false" />
           <Property Name="fileid" Type="Int32" Nullable="false" />
-          <Property Name="userfullname" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="useremailaddress" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="userfullname" Type="String" Nullable="false" MaxLength="350" FixedLength="false" Unicode="true" />
+          <Property Name="useremailaddress" Type="String" MaxLength="350" FixedLength="false" Unicode="true" />
           <Property Name="departmentname" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
-          <Property Name="jobtitle" Type="String" MaxLength="60" FixedLength="false" Unicode="false" />
+          <Property Name="jobtitle" Type="String" MaxLength="400" FixedLength="false" Unicode="false" />
         </EntityType>
         <EntityType Name="vwUser">
           <Key>
@@ -1079,6 +1103,18 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           <Property Name="fileid" Type="Int32" Nullable="false" />
           <Property Name="ownerid" Type="Int32" Nullable="false" />
           <Property Name="sopdeptcode" Type="Int16" />
+        </EntityType>
+        <EntityType Name="vwSOPViewer">
+          <Key>
+            <PropertyRef Name="userfullname" />
+            <PropertyRef Name="fileid" />
+            <PropertyRef Name="viewtypename" />
+          </Key>
+          <Property Name="userfullname" Type="String" Nullable="false" MaxLength="350" FixedLength="false" Unicode="true" />
+          <Property Name="useremailaddress" Type="String" MaxLength="350" FixedLength="false" Unicode="true" />
+          <Property Name="fileid" Type="Int32" Nullable="false" />
+          <Property Name="departmentcode" Type="Int16" />
+          <Property Name="viewtypename" Type="String" Nullable="false" MaxLength="60" FixedLength="false" Unicode="false" />
         </EntityType>
       </Schema>
     </edmx:ConceptualModels>
@@ -1489,6 +1525,17 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
                 <ScalarProperty Name="sopdeptcode" ColumnName="sopdeptcode" />
                 <ScalarProperty Name="ownerid" ColumnName="ownerid" />
                 <ScalarProperty Name="fileid" ColumnName="fileid" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="vwSOPViewers">
+            <EntityTypeMapping TypeName="RadiantYYZModel.vwSOPViewer">
+              <MappingFragment StoreEntitySet="vwSOPViewers">
+                <ScalarProperty Name="viewtypename" ColumnName="viewtypename" />
+                <ScalarProperty Name="departmentcode" ColumnName="departmentcode" />
+                <ScalarProperty Name="fileid" ColumnName="fileid" />
+                <ScalarProperty Name="useremailaddress" ColumnName="useremailaddress" />
+                <ScalarProperty Name="userfullname" ColumnName="userfullname" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

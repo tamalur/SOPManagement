@@ -304,6 +304,9 @@
     <Compile Include="Models\vwSOPReviewer.cs">
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\vwSOPViewer.cs">
+      <DependentUpon>SOPEDM.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\vwUser.cs">
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
@@ -384,6 +387,7 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
+    <Content Include="Scripts\SOP.js" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
@@ -427,6 +431,7 @@
     <Content Include="Views\Home\SOPChngeRequest.cshtml" />
     <Content Include="Views\Home\SOPNoAcessMsg.cshtml" />
     <Content Include="Views\Home\LogIn.cshtml" />
+    <Content Include="Views\Home\AdminSOP.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

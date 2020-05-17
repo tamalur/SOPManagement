@@ -36,6 +36,7 @@ namespace SOPManagement.Models
 
         public string[] FileviewersArr { get; set; }
 
+        [Display(Name = "All Users")]
         public bool AllUsersReadAcc { get; set; }
 
         public short? FileStatuscode { get; set; }
@@ -71,8 +72,9 @@ namespace SOPManagement.Models
         [Display(Name = "Select Subfolder")]
         public string SubFolderName { get; set; }
 
+        [Display(Name = "By Department")]
         public string DepartmentName { get; set; }
-        public short DepartmentCode { get; set; }
+        public short? DepartmentCode { get; set; }
 
         public string ViewAccessType { get; set; }
 
@@ -90,7 +92,7 @@ namespace SOPManagement.Models
         [Display(Name = "Update Frequency")]
         public short Updatefreq { get; set; }
 
-        [Display(Name = "Select Frequency Unit")]
+        [Display(Name = "Freq. Unit")]
         public string Updatefrequnit { get; set; }
 
         public short Updfrequnitcode { get; set; }
@@ -103,7 +105,11 @@ namespace SOPManagement.Models
 
         public bool OperationSuccess { get; set; }
 
+        [Display(Name = "Reviewers")]
+
         public Employee[] FileReviewers { get; set; }
+
+        [Display(Name = "By Users")]
 
         public Employee[] FileViewers { get; set; }
 
@@ -2299,7 +2305,7 @@ namespace SOPManagement.Models
         }
 
 
-        public void GetSOPName()
+        public void GetSOPInfoByFileID()
         {
 
             using (var ctx = new RadiantSOPEntities())
@@ -2308,6 +2314,70 @@ namespace SOPManagement.Models
                 FileName = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.DeptFileName).FirstOrDefault();
                 SOPNo = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SOPNo).FirstOrDefault();
                 FileTitle = Path.ChangeExtension(FileName, null);
+                FileLink = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SPFileLink).FirstOrDefault();
+                FileCurrVersion = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.VersionNo).FirstOrDefault();
+                Updatefreq = Convert.ToInt16(ctx.fileupdateschedules.Where(d => d.fileid == FileID).Select(d => d.frequencyofrevision).FirstOrDefault());
+                Updatefrequnit =ctx.fileupdateschedules.Where(d => d.fileid == FileID).Select(d => d.unitoffrequency).FirstOrDefault();
+                Updfrequnitcode= Convert.ToInt16(ctx.fileupdateschedules.Where(d => d.fileid == FileID).Select(d => d.unitcodeupdfreq).FirstOrDefault());
+
+                if (FileCurrVersion != null && FileCurrVersion != "")
+                {
+                    FileCurrVersion = Math.Round(Math.Ceiling(Convert.ToDecimal(FileCurrVersion))).ToString();
+
+                }
+
+                AuthorName = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.CreatedBy).FirstOrDefault();
+                SOPCreateDate = Convert.ToDateTime(ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.CreateDate).FirstOrDefault());
+                ViewAccessType = ctx.fileviewaccesstypes.Where(v => v.fileid == FileID).Select(v => v.viewtypename).FirstOrDefault();
+
+                if (ViewAccessType == null)
+                    ViewAccessType = "";
+                if (ViewAccessType.Trim() == "By Department")
+                    DepartmentCode = Convert.ToInt16(ctx.fileviewaccesstypes.Where(v => v.fileid == FileID).Select(v => v.departmentcode).FirstOrDefault());
+                if (ViewAccessType.Trim() == "All Users")
+                    AllUsersReadAcc = true;
+
+
+                    var owner = (from f in ctx.fileowners
+                                  join u in ctx.users
+                                  on f.ownerid equals u.userid
+                                  where f.fileid == FileID &&  f.ownerstatuscode==1
+                                  select new Employee
+                                  {
+                                      useremailaddress=u.useremailaddress,
+                                      userid=f.ownerid
+                                     
+                                  }).ToList();
+
+
+                foreach(Employee emp in owner)
+                {
+
+                    FileOwnerEmail = emp.useremailaddress;
+                    FileOwnerID = emp.userid;
+                }
+               
+
+                var approver = (from f in ctx.fileapprovers
+                             join u in ctx.users
+                             on f.approverid equals u.userid
+                             where f.fileid == FileID && f.approverstatuscode == 1
+                             select new Employee
+                             {
+                                 useremailaddress = u.useremailaddress,
+                                 userid = f.approverid
+                                 
+                             }).ToList();
+
+                foreach (Employee emp in approver)
+                {
+
+                    FileApproverEmail = emp.useremailaddress;
+                    FileApproverID = emp.userid;
+                }
+
+
+
 
             }
 
@@ -2345,7 +2415,7 @@ namespace SOPManagement.Models
 
                     //data related to change request
 
-                    Employee oSOPOwner = new Employee();
+                Employee oSOPOwner = new Employee();
 
                 oSOPOwner.useremailaddress = ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.owneremail).FirstOrDefault();
                 oSOPOwner.GetUserByEmail();
@@ -3359,6 +3429,57 @@ namespace SOPManagement.Models
 
         }
 
+
+        public void ArchiveSOP()
+        {
+
+            //shell comand
+
+            //Connect - SPOnline - url[yoururl]
+            //$ctx = Get - SPOContext
+            //$web = Get - SPOWeb
+            //$fileUrl = "/sites/contosobeta/Shared Documents/test.csv"
+            //$newfileUrl = "/sites/contosobeta/Shared Documents/test_rename.csv"
+            //$file = $web.GetFileByServerRelativeUrl("$fileUrl")
+            //$file.MoveTo("$newfileUrl", 'Overwrite')
+            //$ctx.ExecuteQuery()
+
+
+            bool pdone = false;
+            ErrorMessage = "";
+
+            ClientContext ctx = new ClientContext(SiteUrl);
+
+            SecureString spassword = GetSecureString(password);
+
+            ctx.Credentials = new SharePointOnlineCredentials(userName, spassword);
+
+            ctx.Load(ctx.Web);
+
+            Web web = ctx.Web;
+
+            //The ServerRelativeUrl property returns a string in the following form, which excludes the name of
+            //    the server or root folder: / Site_Name / Subsite_Name / Folder_Name / File_Name.
+
+            ctx.Load(web, wb => wb.ServerRelativeUrl);
+            ctx.ExecuteQuery();
+
+            // string filerelurl = web.ServerRelativeUrl + "/SOP/Information Technology (IT)/" + "IT-07 OperationTestFile.docx";
+
+            string filerelurl = web.ServerRelativeUrl + "/" + FilePath.Trim() + FileName;
+
+            string filenewrelurl = web.ServerRelativeUrl + "/SOP/Archive/"+ SOPNo+" "+FileName;
+
+            Microsoft.SharePoint.Client.File file = web.GetFileByServerRelativeUrl(filerelurl);
+
+            ctx.Load(file);
+            ctx.ExecuteQuery();
+
+            file.MoveTo(filenewrelurl, MoveOperations.Overwrite);
+
+            ctx.ExecuteQuery();
+        }
+
         //publish/approve file in sharepoint so all users having read permission can view the sop 
         public bool PublishFile()
         {
@@ -3367,9 +3488,6 @@ namespace SOPManagement.Models
             ErrorMessage = "";
 
             ClientContext ctx = new ClientContext(SiteUrl);
-
-            //string userName = Utility.GetSiteAdminUserName();  //it is email address of site admin
-            //string password = Utility.GetSiteAdminPassowrd();
 
             SecureString spassword = GetSecureString(password);
 
@@ -3401,6 +3519,8 @@ namespace SOPManagement.Models
 
             ctx.Load(file);
             ctx.ExecuteQuery();
+
+            
 
             if (file.Level.ToString() == "Draft")    //level enum Published=1, Draft=2, Checkout=255 
             {

@@ -76,7 +76,7 @@ namespace SOPManagement.Controllers
             SOPClass oSOP = new SOPClass();
             oSOP.FileID = Convert.ToInt32(id);
 
-            oSOP.GetSOPName();
+            oSOP.GetSOPInfoByFileID();
 
             ViewBag.SOPTitle = oSOP.FileTitle;
             ViewBag.SOPNO = oSOP.SOPNo;
@@ -165,6 +165,91 @@ namespace SOPManagement.Controllers
             return View(model);
 
             // return View();
+        }
+
+        public ActionResult AdminSOP(int? id)
+        {
+
+
+            SOPClass oSOP = new SOPClass();
+
+            oSOP.FileID = Convert.ToInt32(id);
+
+            oSOP.GetSOPInfoByFileID();
+
+            ViewBag.employees = (from c in ctx.users select new { c.useremailaddress, c.userfullname, c.userstatuscode }).Where(x => x.userstatuscode == 1).Distinct();
+
+            ViewBag.departments = (from c in ctx.codesSOPDepartments select new {c.sopdeptcode, c.sopdeptname }).Distinct();
+
+            ViewBag.updfrequnits = (from c in ctx.codesUnits select new { c.unitcode, c.Unitname, c.UnitType }).Where(x => x.UnitType == "UpdateFrequency").Distinct();
+
+            TempData["FilePath"] = oSOP.FilePath;
+            TempData["FileName"] = oSOP.FileName;
+            TempData["SOPNO"] = oSOP.SOPNo;
+
+
+            return View(oSOP);
+        }
+
+
+        [HttpPost]
+        public ActionResult AdminSOP(SOPClass sop, string archive, string save)
+
+        {
+
+            //If archive is submitted do this and redirect to success or failure message
+
+            sop.SiteUrl = siteurl;
+
+            if (!string.IsNullOrEmpty(archive))
+            {
+
+                if (TempData["SOPNO"] != null)
+                {
+                    sop.SOPNo = TempData["SOPNO"].ToString();
+
+                }
+
+
+                if (TempData["FilePath"] != null)
+                {
+                    sop.FilePath = TempData["FilePath"].ToString();
+
+                }
+
+                if (TempData["FileName"] != null)
+                {
+                    sop.FileName = TempData["FileName"].ToString();
+
+                }
+
+
+
+                sop.ArchiveSOP();
+
+
+            }
+
+
+            if (!string.IsNullOrEmpty(save))
+            {
+
+
+            }
+
+
+
+
+                //If submitted for Update schedule, Owner, Approver, Reviewers then do it 
+
+
+                //If view permission is changed do it
+
+                Session["SOPMsg"] = "Admin SOP: You have successfully submitted all admin changes of SOP:"+sop.SOPNo;
+
+            return RedirectToAction("SOPMessage");
+
+
         }
 
         public ActionResult SignSOP(int? id)
@@ -409,7 +494,7 @@ namespace SOPManagement.Controllers
                 else
                 {
 
-                    Session["SOPMsg"] = "Signing Off SOP:Error: You have not signed SOP!";
+                    Session["SOPMsg"] = "Signing Off SOP:Error: You have nothing to sign!";
 
                     return RedirectToAction("SOPMessage");
 
@@ -1215,7 +1300,7 @@ namespace SOPManagement.Controllers
                         if (sop.DepartmentCode > 0)  //if department is selected then preference is to get employees by department code
                         {
 
-                            short sdeptcode = sop.DepartmentCode;
+                            short sdeptcode = Convert.ToInt16(sop.DepartmentCode);
                             oEmp.departmentcode = sdeptcode;
 
 
