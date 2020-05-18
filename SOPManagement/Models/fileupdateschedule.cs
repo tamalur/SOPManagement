@@ -22,5 +22,7 @@ namespace SOPManagement.Models
         public Nullable<System.DateTime> lastpublishdate { get; set; }
         public Nullable<System.DateTime> scheduledatetime { get; set; }
         public Nullable<short> unitcodeupdfreq { get; set; }
+        public Nullable<System.DateTime> updatedatetime { get; set; }
+        public Nullable<int> upatedbyuserid { get; set; }
     }
 }

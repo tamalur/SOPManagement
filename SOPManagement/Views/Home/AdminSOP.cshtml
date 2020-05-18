@@ -9,8 +9,10 @@
 }
 
 
-@using (Html.BeginForm("AdminSOP", "Home", FormMethod.Post))
+@using (Html.BeginForm("AdminSOP", "Home", FormMethod.Post, new { @id = "Form1" }))
 {
+
+    @Html.AntiForgeryToken()
 
     <style>
         table {
@@ -371,16 +373,27 @@
 
         </p>
 
+   </div>
+
+
+}
+
+    <div>
+
         <p>
 
             <table>
 
                 <tr>
                     <td style="text-align:center">
-                        <input type="submit" value="Archive" onclick="confirmarchive();" name="archive" id="sopsubmit" />
+
+                        @using (Html.BeginForm("AdminSOP", "Home", FormMethod.Post, new { @id = "Form2" }))
+                        {
+                            <input type="submit" value="Archive" name="archive" id="sopsubmit" />
+                        }
                     </td>
                     <td style="text-align:center">
-                        <input type="submit" value="Submit Changes" name="save" disabled="disabled" id="soparchive" />
+                        <input value="Submit Changes" type="submit" onclick="confirmsave();"  name="save" id="soparchive" />
                     </td>
                 </tr>
 
@@ -388,10 +401,6 @@
         </p>
 
     </div>
-
-
-
-}
 
 
 <script src="~/Scripts/jquery-3.3.1.min.js"></script>
@@ -412,14 +421,221 @@
 
 <script>
 
-    function confirmarchive() {
 
-        var answer = window.confirm("Are you sure to Archive?")
+    $("body").on("submit", "#Form2", function () {
+        return confirm("Are you sure you want to archive this SOP?");
+    });
+
+
+
+
+    function confirmsave() {
+
+        var answer = window.confirm("Are you sure to change all SOP admin data?")
         if (answer) {
-            return true;
-        }
-        else {
+
+
+            submitchanges();
+
             return false;
         }
+        else {
+
+            return true;
+        }
     }
+
+
+    function submitchanges()
+    {
+
+        //validate data entry
+
+
+        var updfreq = $('#Updatefreq').val();
+
+
+        if (updfreq == "" || updfreq <= 0 ) {
+            alert("Update frequency is required!")
+            return true;
+        }
+
+        if (updfreq != "" && isNaN(updfreq) == true) {
+            alert("Update frequency must be numeric!")
+            return true;
+
+        }
+
+        var upfrequnit = $('#Updfrequnitcode :selected').text();
+        var updfrequcode = $('#Updatefrequnit :selected').val();
+  
+        if (upfrequnit == "Please select freq. unit" || upfrequnit == "") {
+            alert("Update frequency unit is required!")
+            return true;
+        }
+
+        var owneremail = $('#FileOwnerEmail :selected').val();
+
+        // var owneremail = $('[id$=FileOwnerEmail] option:selected').val();  //it also works
+
+
+        if (owneremail == "") {
+            alert("SOP Owner is required!")
+            return true;
+
+        }
+
+        var apporveremail = $('#FileApproverEmail :selected').val();
+
+
+        if (apporveremail == "") {
+            alert("SOP Approver is required!")
+            return true;
+
+        }
+
+
+
+        //validate and collect data from Reviewers and viewers table
+
+
+        //collect reviewers and viewers from html tables in javascript array
+
+        var reviewerarr = new Array();
+
+        //Loop through the Table rows and build a reviewers JSON array.
+
+        $("#tblReviewers TBODY TR").each(function () {
+
+            var row = $(this);
+
+            var reviewer = {};
+
+            reviewer.userfullname = row.find("TD").eq(0).html();
+
+            reviewer.useremailaddress = row.find("TD").eq(1).html();
+
+            reviewerarr.push(reviewer);
+
+
+        });
+
+        if (reviewerarr === undefined || reviewerarr.length == 0) {
+            // array empty or does not exist
+            alert("Reviewers are required, plesae add at least one reviewer!");
+            return true;
+        }
+
+        var rvwrarr = JSON.stringify(reviewerarr);   //this is json data of array to pass to controller through ajax call
+
+        //get view/read access fields
+
+        var chkAllVwrs = document.getElementById("AllUsersReadAcc").checked;
+
+        var vwrdeptcode = $('#DepartmentCode :selected').val();
+
+        //Loop through the viewers Table rows and build a viewers JSON array.
+
+        var viewersarr = new Array();
+
+        $("#tblViewers TBODY TR").each(function () {
+
+            var row = $(this);
+
+            var viewer = {};
+
+            viewer.userfullname = row.find("TD").eq(0).html();
+
+            viewer.useremailaddress = row.find("TD").eq(1).html();
+
+            viewersarr.push(viewer);
+
+
+        });
+
+        if (chkAllVwrs == false) {
+
+            if (vwrdeptcode == "" && (viewersarr === undefined || viewersarr.length == 0)) {
+                // array empty or does not exist
+                alert("Plesae enter at least one viewer with read access!");
+                return true;
+            }
+
+
+        }
+
+        var vwrarr = JSON.stringify(viewersarr);  //send json data to controller
+
+         //submit reviewers, viewers etc. to controler through ajax 
+
+           // confirmsave();
+
+            var sop = new FormData();   //to send uploaded file bytes we need to use javascript Formdata object
+
+            sop.append("Updatefreq", updfreq);
+            sop.append("Updatefrequnit", upfrequnit);
+            sop.append("Updfrequnitcode", updfrequcode);
+            sop.append("FileOwnerEmail", owneremail);
+            sop.append("FileApproverEmail", apporveremail);
+            sop.append("FilereviewersArr", rvwrarr);
+            sop.append("AllUsersReadAcc", chkAllVwrs);
+            sop.append("DepartmentCode", vwrdeptcode);
+            sop.append("FileviewersArr", vwrarr);
+
+
+
+
+            $.ajax({
+                type: "POST",
+                url: "/Home/AdminSOP",
+                //data: '{sop: ' + JSON.stringify(sop) + '}',
+                data: sop,
+                //contentType: "application/json; charset=utf-8",
+
+                processData: false, //send through body, do not want jQuery to automatically convert the data to a query string so I'm setting processData to false.
+
+                contentType: false,  //content type is data type sending from client. It is false for sending file stream to upload file with other form data
+
+                dataType: "json",     //data type that we expect from server
+                success: function (response) {  //server sends OK 200 response to the client
+
+                    if (response.redirecturl != null && response.redirecturl != "")  
+                        window.location.href = response.redirecturl;
+                    else {  
+                        //json field with success and responseText field
+                        //alert(response.success has two values success or failure that I did not check here as I have error message in session);
+                        //alert(response.responseText)
+ 
+                        @*window.location.href = '@Url.Action("SOPMessage", "Home")/' + id;*@
+
+                        if (response.success == false && response.responseText == "sessiontimeout")
+                            window.location.href = '@Url.Action("logIn", "Home")';
+
+                         else 
+                            window.location.href = '@Url.Action("SOPMessage", "Home")';
+
+                    }
+                },
+                failure: function (response) {     // Server errors (500–599). when failed to send desired response
+                 //  alert("Server Response Error:"+response.responseText);
+                    window.location.href = '@Url.Action("CleintServerErr", "Home")';
+
+                },
+
+                error: function (response) {      //Client errors (400–499) i.e. uploaded file is too big more than 20 MB permitted in web.cofig
+
+                    //Codes other than Http Success codes(200[OK]) will trigger the function in front of error: in client side(ajax).
+
+                    window.location.href = '@Url.Action("CleintServerErr", "Home")';
+                  
+                }
+
+
+            });
+
+
+
+    }
+
+
 </script>

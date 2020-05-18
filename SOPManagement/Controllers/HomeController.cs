@@ -183,9 +183,27 @@ namespace SOPManagement.Controllers
 
             ViewBag.updfrequnits = (from c in ctx.codesUnits select new { c.unitcode, c.Unitname, c.UnitType }).Where(x => x.UnitType == "UpdateFrequency").Distinct();
 
-            TempData["FilePath"] = oSOP.FilePath;
-            TempData["FileName"] = oSOP.FileName;
-            TempData["SOPNO"] = oSOP.SOPNo;
+
+            //need to keep this data for archiving file
+            TempData["FileID"] = oSOP.FileID;  //very important field in this context
+
+            //TempData["FilePath"] = oSOP.FilePath;
+            //TempData["FileName"] = oSOP.FileName;
+            //TempData["SOPNO"] = oSOP.SOPNo;
+
+            ////need to keep this data to compare any changes from view by users
+            ////if field data is not changed it will not update sql table
+            ////if any change it will update sql table foe that changed data 
+
+            //TempData["Updatefreq"] = oSOP.Updatefreq;
+            //TempData["Updatefrequnit"] = oSOP.Updatefrequnit;
+            //TempData["FileOwnerEmail"] = oSOP.FileOwnerEmail;
+            //TempData["FileApproverEmail"] = oSOP.FileApproverEmail;
+            //TempData["SOPReviewers"] = oSOP.FileReviewers;
+            //TempData["AllUsersReadAcc"] = oSOP.AllUsersReadAcc;
+            //TempData["DepartmentCode"] = oSOP.DepartmentCode;
+            //TempData["SOPViewers"] = oSOP.FileViewers;
+
 
 
             return View(oSOP);
@@ -199,53 +217,217 @@ namespace SOPManagement.Controllers
 
             //If archive is submitted do this and redirect to success or failure message
 
-            sop.SiteUrl = siteurl;
+            SOPClass oSOP = new SOPClass();
+
+            oSOP.SiteUrl = siteurl;
+
+
+            if (TempData["FileID"] != null)
+                oSOP.FileID = Convert.ToInt32(TempData["FileID"].ToString());
+
+            oSOP.GetSOPInfoByFileID();   //get current data to compare with new data from view, if any change then update it
+
+            sop.FileID = oSOP.FileID;    //very important value as all changes will be done by file id
+
+
+            //archive file in sharepoint folder
 
             if (!string.IsNullOrEmpty(archive))
-            {
-
-                if (TempData["SOPNO"] != null)
-                {
-                    sop.SOPNo = TempData["SOPNO"].ToString();
-
-                }
+                oSOP.ArchiveSOP();
 
 
-                if (TempData["FilePath"] != null)
-                {
-                    sop.FilePath = TempData["FilePath"].ToString();
-
-                }
-
-                if (TempData["FileName"] != null)
-                {
-                    sop.FileName = TempData["FileName"].ToString();
-
-                }
-
-
-
-                sop.ArchiveSOP();
-
-
-            }
-
+            //save all admin changes
 
             if (!string.IsNullOrEmpty(save))
             {
 
-
-            }
-
-
+                if (sop.Updatefreq != oSOP.Updatefreq)
+                    sop.UpdateDataByFieldName("Updatefreq");
 
 
-                //If submitted for Update schedule, Owner, Approver, Reviewers then do it 
+                if (sop.FileOwnerEmail != oSOP.FileOwnerEmail)
+                {
+                    sop.UpdateDataByFieldName("FileOwnerEmail");
+                    sop.AssignFilePermissionToUsers("read", "add", sop.FileOwnerEmail);
+                }
+
+                if (sop.FileApproverEmail != oSOP.FileApproverEmail)
+                {
+                    sop.UpdateDataByFieldName("FileApproverEmail");
+                    sop.AssignFilePermissionToUsers("read", "add", sop.FileApproverEmail);
+                }
+
+                Employee[] rvwrItems = JsonConvert.DeserializeObject<Employee[]>(sop.FilereviewersArr[0]);
+
+                bool rvwrchanged = false;
+                
+                //find if any reviewers are changed
+
+                foreach (Employee empview in rvwrItems)
+                {
+                    foreach(Employee emp in oSOP.FileReviewers)
+                    {
+                        if (empview.useremailaddress!=emp.useremailaddress)
+                        {
+                            rvwrchanged = true;
+                            break;
+                        }
+                    }
+
+                    if (rvwrchanged)
+                        break;
+                }
 
 
-                //If view permission is changed do it
+                if (rvwrchanged)
+                {
+                    sop.FileReviewers = rvwrItems;
 
-                Session["SOPMsg"] = "Admin SOP: You have successfully submitted all admin changes of SOP:"+sop.SOPNo;
+                    sop.UpdateDataByFieldName("FileReviewers");
+                    sop.AssignFilePermissionToUsers("read", "add", rvwrItems);
+                }
+
+
+                //change viewer access
+                bool chngviewer;
+                Employee[] vwrItems;
+                Employee oEmp = new Employee();
+
+                if (sop.AllUsersReadAcc == oSOP.AllUsersReadAcc && sop.AllUsersReadAcc==true)
+                {
+                    //do nothing as user kept same read permission to all 
+                    chngviewer = false; 
+                }
+                else
+                {
+                    chngviewer = true;
+
+                }
+
+
+                //check and compare reviewers.
+
+                if (chngviewer)
+                {
+
+
+                    if (sop.AllUsersReadAcc)   //it was false now true
+                    {
+
+                        //give read permission to all users
+
+                        sop.RemoveAllFilePermissions();
+
+                        sop.ViewAccessType = "";   //this was for not inheriting permission, first first dupload inheritane is ok
+
+                        sop.AssignFilePermissionToGroup("read", "add", "SEC_Everyone_RadiantCanada");
+                        sop.AssignFilePermissionToGroup("read", "add", "Watercooler Visitors");
+
+                        sop.ViewAccessType = "All Users";  //this was for sql table update   
+                        sop.AddViewerAccessType();
+
+
+                    }
+
+
+                    else   //either by users or department 
+                    {
+                      
+                        //check what old viewer access was there 
+                        if (sop.ViewAccessType.Trim() == "By Users")
+                        {
+                            //insert users in sql tables
+                            //give read permission to custom users
+                            if (sop.FileviewersArr.Count() > 0)   //get employees from custom user list
+                            {
+
+                                sop.ViewAccessType = "By Users";
+
+                                vwrItems = JsonConvert.DeserializeObject<Employee[]>(sop.FileviewersArr[0]);
+
+                                //first remove existing permission from the file, default is Watercooler Visitors
+
+                                sop.RemoveAllFilePermissions();
+
+                                //give read permission to all custom viewers
+
+                                sop.AssignFilePermissionToUsers("read", "add", vwrItems);
+
+
+                                //now add view access info by custom users in SQL table
+                                //we need this to retrieve and change in admin page
+
+                                sop.FileViewers = vwrItems;
+                                sop.AddViewerAccessType();
+                                sop.AddFileViewers();
+
+                            }
+
+
+                        }
+
+                        if (sop.ViewAccessType.Trim() == "By Department")
+                        {
+
+                            //insert department users in sql tables
+                            //give read permission to custom users by department
+
+
+                            if (sop.DepartmentCode > 0)  //if department is selected then preference is to get employees by department code
+                            {
+
+                                sop.ViewAccessType = "By Department";
+
+                                short sdeptcode = Convert.ToInt16(sop.DepartmentCode);
+                                oEmp.departmentcode = sdeptcode;
+
+
+                                oEmp.GetEmployeesByDeptCode();
+
+                                vwrItems = oEmp.employees;
+
+                                //first remove existing permission from the file, default is Watercooler Visitors
+
+                                sop.RemoveAllFilePermissions();
+
+                                //give read permission to all users who are in the selected department
+
+                                // oSop.AssignFilePermission("add", "read", vwrItems);  //this one hits sp server three times in a employee loop
+
+                                sop.AssignFilePermissionToUsers("read", "add", vwrItems);
+
+                                //now add view access info by department in SQL Table
+                                //we need this to retrieve and change in admin page
+
+                                sop.DepartmentCode = sdeptcode;
+                                sop.AddViewerAccessType();
+
+
+                            }
+
+
+                        }
+
+                    }
+
+
+                }  //end checking if viewer selection was changed
+
+
+            } //end checking save changes
+
+
+
+
+
+
+
+            //If submitted for Update schedule, Owner, Approver, Reviewers then do it 
+
+
+            //If view permission is changed do it
+
+            Session["SOPMsg"] = "Admin SOP: You have successfully submitted all admin changes of SOP:"+sop.SOPNo;
 
             return RedirectToAction("SOPMessage");
 
@@ -1291,7 +1473,9 @@ namespace SOPManagement.Controllers
 
                     }
 
-                    else    //if All users are not permitted to view then customize the read permission according to either department or custom users
+                    else    
+                    
+                    //if All users are not permitted to view then customize the read permission according to either department or custom users
 
                     {
                         //prepare viewers array

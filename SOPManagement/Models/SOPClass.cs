@@ -147,6 +147,44 @@ namespace SOPManagement.Models
 
         // all database operation 
 
+
+        public void UpdateDataByFieldName(string pFieldName)
+        {
+            if (pFieldName== "Updatefreq")
+            {
+
+                using (var dbcontext = new RadiantSOPEntities())
+                {
+                    var result = dbcontext.fileupdateschedules.SingleOrDefault(b => b.fileid == FileID);
+                    if (result != null)
+                    {
+
+                        result.frequencyofrevision = Updatefreq;
+                        result.unitcodeupdfreq = Updfrequnitcode;
+                        result.updatedatetime = DateTime.Today;
+                        result.upatedbyuserid = Utility.GetLoggedInUserID();
+
+
+                        dbcontext.SaveChanges();
+                    }
+                }
+
+
+            }  //end udpate freq
+
+            if (pFieldName == "FileOwnerEmail")
+                AddFileOwner("no");  //without any change request
+
+            if (pFieldName == "FileApproverEmail")
+                AddFileApprover("no");  //without any change request
+
+            if (pFieldName == "FileReviewers")
+                AddFileReviewers("no");
+
+
+        }
+
+
         public void UpdateChangeReqID(short statuscode)
         {
 
@@ -223,11 +261,9 @@ namespace SOPManagement.Models
 
             }
 
-
-
         }
 
-        public void AddFileReviewers()
+        public void AddFileReviewers(string pAddChangRequest = "yes")
         {
 
             Employee emp = new Employee();
@@ -265,7 +301,8 @@ namespace SOPManagement.Models
 
                     rvwrid = rvwrtable.reviewid;
 
-                    AddRvwractivities(rvwrid);
+                    if (pAddChangRequest=="yes")
+                        AddRvwractivities(rvwrid);
 
                     OperationSuccess = true;
                 }
@@ -366,7 +403,7 @@ namespace SOPManagement.Models
 
         }
 
-        public void AddFileApprover()
+        public void AddFileApprover(string pAddChangRequest = "yes")
 
         {
             //now insert approver into approver table
@@ -401,9 +438,11 @@ namespace SOPManagement.Models
 
                 apprvid = aprvrtable.approveid;
 
-                AddApproveractivities(apprvid);
-
-                AddPublisheractivities(apprvrid);   //here publisher id
+                if (pAddChangRequest == "yes")
+                {
+                    AddApproveractivities(apprvid);
+                    AddPublisheractivities(apprvrid);   //here publisher id
+                }
 
                 OperationSuccess = true;
 
@@ -496,7 +535,10 @@ namespace SOPManagement.Models
 
         }
 
-        public void AddFileOwner()
+
+   
+
+        public void AddFileOwner(string pAddChangRequest="yes")  //optional param by default yes
 
         {
 
@@ -535,7 +577,8 @@ namespace SOPManagement.Models
                 dbcontext.SaveChanges();
                 ownershipid = ownertable.ownershipid;
 
-                AddOwneractivities(ownershipid);
+                if (pAddChangRequest == "yes") 
+                      AddOwneractivities(ownershipid);
 
                 OperationSuccess = true;
             }
@@ -2350,6 +2393,8 @@ namespace SOPManagement.Models
                                   }).ToList();
 
 
+               
+
                 foreach(Employee emp in owner)
                 {
 
@@ -2377,13 +2422,94 @@ namespace SOPManagement.Models
                 }
 
 
+                var reviewers = (from f in ctx.filereviewers
+                                join u in ctx.users
+                                on f.reviewerid equals u.userid
+                                where f.fileid == FileID && f.reviewerstatuscode == 1  //active reviewers
+                                select new Employee
+                                {
+                                    useremailaddress = u.useremailaddress,
+                                    userid = f.reviewerid,
+                                    userfullname=u.userfullname
+                                    
+
+                                }).ToList();
 
 
-            }
+
+
+                Employee[] oRreviewersArr = new Employee[reviewers.Count()];
+                int i = 0;
+                Employee oRvwr;
+                foreach (var r in reviewers)
+                {
+
+                    oRvwr = new Employee();
+
+                    oRvwr.useremailaddress = r.useremailaddress;
+                    oRvwr.userfullname = r.userfullname;
+                    oRvwr.userid = r.userid;
+
+                    oRreviewersArr[i] = oRvwr;
+
+                    i = i + 1;
+
+                }
+
+                FileReviewers = oRreviewersArr;
+
+
+                if (ViewAccessType.Trim() == "All Users")
+                {
+
+                    var viewers = (from f in ctx.vwSOPViewers
+                                     where f.fileid == FileID && f.viewtypename.Trim() == "By Users"  //active reviewers
+                                     select new Employee
+                                     {
+                                         useremailaddress = f.useremailaddress,
+                                         userfullname = f.userfullname
+
+
+                                     }).ToList();
+
+                    Employee[] oViewersArr = new Employee[viewers.Count()];
+                    int j = 0;
+                    Employee oVwr;
+                    foreach (var r in viewers)
+                    {
+
+                        oVwr = new Employee();
+
+                        oVwr.useremailaddress = r.useremailaddress;
+                        oVwr.userfullname = r.userfullname;
+
+                        oViewersArr[j] = oVwr;
+
+                        j = j + 1;
+
+                    }
+
+                    FileViewers = oViewersArr;
+
+
+
+
+
+                }
+
+
+
+            }   //end using ctx database
+
+
 
 
 
         }
+
+
+
+    
 
         public void GetSOPInfo()
         {
@@ -3428,6 +3554,90 @@ namespace SOPManagement.Models
             } //end using site contex
 
         }
+
+        public void AssignFilePermissionToGroup(string plabel, string addremove, string groupname)
+        {
+
+            bool pdone = false;
+            ErrorMessage = "";
+
+            SecureString spassword = GetSecureString(password);
+
+            using (var ctx = new ClientContext(SiteUrl))
+            {
+
+                ctx.Credentials = new SharePointOnlineCredentials(userName, spassword);
+                ctx.Load(ctx.Web);
+
+                Web web = ctx.Web;
+
+                //The ServerRelativeUrl property returns a string in the following form, which excludes the name of
+                //    the server or root folder: / Site_Name / Subsite_Name / Folder_Name / File_Name.
+
+                ctx.Load(web, wb => wb.ServerRelativeUrl);
+                ctx.ExecuteQuery();
+
+                // string filerelurl = web.ServerRelativeUrl + "/SOP/Information Technology (IT)/" + "IT-07 OperationTestFile.docx";
+
+                string filerelurl = web.ServerRelativeUrl + "/" + FilePath.Trim() + FileName;
+
+                Microsoft.SharePoint.Client.File file = web.GetFileByServerRelativeUrl(filerelurl);
+
+                //need this valid users from sp to verify email that we get from employee list from watercooler
+                //if user is no longer in sp then it fails that we don't want
+
+                //var users = ctx.LoadQuery(ctx.Web.SiteUsers.Where(u => u.PrincipalType == Microsoft.SharePoint.Client.Utilities.PrincipalType.User && u.UserId.NameIdIssuer == "urn:federation:microsoftonline"));
+
+                //ctx.ExecuteQuery();
+
+                //find group principal with group name
+                Group grp = null;
+                GroupCollection groupColl = ctx.Web.SiteGroups;
+                ctx.Load(groupColl,
+                    groups => groups.Include(
+                    group => group.Title,
+                    group => group.Id));
+                ctx.ExecuteQuery();
+                foreach (Group siteGroup in groupColl)
+                {
+                    if (siteGroup.Title.Equals(groupname))
+                    {
+                        grp = siteGroup;
+                        break;
+                    }
+                }
+
+
+                RoleDefinitionBindingCollection rd = new RoleDefinitionBindingCollection(ctx);
+                rd.Add(ctx.Web.RoleDefinitions.GetByName(plabel));   //get permission label, i.e. read , contribute etc.
+
+                if (ViewAccessType == "All Users" || ViewAccessType == "Inherit")
+                    file.ListItemAllFields.BreakRoleInheritance(true, false);   //inherit permission for all users selection
+                else
+                    file.ListItemAllFields.BreakRoleInheritance(false, false);   //do not inherit if all users are not selected
+
+
+                if (addremove == "add")
+                {
+                    file.ListItemAllFields.RoleAssignments.Add(grp, rd);
+                }
+                else if (addremove == "remove")
+                {
+
+                    file.ListItemAllFields.RoleAssignments.GetByPrincipal(grp).DeleteObject();
+
+                }
+
+                file.ListItemAllFields.Update();
+
+
+
+                ctx.ExecuteQuery();   //update all permission in one shot. this is time saver here
+
+            } //end using site contex
+
+        }
+
 
 
         public void ArchiveSOP()

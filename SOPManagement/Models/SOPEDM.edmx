@@ -179,6 +179,8 @@ warning 6002: The table/view 'RadiantYYZ.sop.codesuserstatus' does not have a pr
           <Property Name="lastrevisionno" Type="nvarchar" MaxLength="50" />
           <Property Name="scheduledatetime" Type="datetime" />
           <Property Name="unitcodeupdfreq" Type="smallint" />
+          <Property Name="updatedatetime" Type="datetime" />
+          <Property Name="upatedbyuserid" Type="int" />
         </EntityType>
         <EntityType Name="fileviewaccesstype">
           <Key>
@@ -791,6 +793,8 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           <Property Name="lastpublishdate" Type="DateTime" Precision="3" />
           <Property Name="scheduledatetime" Type="DateTime" Precision="3" />
           <Property Name="unitcodeupdfreq" Type="Int16" />
+          <Property Name="updatedatetime" Type="DateTime" Precision="3" />
+          <Property Name="upatedbyuserid" Type="Int32" />
         </EntityType>
         <EntityType Name="user">
           <Key>
@@ -1256,6 +1260,8 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           <EntitySetMapping Name="fileupdateschedules">
             <EntityTypeMapping TypeName="RadiantYYZModel.fileupdateschedule">
               <MappingFragment StoreEntitySet="fileupdateschedule">
+                <ScalarProperty Name="upatedbyuserid" ColumnName="upatedbyuserid" />
+                <ScalarProperty Name="updatedatetime" ColumnName="updatedatetime" />
                 <ScalarProperty Name="unitcodeupdfreq" ColumnName="unitcodeupdfreq" />
                 <ScalarProperty Name="scheduledatetime" ColumnName="scheduledatetime" />
                 <ScalarProperty Name="lastpublishdate" ColumnName="lastpublishdate" />
