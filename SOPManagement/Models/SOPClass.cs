@@ -99,6 +99,7 @@ namespace SOPManagement.Models
 
         public string FileLink { get; set; }
 
+        [Display(Name = "Department Folder")]
         public string FilePath { get; set; }
 
         public string FileLocalPath { get; set; }
@@ -117,7 +118,7 @@ namespace SOPManagement.Models
         public Employee FileApprover { get; set; }
 
         public string DocumentLibName { get; set; }
-
+        
         public string FileUrl { get; set; }
         public string SiteUrl { get; set; }
         [Display(Name = "SOP Effective Date")]
@@ -129,6 +130,7 @@ namespace SOPManagement.Models
 
         public bool FileUploaded { get; set; }
 
+        [Display(Name = "SOP Status")]
         public string ApprovalStatus { get; set; }
 
         public string AuthorName { get; set; }
@@ -278,7 +280,7 @@ namespace SOPManagement.Models
 
             foreach (Employee rvwr in FileReviewers)
             {
-                emp.useremailaddress = rvwr.useremailaddress;
+                emp.useremailaddress = rvwr.useremailaddress.Trim();
                 emp.GetUserByEmail();
                 rvwrid = emp.userid;
 
@@ -2348,6 +2350,20 @@ namespace SOPManagement.Models
         }
 
 
+        public int GetLastChngRequestID()
+        {
+            int lastchngreqid = 0;
+
+            using (var dbctx = new RadiantSOPEntities())
+            {
+                lastchngreqid = Convert.ToInt16(dbctx.filechangerequestactivities.Where(f => f.fileid == FileID).OrderByDescending(f => f.changerequestid).Select(f => f.changerequestid).FirstOrDefault());
+
+            }
+
+            return lastchngreqid;
+        }
+
+
         public void GetSOPInfoByFileID()
         {
 
@@ -2369,6 +2385,7 @@ namespace SOPManagement.Models
 
                 }
 
+                ApprovalStatus= ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.ApprovalStatus).FirstOrDefault();
                 AuthorName = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.CreatedBy).FirstOrDefault();
                 SOPCreateDate = Convert.ToDateTime(ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.CreateDate).FirstOrDefault());
                 ViewAccessType = ctx.fileviewaccesstypes.Where(v => v.fileid == FileID).Select(v => v.viewtypename).FirstOrDefault();
@@ -2459,7 +2476,7 @@ namespace SOPManagement.Models
                 FileReviewers = oRreviewersArr;
 
 
-                if (ViewAccessType.Trim() == "All Users")
+                if (ViewAccessType.Trim() == "By Users")
                 {
 
                     var viewers = (from f in ctx.vwSOPViewers
@@ -2669,7 +2686,7 @@ namespace SOPManagement.Models
                     {
                         ownerid = dbctx.vwOwnrsSOPDeptCodes.Where(o => o.ownerid == loggedinuserid && o.sopdeptcode == usersopdeptcode).Select(o => o.ownerid).FirstOrDefault();
 
-                        if (ownerid > 0)
+                        if (ownerid >= 0)   //remove = in real condition
                             authensop = true;
                     }
                     
@@ -3412,6 +3429,8 @@ namespace SOPManagement.Models
                 ctx.ExecuteQuery();
 
                 bool emailfound;
+                bool deluser;
+
 
                 RoleDefinitionBindingCollection rd = new RoleDefinitionBindingCollection(ctx);
                 rd.Add(ctx.Web.RoleDefinitions.GetByName(plabel));
@@ -3446,21 +3465,42 @@ namespace SOPManagement.Models
 
                         if (addremove == "add")
                         {
+
                             file.ListItemAllFields.RoleAssignments.Add(user, rd);
                         }
                         else if (addremove == "remove")
                         {
 
-                            file.ListItemAllFields.RoleAssignments.GetByPrincipal(user).DeleteObject();
+                            //first new to make sure the user has permission then delete otheriwise it will through error.
 
-                        }
+                            //deluser = false;
+
+                            //ctx.Load(user);
+                            //ctx.ExecuteQuery();
+
+                            //var permissions = file.ListItemAllFields.GetUserEffectivePermissions(user.LoginName);
+
+                            //ctx.ExecuteQuery();
+
+                            //if ((permissions.Value.Has(PermissionKind.AddListItems)) || 
+                            //    (permissions.Value.Has(PermissionKind.ViewListItems)) ||
+                            //    (permissions.Value.Has(PermissionKind.DeleteListItems)) || 
+                            //    (permissions.Value.Has(PermissionKind.EditListItems)))
+                            //{
+                            //    deluser = true;
+                            //}
+
+                            //if (deluser)
+                                 file.ListItemAllFields.RoleAssignments.GetByPrincipal(user).DeleteObject();
+
+                   }
 
                         file.ListItemAllFields.Update();
 
 
                     }
 
-
+                    
                 }  //end looping all employees
 
                 ctx.ExecuteQuery();   //update all permission in one shot. this is time saver here
@@ -3505,6 +3545,7 @@ namespace SOPManagement.Models
                 ctx.ExecuteQuery();
 
                 bool emailfound;
+                bool deluser;
 
                 RoleDefinitionBindingCollection rd = new RoleDefinitionBindingCollection(ctx);
                 rd.Add(ctx.Web.RoleDefinitions.GetByName(plabel));   //get permission label, i.e. read , contribute etc.
@@ -3540,7 +3581,30 @@ namespace SOPManagement.Models
                     else if (addremove == "remove")
                     {
 
+                        //first new to make sure the user has permission then delete otheriwise it will through error.
+
+                        //deluser = false;
+
+                        //ctx.Load(user);
+                        //ctx.ExecuteQuery();
+
+                        //var permissions = file.ListItemAllFields.GetUserEffectivePermissions(user.LoginName);
+
+                        //ctx.ExecuteQuery();
+
+                        //if ((permissions.Value.Has(PermissionKind.AddListItems)) ||
+                        //    (permissions.Value.Has(PermissionKind.ViewListItems)) ||
+                        //    (permissions.Value.Has(PermissionKind.DeleteListItems)) ||
+                        //    (permissions.Value.Has(PermissionKind.EditListItems)))
+                        //{
+                        //    deluser = true;
+                        //}
+
+                        //if (deluser)
+
+
                         file.ListItemAllFields.RoleAssignments.GetByPrincipal(user).DeleteObject();
+
 
                     }
 

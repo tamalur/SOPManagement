@@ -13,7 +13,7 @@ namespace SOPManagement.Controllers
 {
    
    
-    [Authorize]
+    //[Authorize]
     public class HomeController : BaseController
     {
 
@@ -175,6 +175,18 @@ namespace SOPManagement.Controllers
 
             oSOP.FileID = Convert.ToInt32(id);
 
+            //currently only owner of the SOP can do admin changes
+
+            //if (!oSOP.AuthenticateUser("admin"))   //only approver can publish a signed SOP
+
+            //{
+            //    oSOP = null;
+            //    Session["SOPMsg"] = "Admin SOP: Failed to authenticate you as an admin of this SOP ! Only the owner of a SOP can do admin changes.";
+            //    return RedirectToAction("SOPMessage");
+            //}
+
+
+
             oSOP.GetSOPInfoByFileID();
 
             ViewBag.employees = (from c in ctx.users select new { c.useremailaddress, c.userfullname, c.userstatuscode }).Where(x => x.userstatuscode == 1).Distinct();
@@ -211,7 +223,7 @@ namespace SOPManagement.Controllers
 
 
         [HttpPost]
-        public ActionResult AdminSOP(SOPClass sop, string archive, string save)
+        public ActionResult AdminSOP(SOPClass sop, string archive)
 
         {
 
@@ -220,6 +232,7 @@ namespace SOPManagement.Controllers
             SOPClass oSOP = new SOPClass();
 
             oSOP.SiteUrl = siteurl;
+            sop.SiteUrl = siteurl;
 
 
             if (TempData["FileID"] != null)
@@ -228,9 +241,13 @@ namespace SOPManagement.Controllers
             oSOP.GetSOPInfoByFileID();   //get current data to compare with new data from view, if any change then update it
 
             sop.FileID = oSOP.FileID;    //very important value as all changes will be done by file id
+            sop.FilePath = oSOP.FilePath;
+            sop.FileName = oSOP.FileName;
+            sop.FileUrl = oSOP.FilePath;
 
-
+            sop.DocumentLibName = "SOP";
             //archive file in sharepoint folder
+
 
             if (!string.IsNullOrEmpty(archive))
                 oSOP.ArchiveSOP();
@@ -238,24 +255,123 @@ namespace SOPManagement.Controllers
 
             //save all admin changes
 
-            if (!string.IsNullOrEmpty(save))
+            else
             {
 
-                if (sop.Updatefreq != oSOP.Updatefreq)
+
+                if ((sop.Updatefreq != oSOP.Updatefreq) || (sop.Updfrequnitcode!=oSOP.Updfrequnitcode))
                     sop.UpdateDataByFieldName("Updatefreq");
 
 
+
+                //change viewer access
+
+                Employee[] vwrItems;
+                Employee oEmp = new Employee();
+
+                short lastchngreqstatcode = 0;
+                int lastchangerequestid = 0;
+
+                //remove all permissions first
+
+                // sop.RemoveAllFilePermissions();
+
+
+
+                lastchngreqstatcode = sop.GetLastChngReqSOPStatusCode(); //by file id
+                lastchangerequestid = sop.GetLastChngRequestID();
+
+                sop.ViewAccessType = "Inherit";
+
                 if (sop.FileOwnerEmail != oSOP.FileOwnerEmail)
                 {
-                    sop.UpdateDataByFieldName("FileOwnerEmail");
-                    sop.AssignFilePermissionToUsers("read", "add", sop.FileOwnerEmail);
+                    if (lastchngreqstatcode == 2)   //not signed, deligate signatory
+                    {
+                        sop.FileChangeRqstID = lastchangerequestid;
+                        sop.AddFileOwner();  //deligate by adding request activities
+
+                        oSOP.AssignFilePermissionToUsers("full control", "remove", oSOP.FileOwnerEmail);  //last owner had full control
+
+
+                        sop.AssignFilePermissionToUsers("full control", "add", sop.FileOwnerEmail);
+
+                    }
+
+                    if (lastchngreqstatcode == 3 || lastchngreqstatcode == 1)   //published, do not deligate signatory.just give read permission
+                    {
+                        sop.FileChangeRqstID = lastchangerequestid;
+                        sop.AddFileOwner("no");    //do not add change request as last request is published or signed by previous owner
+                        sop.AssignFilePermissionToUsers("read", "add", sop.FileOwnerEmail);
+
+
+                        if (lastchngreqstatcode == 3)
+                            oSOP.AssignFilePermissionToUsers("read", "remove", oSOP.FileOwnerEmail);  //last owner had read permission
+
+                        if (lastchngreqstatcode == 1)
+                            oSOP.AssignFilePermissionToUsers("full control", "remove", oSOP.FileOwnerEmail);  //last owner had still full control with signed status
+
+
+                    }
+
+                }
+
+                else  //no change so revert back permission to previous owner
+                {
+                    if (lastchngreqstatcode == 3 || lastchngreqstatcode == 1)   //published or signed then read permission is ok     
+                        oSOP.AssignFilePermissionToUsers("read", "add", oSOP.FileOwnerEmail);
+
+                    if (lastchngreqstatcode == 2)   //not signed, so need full permission back     
+                        oSOP.AssignFilePermissionToUsers("full control", "add", oSOP.FileOwnerEmail);
+
                 }
 
                 if (sop.FileApproverEmail != oSOP.FileApproverEmail)
                 {
-                    sop.UpdateDataByFieldName("FileApproverEmail");
-                    sop.AssignFilePermissionToUsers("read", "add", sop.FileApproverEmail);
+
+                    if (lastchngreqstatcode == 2)   //not signed, deligate signatory
+                    {
+                        sop.FileChangeRqstID = lastchangerequestid;
+                        sop.AddFileApprover();  //deligate by adding request activities
+
+                        if (oSOP.FileOwnerEmail!= oSOP.FileApproverEmail)  //if same then it will give eeror as prev owner was deleted 
+                            oSOP.AssignFilePermissionToUsers("edit", "remove", oSOP.FileApproverEmail);  //last approver had edit
+
+
+                        sop.AssignFilePermissionToUsers("edit", "add", sop.FileApproverEmail);
+
+                    }
+
+                    if (lastchngreqstatcode == 3 || lastchngreqstatcode == 1)   //published, do not deligate signatory.just give read permission
+                    {
+                        sop.FileChangeRqstID = lastchangerequestid;
+                        sop.AddFileApprover("no");    //do not add change request as last request is published or signed by previous owner
+                        sop.AssignFilePermissionToUsers("read", "add", sop.FileApproverEmail);
+
+                        if (oSOP.FileOwnerEmail != oSOP.FileApproverEmail)  //if same then it will give eeror as prev owner was deleted 
+                        {
+                            if (lastchngreqstatcode == 3)
+                                oSOP.AssignFilePermissionToUsers("read", "remove", oSOP.FileApproverEmail);  //last approver had read permission
+
+                            if (lastchngreqstatcode == 1)
+                                oSOP.AssignFilePermissionToUsers("edit", "remove", oSOP.FileApproverEmail);  //last approver had still edit with signed status
+                        }
+
+                    }
+
+
                 }
+
+                else
+                {
+                    if (lastchngreqstatcode == 3 || lastchngreqstatcode == 1)   //published or signed then read permission is ok     
+                        oSOP.AssignFilePermissionToUsers("read", "add", oSOP.FileApproverEmail);
+
+                    if (lastchngreqstatcode == 2)   //not signed, so need edit permission back     
+                        oSOP.AssignFilePermissionToUsers("edit", "add", oSOP.FileApproverEmail);
+
+                }
+
+
 
                 Employee[] rvwrItems = JsonConvert.DeserializeObject<Employee[]>(sop.FilereviewersArr[0]);
 
@@ -267,7 +383,7 @@ namespace SOPManagement.Controllers
                 {
                     foreach(Employee emp in oSOP.FileReviewers)
                     {
-                        if (empview.useremailaddress!=emp.useremailaddress)
+                        if (empview.useremailaddress.Trim()!=emp.useremailaddress.Trim())
                         {
                             rvwrchanged = true;
                             break;
@@ -283,154 +399,253 @@ namespace SOPManagement.Controllers
                 {
                     sop.FileReviewers = rvwrItems;
 
-                    sop.UpdateDataByFieldName("FileReviewers");
-                    sop.AssignFilePermissionToUsers("read", "add", rvwrItems);
-                }
+
+                    if (lastchngreqstatcode == 2)   //not signed, deligate signatory
+                    {
+                        sop.FileChangeRqstID = lastchangerequestid;
+                        sop.AddFileReviewers();  //deligate by adding request activities
 
 
-                //change viewer access
-                bool chngviewer;
-                Employee[] vwrItems;
-                Employee oEmp = new Employee();
+                        foreach (Employee revwr in oSOP.FileReviewers)
+                        {
 
-                if (sop.AllUsersReadAcc == oSOP.AllUsersReadAcc && sop.AllUsersReadAcc==true)
-                {
-                    //do nothing as user kept same read permission to all 
-                    chngviewer = false; 
+                            if ((revwr.useremailaddress.Trim().ToLower()!=oSOP.FileOwnerEmail) ||
+                                (revwr.useremailaddress.Trim().ToLower() != oSOP.FileApproverEmail))
+
+                                oSOP.AssignFilePermissionToUsers("contribute", "remove", revwr.useremailaddress);  //remove last reviewers contribute
+
+
+                        }
+
+                        sop.AssignFilePermissionToUsers("contribute", "add", sop.FileReviewers);  //add latest reviewers permission
+
+
+                    }
+
+                    if (lastchngreqstatcode == 3 || lastchngreqstatcode == 1)   //published or signed, do not deligate signatory.just give read permission
+                    {
+                        sop.FileChangeRqstID = lastchangerequestid;
+                        sop.AddFileReviewers("no");    //do not add change request as last request is published or signed by previous owner
+                        sop.AssignFilePermissionToUsers("read", "add", sop.FileReviewers);
+
+                        foreach (Employee revwr in oSOP.FileReviewers)
+                        {
+                            if ((revwr.useremailaddress.Trim().ToLower() != oSOP.FileOwnerEmail) ||
+                                (revwr.useremailaddress.Trim().ToLower() != oSOP.FileApproverEmail))
+
+                            {
+
+                                if (lastchngreqstatcode == 3)
+                                    oSOP.AssignFilePermissionToUsers("read", "remove", revwr.useremailaddress);  //last reviewer had read permission
+
+                                if (lastchngreqstatcode == 1)
+                                    oSOP.AssignFilePermissionToUsers("contribute", "remove", revwr.useremailaddress);  //last reviewer had still edit with signed status
+
+
+                            }
+
+
+                        }
+
+
+
+                    }
+
+
+
                 }
                 else
+
                 {
-                    chngviewer = true;
+                    if (lastchngreqstatcode == 3 || lastchngreqstatcode == 1)   //published or signed then read permission is ok     
+                        oSOP.AssignFilePermissionToUsers("read", "add", oSOP.FileReviewers);
+
+                    if (lastchngreqstatcode == 2)   //not signed, so need edit permission back     
+                        oSOP.AssignFilePermissionToUsers("contribute", "add", oSOP.FileReviewers);
 
                 }
 
 
-                //check and compare reviewers.
+                //remove all old read permissions
+                bool delviewer =false;
 
-                if (chngviewer)
+
+                if (oSOP.ViewAccessType == "By Users")
                 {
 
-
-                    if (sop.AllUsersReadAcc)   //it was false now true
+                    foreach(Employee viewer in oSOP.FileViewers)
                     {
+                        delviewer = true;
+                        //check viewer was in owner, approver or reviewers that were already deleted
+                        foreach (Employee revwr in oSOP.FileReviewers)
+                        {
+                            if (viewer.useremailaddress == revwr.useremailaddress)
+                            {
+                                delviewer = false;
+                                break;
+                            }
+                        }
 
-                        //give read permission to all users
+                        if (delviewer)
+                        {
+                            if ((viewer.useremailaddress == oSOP.FileOwnerEmail) ||
+                                (viewer.useremailaddress == oSOP.FileApproverEmail))
+                            {
+                                delviewer = false;
+                            }
+                        }
 
-                        sop.RemoveAllFilePermissions();
+                        if (delviewer)
+                            oSOP.AssignFilePermissionToUsers("read", "remove", viewer.useremailaddress);
+                    }
+                 
+                }
 
-                        sop.ViewAccessType = "";   //this was for not inheriting permission, first first dupload inheritane is ok
 
-                        sop.AssignFilePermissionToGroup("read", "add", "SEC_Everyone_RadiantCanada");
-                        sop.AssignFilePermissionToGroup("read", "add", "Watercooler Visitors");
+                if (oSOP.ViewAccessType == "By Department")
+                {
 
-                        sop.ViewAccessType = "All Users";  //this was for sql table update   
-                        sop.AddViewerAccessType();
+                    short sdeptcode = Convert.ToInt16(oSOP.DepartmentCode);
+                    oEmp.departmentcode = sdeptcode;
+
+
+                    oEmp.GetEmployeesByDeptCode();
+
+                    vwrItems = oEmp.employees;
+
+                    foreach (Employee viewer in vwrItems)
+                    {
+                        delviewer = true;
+                        //check viewer was in owner, approver or reviewers that were already deleted
+                        foreach (Employee revwr in oSOP.FileReviewers)
+                        {
+                            if (viewer.useremailaddress == revwr.useremailaddress)
+                            {
+                                delviewer = false;
+                                break;
+                            }
+                        }
+
+                        if (delviewer)
+                        {
+                            if ((viewer.useremailaddress == oSOP.FileOwnerEmail) ||
+                                (viewer.useremailaddress == oSOP.FileApproverEmail))
+                            {
+                                delviewer = false;
+                            }
+                        }
+
+                        if (delviewer)
+                            oSOP.AssignFilePermissionToUsers("read", "remove", viewer.useremailaddress);
+                    }
+
+                }
+
+
+
+                //assign reader permissions
+
+                if (!oSOP.AllUsersReadAcc && sop.AllUsersReadAcc)   //it was false now true in view
+                {
+
+                    //give read permission to all users
+
+
+                    sop.ViewAccessType = "All Users";  //this was for sql table update   
+                    sop.AddViewerAccessType();
+
+                    sop.AssignFilePermissionToGroup("read", "add", "SOPAllReaders");
+
+
+
+                }
+
+
+                else   //either by users or department from view
+                {
+
+                    //check what old viewer access was there 
+                    if (sop.ViewAccessType.Trim() == "By Users")
+                    {
+                        //insert users in sql tables
+                        //give read permission to custom users
+                        if (sop.FileviewersArr.Count() > 0)   //get employees from custom user list
+                        {
+
+                            sop.ViewAccessType = "By Users";
+
+                            vwrItems = JsonConvert.DeserializeObject<Employee[]>(sop.FileviewersArr[0]);
+
+                            //first remove existing permission from the file, default is Watercooler Visitors
+
+                            //give read permission to all custom viewers
+
+                            sop.AssignFilePermissionToUsers("read", "add", vwrItems);
+
+
+                            //now add view access info by custom users in SQL table
+                            //we need this to retrieve and change in admin page
+
+                            sop.FileViewers = vwrItems;
+                            sop.AddViewerAccessType();
+                            sop.AddFileViewers();
+
+                        }
 
 
                     }
 
-
-                    else   //either by users or department 
+                    if (sop.ViewAccessType.Trim() == "By Department")
                     {
-                      
-                        //check what old viewer access was there 
-                        if (sop.ViewAccessType.Trim() == "By Users")
+
+                        //insert department users in sql tables
+                        //give read permission to custom users by department
+
+
+                        if (sop.DepartmentCode > 0)  //if department is selected then preference is to get employees by department code
                         {
-                            //insert users in sql tables
-                            //give read permission to custom users
-                            if (sop.FileviewersArr.Count() > 0)   //get employees from custom user list
-                            {
 
-                                sop.ViewAccessType = "By Users";
+                            sop.ViewAccessType = "By Department";
 
-                                vwrItems = JsonConvert.DeserializeObject<Employee[]>(sop.FileviewersArr[0]);
-
-                                //first remove existing permission from the file, default is Watercooler Visitors
-
-                                sop.RemoveAllFilePermissions();
-
-                                //give read permission to all custom viewers
-
-                                sop.AssignFilePermissionToUsers("read", "add", vwrItems);
+                            short sdeptcode = Convert.ToInt16(sop.DepartmentCode);
+                            oEmp.departmentcode = sdeptcode;
 
 
-                                //now add view access info by custom users in SQL table
-                                //we need this to retrieve and change in admin page
+                            oEmp.GetEmployeesByDeptCode();
 
-                                sop.FileViewers = vwrItems;
-                                sop.AddViewerAccessType();
-                                sop.AddFileViewers();
+                            vwrItems = oEmp.employees;
 
-                            }
+                            //first remove existing permission from the file, default is Watercooler Visitors
+
+
+                            sop.AssignFilePermissionToUsers("read", "add", vwrItems);
+
+                            //now add view access info by department in SQL Table
+                            //we need this to retrieve and change in admin page
+
+                            sop.DepartmentCode = sdeptcode;
+                            sop.AddViewerAccessType();
 
 
                         }
 
-                        if (sop.ViewAccessType.Trim() == "By Department")
-                        {
-
-                            //insert department users in sql tables
-                            //give read permission to custom users by department
-
-
-                            if (sop.DepartmentCode > 0)  //if department is selected then preference is to get employees by department code
-                            {
-
-                                sop.ViewAccessType = "By Department";
-
-                                short sdeptcode = Convert.ToInt16(sop.DepartmentCode);
-                                oEmp.departmentcode = sdeptcode;
-
-
-                                oEmp.GetEmployeesByDeptCode();
-
-                                vwrItems = oEmp.employees;
-
-                                //first remove existing permission from the file, default is Watercooler Visitors
-
-                                sop.RemoveAllFilePermissions();
-
-                                //give read permission to all users who are in the selected department
-
-                                // oSop.AssignFilePermission("add", "read", vwrItems);  //this one hits sp server three times in a employee loop
-
-                                sop.AssignFilePermissionToUsers("read", "add", vwrItems);
-
-                                //now add view access info by department in SQL Table
-                                //we need this to retrieve and change in admin page
-
-                                sop.DepartmentCode = sdeptcode;
-                                sop.AddViewerAccessType();
-
-
-                            }
-
-
-                        }
 
                     }
 
+                }
 
-                }  //end checking if viewer selection was changed
+                //end giving viewer permissions
+
+                Session["SOPMsg"] = "Admin SOP: You have successfully submitted all admin changes of SOP:" + sop.SOPNo;
+
+                return RedirectToAction("SOPMessage");
+
 
 
             } //end checking save changes
 
 
-
-
-
-
-
-            //If submitted for Update schedule, Owner, Approver, Reviewers then do it 
-
-
-            //If view permission is changed do it
-
-            Session["SOPMsg"] = "Admin SOP: You have successfully submitted all admin changes of SOP:"+sop.SOPNo;
-
-            return RedirectToAction("SOPMessage");
-
+            return View();
 
         }
 
@@ -799,8 +1014,8 @@ namespace SOPManagement.Controllers
                 if (!oSOP.AuthenticateUser("publish"))   //only approver can publish a signed SOP
 
                 {
-
-                    Session["SOPMsg"] = "Failed to authenticate user as an approver of the file.Please contact IT!";
+                    oSOP = null;
+                    Session["SOPMsg"] = "Publish SOP: Failed to authorize you the publisher of the SOP. Only approver of a SOP can publish it.";
                     return RedirectToAction("SOPMessage");
                 }
 
@@ -975,7 +1190,6 @@ namespace SOPManagement.Controllers
         {
 
 
-
             if (Utility.IsSessionExpired())
                 return RedirectToAction("LogIn");
 
@@ -1007,7 +1221,10 @@ namespace SOPManagement.Controllers
 
                 if (!oSOP.AuthenticateUser("changerequest"))
                  {
-                    Session["SOPMsg"] = "SOP Change Request: Failed to authenticate you to make a change request since your are not owner, approver, or reviewer of this SOP."; 
+
+                    oSOP = null;
+
+                    Session["SOPMsg"] = "SOP Change Request: Failed to authorize you to make a change request since your are not owner, approver, or reviewer of this SOP."; 
 
                     return RedirectToAction("SOPMessage");
 
@@ -1112,7 +1329,7 @@ namespace SOPManagement.Controllers
 
 
 
-        [Authorize(Roles = "SOPADMIN")]
+        //[Authorize(Roles = "SOPADMIN")]
         //[Authorize(Roles = "TransfloARUsers")]
         //  [RoleFilter] with form authentication in web.cofig use this custom filter to redirect to custom page. make sure you don't use any role in authorize 
 
@@ -1478,7 +1695,7 @@ namespace SOPManagement.Controllers
                     //if All users are not permitted to view then customize the read permission according to either department or custom users
 
                     {
-                        //prepare viewers array
+                        
 
 
                         if (sop.DepartmentCode > 0)  //if department is selected then preference is to get employees by department code
@@ -1539,16 +1756,20 @@ namespace SOPManagement.Controllers
 
                         }
 
+
+                        //then give read permission to sinatories so they can view but cannot modify file before submitting any change request.
+
+                        //oSop.AssignFilePermissionToUsers("read", "add", sop.FileOwnerEmail);
+                        //oSop.AssignFilePermissionToUsers("read", "add", sop.FileApproverEmail);
+                        //oSop.AssignFilePermissionToUsers("read", "add", rvwrItems);
+
+
+
                     }
 
-                    //give read permission to sinatories so they cannot modify file before submitting any change request.
 
-                    //oSop.AssignFilePermissionToUsers("read", "add", rvwrItems);
-                    //oSop.AssignFilePermissionToUsers("read", "add", sop.FileApproverEmail);
-                    //oSop.AssignFilePermissionToUsers("read", "add", sop.FileOwnerEmail);
 
-                   
-                    oSop.AssignSigatoriesPermission();
+                     oSop.AssignSigatoriesPermission();
 
                     oLogger.UpdateLogFile(DateTime.Now.ToString() + ":CreateUpload Action:Successfully assigned all permissions with SOP file in SharePoint and completed processing SOP:"+sop.SOPNo);
 
@@ -1743,7 +1964,7 @@ namespace SOPManagement.Controllers
 
             if (!oSOP.AuthenticateUser("createupload"))
             {
-                Session["SOPMsg"] = "SOP Create/Upload: Error - You are not authorized to create/upload SOP. Only owner of any file of the selected department can upload/create SOP.";
+                Session["SOPMsg"] = "SOP Create/Upload: Failed to authorize you to create/upload SOP in this department. Only owner of any file of the selected department can upload/create SOP.";
 
                 oSOP = null;
                 return Json(new { success = false, message = "SOP Create/Upload: Error - You are not authorized to create/upload SOP" });

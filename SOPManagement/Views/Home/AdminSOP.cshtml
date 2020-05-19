@@ -68,6 +68,16 @@
                     </td>
                 </tr>
 
+                <tr>
+                    <td class="signoffield">
+                        @Html.DisplayNameFor(model => model.ApprovalStatus)
+                    </td>
+                    <td>
+                        @Model.ApprovalStatus
+                    </td>
+                </tr>
+
+
 
             </table>
         </p>
@@ -467,7 +477,8 @@
         }
 
         var upfrequnit = $('#Updfrequnitcode :selected').text();
-        var updfrequcode = $('#Updatefrequnit :selected').val();
+        var updfrequcode = $('#Updfrequnitcode :selected').val();
+        
   
         if (upfrequnit == "Please select freq. unit" || upfrequnit == "") {
             alert("Update frequency unit is required!")
