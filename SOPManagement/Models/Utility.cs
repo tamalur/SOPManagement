@@ -237,6 +237,15 @@ namespace SOPManagement.Models
 
         }
 
+        public static string GetDocLibraryName()
+        {
+            string tmpval = "";
+            tmpval = ConfigurationManager.AppSettings["doclibraryname"];
+
+            return tmpval;
+
+        }
+
         public static string GetSiteAdminPassowrd()
         {
             string tmpval = "";
@@ -282,7 +291,7 @@ namespace SOPManagement.Models
             using (var dbctx = new RadiantSOPEntities())
             {
 
-                userid = dbctx.users.Where(u => u.useremailaddress == useremail).Select(u => u.userid).FirstOrDefault();
+                userid = dbctx.users.Where(u => u.useremailaddress == useremail && u.userstatuscode==1).Select(u => u.userid).FirstOrDefault();
             }
 
             return userid;
@@ -303,7 +312,7 @@ namespace SOPManagement.Models
             using (var dbctx = new RadiantSOPEntities())
             {
 
-                deptcode = Convert.ToInt16(dbctx.users.Where(u => u.useremailaddress == useremail).Select(u => u.departmentcode).FirstOrDefault());
+                deptcode = Convert.ToInt16(dbctx.users.Where(u => u.useremailaddress == useremail && u.userstatuscode==1).Select(u => u.departmentcode).FirstOrDefault());
                 sopdeptcode= Convert.ToInt16(dbctx.codesdepartments.Where(u => u.departmentcode == deptcode).Select(u => u.sopdeptcode).FirstOrDefault());
 
             }

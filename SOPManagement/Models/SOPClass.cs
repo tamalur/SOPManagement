@@ -1672,7 +1672,7 @@ namespace SOPManagement.Models
                 {
                     Microsoft.Office.Interop.Word.Range footerRange = wordSection.Footers[Microsoft.Office.Interop.Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].Range;
 
-                    footerRange.Tables[1].Cell(1, 1).Range.Text = FileTitle;
+                    footerRange.Tables[1].Cell(1, 1).Range.Text = SOPNo+" "+FileTitle;
 
                 }
 
@@ -1693,6 +1693,8 @@ namespace SOPManagement.Models
                 ErrorMessage = ex.Message;
 
                 oLogger.UpdateLogFile(DateTime.Now.ToString() + ":UpdateCoverRevhistPage:Error:" + ex.Message);
+
+                throw ex;
 
             }
 
@@ -2284,7 +2286,7 @@ namespace SOPManagement.Models
                 {
                     Microsoft.Office.Interop.Word.Range footerRange = wordSection.Footers[Microsoft.Office.Interop.Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].Range;
 
-                    footerRange.Tables[1].Cell(1, 1).Range.Text = FileTitle;
+                    footerRange.Tables[1].Cell(1, 1).Range.Text = SOPNo + " " +FileTitle;
 
                 }
 
@@ -2336,13 +2338,13 @@ namespace SOPManagement.Models
 
         }
 
-        public short GetLastChngReqSOPStatusCode()
+        public short GetChngReqSOPStatusCode()
         {
             short laststatcode=0;
 
             using (var dbctx = new RadiantSOPEntities())
             {
-                laststatcode= Convert.ToInt16(dbctx.filechangerequestactivities.Where(f=>f.fileid==FileID).OrderByDescending(f=>f.changerequestid).Select(f => f.approvalstatuscode).FirstOrDefault());
+                laststatcode= Convert.ToInt16(dbctx.filechangerequestactivities.Where(f=>f.fileid==FileID && f.changerequestid== FileChangeRqstID).Select(f => f.approvalstatuscode).FirstOrDefault());
 
             }
 
@@ -2401,7 +2403,7 @@ namespace SOPManagement.Models
                     var owner = (from f in ctx.fileowners
                                   join u in ctx.users
                                   on f.ownerid equals u.userid
-                                  where f.fileid == FileID &&  f.ownerstatuscode==1
+                                  where f.fileid == FileID &&  f.ownerstatuscode==1 && u.userstatuscode==1
                                   select new Employee
                                   {
                                       useremailaddress=u.useremailaddress,
@@ -2423,8 +2425,8 @@ namespace SOPManagement.Models
                 var approver = (from f in ctx.fileapprovers
                              join u in ctx.users
                              on f.approverid equals u.userid
-                             where f.fileid == FileID && f.approverstatuscode == 1
-                             select new Employee
+                             where f.fileid == FileID && f.approverstatuscode == 1 && u.userstatuscode == 1
+                                select new Employee
                              {
                                  useremailaddress = u.useremailaddress,
                                  userid = f.approverid
@@ -2442,8 +2444,8 @@ namespace SOPManagement.Models
                 var reviewers = (from f in ctx.filereviewers
                                 join u in ctx.users
                                 on f.reviewerid equals u.userid
-                                where f.fileid == FileID && f.reviewerstatuscode == 1  //active reviewers
-                                select new Employee
+                                where f.fileid == FileID && f.reviewerstatuscode == 1 && u.userstatuscode == 1 //active reviewers
+                                 select new Employee
                                 {
                                     useremailaddress = u.useremailaddress,
                                     userid = f.reviewerid,
@@ -2539,6 +2541,7 @@ namespace SOPManagement.Models
                 SOPNo = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SOPNo).FirstOrDefault();
                 FileTitle = Path.ChangeExtension(FileName, null);
                 FileLink = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SPFileLink).FirstOrDefault();
+
                 FileCurrVersion = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.VersionNo).FirstOrDefault();
 
                 if (FileCurrVersion != null && FileCurrVersion != "")
@@ -2686,7 +2689,7 @@ namespace SOPManagement.Models
                     {
                         ownerid = dbctx.vwOwnrsSOPDeptCodes.Where(o => o.ownerid == loggedinuserid && o.sopdeptcode == usersopdeptcode).Select(o => o.ownerid).FirstOrDefault();
 
-                        if (ownerid >= 0)   //remove = in real condition
+                        if (ownerid >0)   //remove = in real condition
                             authensop = true;
                     }
                     
@@ -3393,6 +3396,121 @@ namespace SOPManagement.Models
 
         }
 
+        public void AssignFilePermissionToUsersBack(string plabel, string addremove, Employee[] employees)
+        {
+
+            bool pdone = false;
+            ErrorMessage = "";
+
+            SecureString spassword = GetSecureString(password);
+
+            using (var ctx = new ClientContext(SiteUrl))
+            {
+
+                ctx.Credentials = new SharePointOnlineCredentials(userName, spassword);
+                ctx.Load(ctx.Web);
+
+                Web web = ctx.Web;
+
+                //The ServerRelativeUrl property returns a string in the following form, which excludes the name of
+                //    the server or root folder: / Site_Name / Subsite_Name / Folder_Name / File_Name.
+
+                ctx.Load(web, wb => wb.ServerRelativeUrl);
+                ctx.ExecuteQuery();
+
+                // string filerelurl = web.ServerRelativeUrl + "/SOP/Information Technology (IT)/" + "IT-07 OperationTestFile.docx";
+
+                string filerelurl = web.ServerRelativeUrl + "/" + FilePath.Trim() + FileName;
+
+                Microsoft.SharePoint.Client.File file = web.GetFileByServerRelativeUrl(filerelurl);
+
+                //need this valid users from sp to verify email that we get from employee list from watercooler
+                //if user is no longer in sp then it fails that we don't want
+
+                var users = ctx.LoadQuery(ctx.Web.SiteUsers.Where(u => u.PrincipalType == Microsoft.SharePoint.Client.Utilities.PrincipalType.User && u.UserId.NameIdIssuer == "urn:federation:microsoftonline"));
+
+                ctx.ExecuteQuery();
+
+                bool emailfound;
+                bool deluser;
+
+
+                RoleDefinitionBindingCollection rd = new RoleDefinitionBindingCollection(ctx);
+                rd.Add(ctx.Web.RoleDefinitions.GetByName(plabel));
+
+                Principal user;
+
+                if (ViewAccessType == "All Users" || ViewAccessType == "Inherit")
+                    file.ListItemAllFields.BreakRoleInheritance(true, false);   //inherit permission for all users selection
+                else
+                    file.ListItemAllFields.BreakRoleInheritance(false, false);   //do not inherit if all users are not selected
+
+                foreach (Employee emp in employees)
+                {
+
+                    emailfound = false;
+
+                    foreach (User u in users)
+                    {
+                        if (u.Email.Trim().ToLower() == emp.useremailaddress.Trim().ToLower())
+
+                        {
+                            //userfullname = u.Title;
+                            emailfound = true;
+                            break;
+                        }
+                    }
+
+                    if (emailfound)
+                    {
+                        user = ctx.Web.EnsureUser(emp.useremailaddress.Trim().ToLower());   //ensure breaks the process if user is not valid i.e. not active in domain. that's why we checked valid users
+
+
+                        if (addremove == "add")
+                        {
+
+                            file.ListItemAllFields.RoleAssignments.Add(user, rd);
+                        }
+                        else if (addremove == "remove")
+                        {
+
+                            //first new to make sure the user has permission then delete otheriwise it will through error.
+
+                            //deluser = false;
+
+                            //ctx.Load(user);
+                            //ctx.ExecuteQuery();
+
+                            //var permissions = file.ListItemAllFields.GetUserEffectivePermissions(user.LoginName);
+
+                            //ctx.ExecuteQuery();
+
+                            //if ((permissions.Value.Has(PermissionKind.AddListItems)) || 
+                            //    (permissions.Value.Has(PermissionKind.ViewListItems)) ||
+                            //    (permissions.Value.Has(PermissionKind.DeleteListItems)) || 
+                            //    (permissions.Value.Has(PermissionKind.EditListItems)))
+                            //{
+                            //    deluser = true;
+                            //}
+
+                            //if (deluser)
+                            file.ListItemAllFields.RoleAssignments.GetByPrincipal(user).DeleteObject();
+
+                        }
+
+                        file.ListItemAllFields.Update();
+
+
+                    }
+
+
+                }  //end looping all employees
+
+                ctx.ExecuteQuery();   //update all permission in one shot. this is time saver here
+
+            } //end using site contex
+
+        }
         public void AssignFilePermissionToUsers(string plabel, string addremove, Employee[] employees)
         {
 
@@ -3433,7 +3551,7 @@ namespace SOPManagement.Models
 
 
                 RoleDefinitionBindingCollection rd = new RoleDefinitionBindingCollection(ctx);
-                rd.Add(ctx.Web.RoleDefinitions.GetByName(plabel));
+               
 
                 Principal user;
 
@@ -3460,56 +3578,65 @@ namespace SOPManagement.Models
 
                     if (emailfound)
                     {
-                        user = ctx.Web.EnsureUser(emp.useremailaddress);   //ensure breaks the process if user is not valid. that's why we checked valid users
+                        user = ctx.Web.EnsureUser(emp.useremailaddress.Trim().ToLower());   //ensure breaks the process if user is not valid i.e. not active in domain. that's why we checked valid users
 
 
                         if (addremove == "add")
                         {
+                            rd.Add(ctx.Web.RoleDefinitions.GetByName(plabel));
 
                             file.ListItemAllFields.RoleAssignments.Add(user, rd);
+                          //  file.ListItemAllFields.Update();
+                            ctx.ExecuteQuery();   //update all permission in one shot. this is time saver here
+
+
                         }
                         else if (addremove == "remove")
                         {
 
                             //first new to make sure the user has permission then delete otheriwise it will through error.
 
-                            //deluser = false;
+                            ctx.Load(user);
+                            ctx.Load(file.ListItemAllFields.RoleAssignments);
+                            ctx.ExecuteQuery();
 
-                            //ctx.Load(user);
-                            //ctx.ExecuteQuery();
+                            foreach (RoleAssignment ra in file.ListItemAllFields.RoleAssignments)
+                            {
+                                ctx.Load(ra.Member);
+                                ctx.ExecuteQuery();
 
-                            //var permissions = file.ListItemAllFields.GetUserEffectivePermissions(user.LoginName);
+                                if (user.LoginName == ra.Member.LoginName)
+                                {
 
-                            //ctx.ExecuteQuery();
+                                    file.ListItemAllFields.RoleAssignments.GetByPrincipal(user).DeleteObject();
 
-                            //if ((permissions.Value.Has(PermissionKind.AddListItems)) || 
-                            //    (permissions.Value.Has(PermissionKind.ViewListItems)) ||
-                            //    (permissions.Value.Has(PermissionKind.DeleteListItems)) || 
-                            //    (permissions.Value.Has(PermissionKind.EditListItems)))
-                            //{
-                            //    deluser = true;
-                            //}
+                                  //  file.ListItemAllFields.Update();
 
-                            //if (deluser)
-                                 file.ListItemAllFields.RoleAssignments.GetByPrincipal(user).DeleteObject();
+                                    ctx.ExecuteQuery();   //update all permission in one shot. this is time saver here
 
-                   }
+                                    break;
+                                }
 
-                        file.ListItemAllFields.Update();
+                            }  //for loop of roleassignments
 
 
-                    }
 
+
+                        }   //end vhecking remove user
+
+
+
+                    }   //end if checking email found as visitor
+  
                     
                 }  //end looping all employees
 
-                ctx.ExecuteQuery();   //update all permission in one shot. this is time saver here
 
             } //end using site contex
             
         }
 
-        public void AssignFilePermissionToUsers(string plabel, string addremove, string empemail)
+        public void AssignFilePermissionToUsersBack(string plabel, string addremove, string empemail)
         {
 
             bool pdone = false;
@@ -3573,6 +3700,7 @@ namespace SOPManagement.Models
                 if (emailfound)
                 {
                     user = ctx.Web.EnsureUser(empemail.Trim());   //ensure breaks the process if user is not valid. that's why we checked valid users
+                    
 
                     if (addremove == "add")
                     {
@@ -3603,6 +3731,8 @@ namespace SOPManagement.Models
                         //if (deluser)
 
 
+
+
                         file.ListItemAllFields.RoleAssignments.GetByPrincipal(user).DeleteObject();
 
 
@@ -3614,6 +3744,120 @@ namespace SOPManagement.Models
                 }
 
                 ctx.ExecuteQuery();   //update all permission in one shot. this is time saver here
+
+            } //end using site contex
+
+        }
+
+        public void AssignFilePermissionToUsers(string plabel, string addremove, string empemail)
+        {
+
+            bool pdone = false;
+            ErrorMessage = "";
+
+            SecureString spassword = GetSecureString(password);
+
+            using (var ctx = new ClientContext(SiteUrl))
+            {
+
+                ctx.Credentials = new SharePointOnlineCredentials(userName, spassword);
+                ctx.Load(ctx.Web);
+
+                Web web = ctx.Web;
+
+                //The ServerRelativeUrl property returns a string in the following form, which excludes the name of
+                //    the server or root folder: / Site_Name / Subsite_Name / Folder_Name / File_Name.
+
+                ctx.Load(web, wb => wb.ServerRelativeUrl);
+                ctx.ExecuteQuery();
+
+                // string filerelurl = web.ServerRelativeUrl + "/SOP/Information Technology (IT)/" + "IT-07 OperationTestFile.docx";
+
+                string filerelurl = web.ServerRelativeUrl + "/" + FilePath.Trim() + FileName;
+
+                Microsoft.SharePoint.Client.File file = web.GetFileByServerRelativeUrl(filerelurl);
+
+                //need this valid users from sp to verify email that we get from employee list from watercooler
+                //if user is no longer in sp then it fails that we don't want
+
+                var users = ctx.LoadQuery(ctx.Web.SiteUsers.Where(u => u.PrincipalType == Microsoft.SharePoint.Client.Utilities.PrincipalType.User && u.UserId.NameIdIssuer == "urn:federation:microsoftonline"));
+
+                ctx.ExecuteQuery();
+
+                bool emailfound;
+                bool deluser;
+
+                RoleDefinitionBindingCollection rd = new RoleDefinitionBindingCollection(ctx);
+                rd.Add(ctx.Web.RoleDefinitions.GetByName(plabel));   //get permission label, i.e. read , contribute etc.
+
+                Principal user;
+
+                if (ViewAccessType == "All Users" || ViewAccessType == "Inherit")
+                    file.ListItemAllFields.BreakRoleInheritance(true, false);   //inherit permission for all users selection
+                else
+                    file.ListItemAllFields.BreakRoleInheritance(false, false);   //do not inherit if all users are not selected
+
+                emailfound = true;
+                emailfound = false;
+
+                foreach (User u in users)   //this loop ensure we are dealing with only active domain users in office 365 otherwise it gives error
+                {
+                    if (u.Email.Trim().ToLower() == empemail.Trim().ToLower())
+
+                    {
+                        //userfullname = u.Title;
+                        emailfound = true;
+                        break;
+                    }
+                }
+
+                if (emailfound)
+                {
+                    user = ctx.Web.EnsureUser(empemail.Trim());   //ensure breaks the process if user is not valid. that's why we checked valid users
+
+
+                    if (addremove == "add")
+                    {
+                        file.ListItemAllFields.RoleAssignments.Add(user, rd);
+
+                        file.ListItemAllFields.Update();
+
+                        ctx.ExecuteQuery();   //update all permission in one shot. this is time saver here
+
+                    }
+                    else if (addremove == "remove")
+                    {
+
+                        //first new to make sure the user has permission then delete otheriwise it will through error.
+
+                        ctx.Load(user);
+                        ctx.Load(file.ListItemAllFields.RoleAssignments);
+                        ctx.ExecuteQuery();
+
+                        foreach(RoleAssignment ra in file.ListItemAllFields.RoleAssignments)
+                        {
+                            ctx.Load(ra.Member);
+                            ctx.ExecuteQuery();
+
+                            if (user.LoginName==ra.Member.LoginName)
+                            {
+
+                                file.ListItemAllFields.RoleAssignments.GetByPrincipal(user).DeleteObject();
+
+                                file.ListItemAllFields.Update();
+
+                                ctx.ExecuteQuery();   //update all permission in one shot. this is time saver here
+                                break;
+
+                            }
+
+                        }  //for loop of roleassignments
+
+                    }   //end if remove 
+
+
+                }  //end if emailfound  
+
 
             } //end using site contex
 
@@ -3672,31 +3916,56 @@ namespace SOPManagement.Models
                 }
 
 
-                RoleDefinitionBindingCollection rd = new RoleDefinitionBindingCollection(ctx);
-                rd.Add(ctx.Web.RoleDefinitions.GetByName(plabel));   //get permission label, i.e. read , contribute etc.
-
-                if (ViewAccessType == "All Users" || ViewAccessType == "Inherit")
-                    file.ListItemAllFields.BreakRoleInheritance(true, false);   //inherit permission for all users selection
-                else
-                    file.ListItemAllFields.BreakRoleInheritance(false, false);   //do not inherit if all users are not selected
-
-
-                if (addremove == "add")
-                {
-                    file.ListItemAllFields.RoleAssignments.Add(grp, rd);
-                }
-                else if (addremove == "remove")
+                if (grp != null)
                 {
 
-                    file.ListItemAllFields.RoleAssignments.GetByPrincipal(grp).DeleteObject();
+                    RoleDefinitionBindingCollection rd = new RoleDefinitionBindingCollection(ctx);
+                    rd.Add(ctx.Web.RoleDefinitions.GetByName(plabel));   //get permission label, i.e. read , contribute etc.
 
-                }
+                    if (ViewAccessType == "All Users" || ViewAccessType == "Inherit")
+                        file.ListItemAllFields.BreakRoleInheritance(true, false);   //inherit permission for all users selection
+                    else
+                        file.ListItemAllFields.BreakRoleInheritance(false, false);   //do not inherit if all users are not selected
 
-                file.ListItemAllFields.Update();
+
+                    if (addremove == "add")
+                    {
+                        file.ListItemAllFields.RoleAssignments.Add(grp, rd);
+                        file.ListItemAllFields.Update();
+                        ctx.ExecuteQuery();
+                    }
+                    else if (addremove == "remove")
+                    {
+
+                        ctx.Load(file.ListItemAllFields.RoleAssignments);
+                        ctx.ExecuteQuery();
+
+                        foreach (RoleAssignment ra in file.ListItemAllFields.RoleAssignments)
+                        {
+                            ctx.Load(ra.Member);
+                            ctx.ExecuteQuery();
+
+                            if (grp.Title == ra.Member.LoginName)
+                            {
+
+                                file.ListItemAllFields.RoleAssignments.GetByPrincipal(grp).DeleteObject();
+
+                                file.ListItemAllFields.Update();
+
+                                ctx.ExecuteQuery();   //update all permission in one shot. this is time saver here
+
+                                break;
+                            }
+
+                        }  //for loop of roleassignments
 
 
 
-                ctx.ExecuteQuery();   //update all permission in one shot. this is time saver here
+
+                   //     file.ListItemAllFields.RoleAssignments.GetByPrincipal(grp).DeleteObject();
+
+                    }
+                } //end checking null group name 
 
             } //end using site contex
 
@@ -3834,21 +4103,67 @@ namespace SOPManagement.Models
         {
 
 
-            //give contribute permission to all reviewers
+            //give contribute permission to owner
 
-            AssignFilePermissionToUsers("contribute", "add", FileReviewers);
+              AssignFilePermissionToUsers("contribute", "add", FileOwnerEmail.Trim());
 
-            //give edit permission to approver
 
-            AssignFilePermissionToUsers("edit", "add", FileApproverEmail);
+            //give contribute permission to approver if owner is not same as approver
 
-            //give full permission to owner
+            if (FileOwnerEmail.Trim().ToLower() != FileApproverEmail.Trim().ToLower())
+                AssignFilePermissionToUsers("contribute", "add", FileApproverEmail.Trim());
 
-            AssignFilePermissionToUsers("full control", "add", FileOwnerEmail);
 
+            //give read permission to all reviewers who are not owner or approver of this SOP
+
+            foreach(Employee viewer in FileReviewers)
+            {
+                if ((viewer.useremailaddress.Trim().ToLower() != FileOwnerEmail.Trim().ToLower()) ||
+                    (viewer.useremailaddress.Trim().ToLower() != FileApproverEmail.Trim().ToLower())
+                    )
+                {
+
+                    AssignFilePermissionToUsers("contribute", "add", viewer.useremailaddress.Trim().ToLower());
+                }
+
+            }
 
 
         }
+
+        public void AssignSigatoriesPermission(string pLabel)
+        {
+
+
+            //give contribute permission to owner
+
+            AssignFilePermissionToUsers(pLabel, "add", FileOwnerEmail.Trim());
+
+
+            //give contribute permission to approver if owner is not same as approver
+
+            if (FileOwnerEmail.Trim().ToLower() != FileApproverEmail.Trim().ToLower())
+                AssignFilePermissionToUsers(pLabel, "add", FileApproverEmail.Trim());
+
+
+            //give read permission to all reviewers who are not owner or approver of this SOP
+
+            foreach (Employee viewer in FileReviewers)
+            {
+                if ((viewer.useremailaddress.Trim().ToLower() != FileOwnerEmail.Trim().ToLower()) ||
+                    (viewer.useremailaddress.Trim().ToLower() != FileApproverEmail.Trim().ToLower())
+                    )
+                {
+
+                    AssignFilePermissionToUsers(pLabel, "add", viewer.useremailaddress.Trim().ToLower());
+                }
+
+            }
+
+
+        }
+
+
 
 
         public void AssignSignatoresReadPermission()
@@ -3858,20 +4173,36 @@ namespace SOPManagement.Models
             //remove all edit permission as they might edit after publishing that we don't want
             //we will give edit permission to approvers during change request
 
-    
-            AssignFilePermissionToUsers("contribute", "remove", FileReviewers);
+            AssignFilePermissionToUsers("contribute", "remove", FileOwnerEmail.Trim());
 
-            AssignFilePermissionToUsers("edit", "remove", FileApproverEmail);
- 
-            AssignFilePermissionToUsers("full control", "remove", FileOwnerEmail);
+            if (FileOwnerEmail.Trim().ToLower() != FileApproverEmail.Trim().ToLower())
+                AssignFilePermissionToUsers("contribute", "remove", FileApproverEmail.Trim());
+
+
+            foreach (Employee reviewer in FileReviewers)
+            {
+                if ((reviewer.useremailaddress.Trim().ToLower() != FileOwnerEmail.Trim().ToLower()) &
+                    (reviewer.useremailaddress.Trim().ToLower() != FileApproverEmail.Trim().ToLower())
+                    )
+                {
+
+                    AssignFilePermissionToUsers("contribute", "remove", reviewer.useremailaddress.Trim().ToLower());
+                }
+
+            }
+
+
 
             //now reassign them as reader
 
-            AssignFilePermissionToUsers("read", "add", FileReviewers);
+            AssignSigatoriesPermission("read");
 
-            AssignFilePermissionToUsers("read", "add", FileApproverEmail);
 
-            AssignFilePermissionToUsers("read", "add", FileOwnerEmail);
+            //AssignFilePermissionToUsers("read", "add", FileReviewers);
+
+            //AssignFilePermissionToUsers("read", "add", FileApproverEmail);
+
+            //AssignFilePermissionToUsers("read", "add", FileOwnerEmail);
 
 
 

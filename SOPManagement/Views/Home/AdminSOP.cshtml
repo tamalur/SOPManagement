@@ -399,17 +399,24 @@
 
                         @using (Html.BeginForm("AdminSOP", "Home", FormMethod.Post, new { @id = "Form2" }))
                         {
-                            <input type="submit" value="Archive" name="archive" id="sopsubmit" />
+                            <input type="submit" value="Archive" name="archive" id="soparchive" />
                         }
                     </td>
                     <td style="text-align:center">
-                        <input value="Submit Changes" type="submit" onclick="confirmsave();"  name="save" id="soparchive" />
+                        <input value="Submit Changes" type="submit" onclick="confirmsave();"  name="save" id="sopsubmit" />
                     </td>
                 </tr>
 
             </table>
         </p>
 
+    </div>
+
+    <div class="submit-progress hidden" id="progessdiv">
+        <img src="~/Content/Images/soploading.gif" style="width:55px;height:55px" />
+        @*<i class="fa fa-2x fa-spinner fa-spin"></i>
+        <label>Please wait while submitting SOP...</label>*@
+        <label>Please wait while submitting SOP...</label>
     </div>
 
 
@@ -577,6 +584,9 @@
 
         var vwrarr = JSON.stringify(viewersarr);  //send json data to controller
 
+
+        DisplayProgressMessage(document.getElementById('sopsubmit'), "Processing SOP");
+
          //submit reviewers, viewers etc. to controler through ajax 
 
            // confirmsave();
@@ -647,6 +657,20 @@
 
 
     }
+
+
+    function DisplayProgressMessage(ctl, msg) {
+
+        $(ctl).prop("disabled", true).text(msg);
+        $(".submit-progress").removeClass("hidden");
+        $("body").addClass("submit-progress-bg");
+        setTimeout(function () {
+            $(".submit-progress").removeClass("hidden");
+        }, 1);
+
+        return true;
+    }
+
 
 
 </script>

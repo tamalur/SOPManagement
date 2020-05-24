@@ -109,7 +109,7 @@ namespace SOPManagement.Models
 
             using (var dbctx = new RadiantSOPEntities())
             {
-                reviewid = dbctx.filereviewers.Where(o => o.reviewerid == LoggedInUserID && o.fileid == FileID && o.reviewerstatuscode==1).Select(o => o.reviewid).FirstOrDefault();
+                reviewid = dbctx.filereviewers.Where(o => o.reviewerid == LoggedInUserID && o.fileid == FileID && o.reviewerstatuscode == 1).Select(o => o.reviewid).FirstOrDefault();
 
                 rvwractvityid = dbctx.filereviewersactivities.Where(o => o.reviewid == reviewid && o.changerequestid == ChangeRequestID).Select(o => o.revieweractivityid).FirstOrDefault();
                 ReviewerActivityID = rvwractvityid;
@@ -119,10 +119,20 @@ namespace SOPManagement.Models
 
         }
 
-
+        
         public bool UpdateSignatures()
         {
             bool success = false;
+            SOPClass oSOP = new SOPClass();
+
+            oSOP.SiteUrl = Utility.GetSiteUrl();
+
+            oSOP.FileID = FileID;
+          
+             oSOP.FileChangeRqstID = ChangeRequestID;
+
+            oSOP.GetSOPInfoByFileID();
+
 
             using (var dbcontext = new RadiantSOPEntities())
             {
@@ -141,6 +151,33 @@ namespace SOPManagement.Models
                         success = true;
                     }
 
+
+
+                    if (success)
+                    {
+
+                        int ownerid = 0;
+                        int ownershipid = 0;
+                        string owneremail = "";
+
+
+                        ownershipid = Convert.ToInt32(dbcontext.fileownersactivities.Where(o => o.owneractivityid == OwnerActivityID
+                        && o.changerequestid == ChangeRequestID).Select(o => o.ownershipid).FirstOrDefault());
+
+                        ownerid = dbcontext.fileowners.Where(o => o.ownershipid == ownershipid && o.ownerstatuscode == 1).Select(o => o.ownerid).FirstOrDefault();
+                        // fileid = dbcontext.fileowners.Where(o => o.ownershipid == ownershipid && o.ownerstatuscode == 1).Select(o => o.fileid).FirstOrDefault();
+                        owneremail = dbcontext.vwUsers.Where(u => u.userid1 == ownerid).Select(o => o.useremailaddress).FirstOrDefault();
+
+
+
+                        oSOP.AssignFilePermissionToUsers("contribute", "remove", owneremail.Trim().ToLower());
+                        // System.Threading.Thread.Sleep(3000);
+
+                        oSOP.AssignFilePermissionToUsers("read", "add", owneremail.Trim().ToLower());
+
+
+                        }  //end checking success of signing
+
                 }
 
                 if (LoggedInSignedAsApprover)
@@ -155,6 +192,31 @@ namespace SOPManagement.Models
                         dbcontext.SaveChanges();
 
                         success = true;
+                    }
+
+                    if (success)
+                    {
+
+                        int apporverid = 0;
+                        int approveid = 0;
+                        string approveremail = "";
+
+
+                        approveid = Convert.ToInt32(dbcontext.fileapproversactivities.Where(o => o.approveractivityid == ApproverActivityID
+                        && o.changerequestid == ChangeRequestID).Select(o => o.approveid).FirstOrDefault());
+
+                        apporverid = dbcontext.fileapprovers.Where(o => o.approveid == approveid && o.approverstatuscode == 1).Select(o => o.approverid).FirstOrDefault();
+                        // fileid = dbcontext.fileowners.Where(o => o.ownershipid == ownershipid && o.ownerstatuscode == 1).Select(o => o.fileid).FirstOrDefault();
+                        approveremail = dbcontext.vwUsers.Where(u => u.userid1 == apporverid).Select(o => o.useremailaddress).FirstOrDefault();
+
+
+
+
+                        oSOP.AssignFilePermissionToUsers("contribute", "remove", approveremail.Trim().ToLower());
+                        // System.Threading.Thread.Sleep(3000);
+
+                        oSOP.AssignFilePermissionToUsers("read", "add", approveremail.Trim().ToLower());
+
                     }
 
                 }
@@ -174,17 +236,101 @@ namespace SOPManagement.Models
                         success = true;
                     }
 
+                    if (success)
+                    {
+                        int reviewerid = 0;
+                        int reviewid = 0;
+                        string revieweremail = "";
+
+
+                        reviewid = Convert.ToInt32(dbcontext.filereviewersactivities.Where(o => o.revieweractivityid == ReviewerActivityID
+                        && o.changerequestid == ChangeRequestID).Select(o => o.reviewid).FirstOrDefault());
+
+                        reviewerid = dbcontext.filereviewers.Where(o => o.reviewid == reviewid && o.reviewerstatuscode == 1).Select(o => o.reviewerid).FirstOrDefault();
+                        // fileid = dbcontext.fileowners.Where(o => o.ownershipid == ownershipid && o.ownerstatuscode == 1).Select(o => o.fileid).FirstOrDefault();
+                        revieweremail = dbcontext.vwUsers.Where(u => u.userid1 == reviewerid).Select(o => o.useremailaddress).FirstOrDefault();
+
+                        oSOP.AssignFilePermissionToUsers("contribute", "remove", revieweremail.Trim().ToLower());
+                        // System.Threading.Thread.Sleep(3000);
+
+                        oSOP.AssignFilePermissionToUsers("read", "add", revieweremail.Trim().ToLower());
+
+
+
+
+                    }
+
                 }
 
 
-
             }
+
+            oSOP = null;
+
 
             return success;
 
 
         }
 
+
+        public bool GetSignStatusOfSignatory(string approvertype, string emailaddress)
+        {
+            bool signstatus = false;
+            int userid = 0;
+            int approveid = 0;
+            int ownershipid = 0;
+            int reviewid = 0;
+
+            short signstatuscode = 0;
+
+            using (var dbctx = new RadiantSOPEntities())
+            {
+
+                if (approvertype == "onwer")
+                {
+
+                    userid = dbctx.vwUsers.Where(u => u.useremailaddress.Trim().ToLower() == emailaddress.Trim().ToLower()).Select(u => u.userid1).FirstOrDefault();
+                    ownershipid = dbctx.fileowners.Where(u => u.fileid == FileID && u.ownerid == userid && u.ownerstatuscode == 1).Select(u => u.ownershipid).FirstOrDefault();
+                    signstatuscode = Convert.ToInt16(dbctx.fileownersactivities.Where(u => u.ownershipid == ownershipid && u.changerequestid == ChangeRequestID).Select(u => u.approvalstatuscode).FirstOrDefault());
+
+
+                    if (signstatuscode == 1)   //approver signed
+                        signstatus = true;
+                }
+
+
+                if (approvertype == "approver")
+                {
+
+                    userid = dbctx.vwUsers.Where(u => u.useremailaddress.Trim().ToLower() == emailaddress.Trim().ToLower()).Select(u => u.userid1).FirstOrDefault();
+                    approveid = dbctx.fileapprovers.Where(u => u.fileid == FileID && u.approverid == userid && u.approverstatuscode == 1).Select(u => u.approveid).FirstOrDefault();
+                    signstatuscode = Convert.ToInt16(dbctx.fileapproversactivities.Where(u => u.approveid == approveid && u.changerequestid == ChangeRequestID).Select(u => u.approvalstatuscode).FirstOrDefault());
+
+
+                    if (signstatuscode == 1)   //approver signed
+                        signstatus = true;
+                }
+
+                if (approvertype == "reviewer")
+                {
+
+                    userid = dbctx.vwUsers.Where(u => u.useremailaddress.Trim().ToLower() == emailaddress.Trim().ToLower()).Select(u => u.userid1).FirstOrDefault();
+                    reviewid = dbctx.filereviewers.Where(u => u.fileid == FileID && u.reviewerid == userid && u.reviewerstatuscode == 1).Select(u => u.reviewid).FirstOrDefault();
+                    signstatuscode = Convert.ToInt16(dbctx.filereviewersactivities.Where(u => u.reviewid == reviewid && u.changerequestid == ChangeRequestID).Select(u => u.approvalstatuscode).FirstOrDefault());
+
+
+                    if (signstatuscode == 1)   //approver signed
+                        signstatus = true;
+                }
+
+
+
+            }
+
+
+            return signstatus;
+        }
 
         public void UpdateChangeReqstApproval()
         {

@@ -350,8 +350,62 @@
 
                 var ifoldername = $(this).val();
 
+                $.ajax(
+                    {
+
+                        type: "post",
+                        url: "/Home/GetSubFolderList?foldername=" + ifoldername,
+                        contentType: "html",
+                        success: function (response) {
+                            //  debugger
+                            $("#SubFolderName").empty();
+                            $("#SubFolderName").append(response);
+
+                        }  //end success
+
+                    })    //end ajax call function for getting subfolders by selected folder
+
 
                 $.ajax(
+                    {
+
+                        type: "post",
+                        url: "/Home/GetSOPNO",
+                        contentType: 'application/json',
+                        dataType: 'json',
+                        data: JSON.stringify({ foldername: ifoldername, subfoldername: "" }),
+
+                        success: function (data) {
+                            //  debugger
+                            if (data.success) {
+
+                                //  document.getElementById("newsopno").value = data.sopno;
+
+
+                                var n1 = ifoldername.indexOf("(");
+
+                                var n2 = ifoldername.indexOf(")");
+
+
+                                var sopcode = ifoldername.substring(n1 + 1, n2);
+
+                                var currsopno = parseInt(data.sopno) + 1;
+
+                                newsopno = sopcode + "-" + zeroPad(currsopno, 2);
+                                document.getElementById("SOPNo").value = newsopno;
+
+
+                            }
+                            else {
+                                alert('invalid SOP' + data.success);
+                            }
+                        }
+                    })  //end ajax call for getting new SOPNo by folder name
+
+
+
+
+                @*$.ajax(
                     {
                         type: "post",
                         url: "/Home/AuthenticateUpload?foldername=" + ifoldername,
@@ -425,7 +479,7 @@
 
                             }
                         }
-                    })
+                    })*@
 
 
 

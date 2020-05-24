@@ -156,7 +156,7 @@ namespace SOPManagement.Models
                     departmentcode = (short)x.departmentcode,
                     departmentname = x.departmentname
 
-                }).Where(q => q.departmentcode == departmentcode);
+                }).Where(q => q.departmentcode == departmentcode || q.departmentcode==12);
 
                 //empllist = employees.ToList();
 
