@@ -131,8 +131,9 @@ namespace SOPManagement.Models
           
              oSOP.FileChangeRqstID = ChangeRequestID;
 
-            oSOP.GetSOPInfoByFileID();
+            // oSOP.GetSOPInfoByFileID();
 
+            oSOP.GetSOPInfo();
 
             using (var dbcontext = new RadiantSOPEntities())
             {
@@ -159,7 +160,7 @@ namespace SOPManagement.Models
                         int ownerid = 0;
                         int ownershipid = 0;
                         string owneremail = "";
-
+                        bool removecontr = true;
 
                         ownershipid = Convert.ToInt32(dbcontext.fileownersactivities.Where(o => o.owneractivityid == OwnerActivityID
                         && o.changerequestid == ChangeRequestID).Select(o => o.ownershipid).FirstOrDefault());
@@ -168,15 +169,41 @@ namespace SOPManagement.Models
                         // fileid = dbcontext.fileowners.Where(o => o.ownershipid == ownershipid && o.ownerstatuscode == 1).Select(o => o.fileid).FirstOrDefault();
                         owneremail = dbcontext.vwUsers.Where(u => u.userid1 == ownerid).Select(o => o.useremailaddress).FirstOrDefault();
 
+                        //first check if this owener is approver or reviewer and have signed it or not
+                        //if this person signs in all group then remove contribute and give read permission
+                        //if this person does not sign in any approver group then don't remove contribute permission
+
+                            if (owneremail.Trim().ToLower()==oSOP.FileApproverEmail.Trim().ToLower())
+                            {
+
+                                if (oSOP.FileApprover.signstatuscode == 2)    //has not signed as approver so keep contribute permission
+                                    removecontr = false;
+
+                            }  
+      
+
+                            //if signed as approver then check if same person is reviewer and has not signed, if so do not remove contribute  
+                            foreach (Employee rvwr in oSOP.FileReviewers)
+                            {
+                                if (owneremail.Trim().ToLower() == rvwr.useremailaddress.Trim().ToLower())
+                                {
+                                    if (rvwr.signstatuscode == 2) //has not signed as reviewer so keep contribute
+                                        removecontr = false;
+
+                                    break;
+                                }
+                            }
+
+                        if (removecontr)
+                        {
+                            oSOP.AssignFilePermissionToUsers("contribute", "remove", owneremail.Trim().ToLower());
+                            // System.Threading.Thread.Sleep(3000);
+
+                            oSOP.AssignFilePermissionToUsers("read", "add", owneremail.Trim().ToLower());
+                        }
 
 
-                        oSOP.AssignFilePermissionToUsers("contribute", "remove", owneremail.Trim().ToLower());
-                        // System.Threading.Thread.Sleep(3000);
-
-                        oSOP.AssignFilePermissionToUsers("read", "add", owneremail.Trim().ToLower());
-
-
-                        }  //end checking success of signing
+                    }  //end checking success of signing
 
                 }
 
@@ -200,6 +227,7 @@ namespace SOPManagement.Models
                         int apporverid = 0;
                         int approveid = 0;
                         string approveremail = "";
+                        bool removecontr = true;
 
 
                         approveid = Convert.ToInt32(dbcontext.fileapproversactivities.Where(o => o.approveractivityid == ApproverActivityID
@@ -209,14 +237,36 @@ namespace SOPManagement.Models
                         // fileid = dbcontext.fileowners.Where(o => o.ownershipid == ownershipid && o.ownerstatuscode == 1).Select(o => o.fileid).FirstOrDefault();
                         approveremail = dbcontext.vwUsers.Where(u => u.userid1 == apporverid).Select(o => o.useremailaddress).FirstOrDefault();
 
+                        if (approveremail.Trim().ToLower() == oSOP.FileOwnerEmail.Trim().ToLower())
+                        {
+
+                            if (oSOP.FileOwner.signstatuscode == 2)    //has not signed as owner so keep contribute permission
+                                removecontr = false;
+
+                        }
+
+
+                        //if signed as approver then check if same person is reviewer and has not signed, if so do not remove contribute  
+                        foreach (Employee rvwr in oSOP.FileReviewers)
+                        {
+                            if (approveremail.Trim().ToLower() == rvwr.useremailaddress.Trim().ToLower())
+                            {
+                                if (rvwr.signstatuscode == 2) //has not signed as reviewer so keep contribute
+                                    removecontr = false;
+
+                                break;
+                            }
+                        }
 
 
 
-                        oSOP.AssignFilePermissionToUsers("contribute", "remove", approveremail.Trim().ToLower());
-                        // System.Threading.Thread.Sleep(3000);
+                        if (removecontr)
+                        {
+                            oSOP.AssignFilePermissionToUsers("contribute", "remove", approveremail.Trim().ToLower());
+                            // System.Threading.Thread.Sleep(3000);
 
-                        oSOP.AssignFilePermissionToUsers("read", "add", approveremail.Trim().ToLower());
-
+                            oSOP.AssignFilePermissionToUsers("read", "add", approveremail.Trim().ToLower());
+                        }
                     }
 
                 }
@@ -241,6 +291,7 @@ namespace SOPManagement.Models
                         int reviewerid = 0;
                         int reviewid = 0;
                         string revieweremail = "";
+                        bool removecontr = true;
 
 
                         reviewid = Convert.ToInt32(dbcontext.filereviewersactivities.Where(o => o.revieweractivityid == ReviewerActivityID
@@ -250,11 +301,28 @@ namespace SOPManagement.Models
                         // fileid = dbcontext.fileowners.Where(o => o.ownershipid == ownershipid && o.ownerstatuscode == 1).Select(o => o.fileid).FirstOrDefault();
                         revieweremail = dbcontext.vwUsers.Where(u => u.userid1 == reviewerid).Select(o => o.useremailaddress).FirstOrDefault();
 
-                        oSOP.AssignFilePermissionToUsers("contribute", "remove", revieweremail.Trim().ToLower());
-                        // System.Threading.Thread.Sleep(3000);
+                        if (revieweremail.Trim().ToLower() == oSOP.FileOwnerEmail.Trim().ToLower())
+                        {
 
-                        oSOP.AssignFilePermissionToUsers("read", "add", revieweremail.Trim().ToLower());
+                            if (oSOP.FileOwner.signstatuscode == 2)    //has not signed as owner so keep contribute permission
+                                removecontr = false;
+                        }
 
+                        if (revieweremail.Trim().ToLower() == oSOP.FileApproverEmail.Trim().ToLower())
+                        {
+
+                            if (oSOP.FileApprover.signstatuscode == 2)    //has not signed as approver so keep contribute permission
+                                removecontr = false;
+                        }
+
+
+                        if (removecontr)
+                        {
+                            oSOP.AssignFilePermissionToUsers("contribute", "remove", revieweremail.Trim().ToLower());
+                            // System.Threading.Thread.Sleep(3000);
+
+                            oSOP.AssignFilePermissionToUsers("read", "add", revieweremail.Trim().ToLower());
+                        }
 
 
 

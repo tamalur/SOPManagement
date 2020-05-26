@@ -2567,6 +2567,7 @@ namespace SOPManagement.Models
                 oSOPOwner.GetUserByEmail();
                 oSOPOwner.signaturedate = Convert.ToDateTime(ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.ownersigneddate).FirstOrDefault());
                 oSOPOwner.signstatus= ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.ownerSignedStatus).FirstOrDefault();
+                oSOPOwner.signstatuscode= ctx.vwOwnerSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.ownerSignedStatCode).FirstOrDefault();
 
                 FileOwner = oSOPOwner;
                 FileOwnerEmail = oSOPOwner.useremailaddress;
@@ -2578,6 +2579,7 @@ namespace SOPManagement.Models
                 oSOPApprover.GetUserByEmail();
                 oSOPApprover.signaturedate = Convert.ToDateTime(ctx.vwApprvrsSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.Aprvrsigneddate).FirstOrDefault());
                 oSOPApprover.signstatus = ctx.vwApprvrsSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.AprvrSignedStatus).FirstOrDefault();
+                oSOPApprover.signstatuscode = ctx.vwApprvrsSignatures.Where(d => d.fileid == FileID && d.changerequestid == FileChangeRqstID).Select(d => d.AprvrSignedStatCode).FirstOrDefault();
 
 
                 FileApprover = oSOPApprover;
@@ -4118,7 +4120,8 @@ namespace SOPManagement.Models
 
             foreach(Employee viewer in FileReviewers)
             {
-                if ((viewer.useremailaddress.Trim().ToLower() != FileOwnerEmail.Trim().ToLower()) ||
+                if (
+                    (viewer.useremailaddress.Trim().ToLower() != FileOwnerEmail.Trim().ToLower()) &
                     (viewer.useremailaddress.Trim().ToLower() != FileApproverEmail.Trim().ToLower())
                     )
                 {

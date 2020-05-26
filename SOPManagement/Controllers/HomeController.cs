@@ -777,8 +777,8 @@ namespace SOPManagement.Controllers
 
 
 
-                //loggedinusereml = Utility.GetCurrentLoggedInUserEmail();
-                // loggedinuserid = Utility.GetLoggedInUserID();
+                loggedinusereml = Utility.GetCurrentLoggedInUserEmail();
+                loggedinuserid = Utility.GetLoggedInUserID();
 
                 //loggedinusereml = "rmcdowell@radiantdelivers.com";
                 //loggedinuserid = 238;
@@ -787,8 +787,17 @@ namespace SOPManagement.Controllers
                 //loggedinuserid = 260;
 
 
-                loggedinusereml = "gcallaghan@radiantdelivers.com";
-                loggedinuserid = 83;
+                //loggedinusereml = "gcallaghan@radiantdelivers.com";
+                //loggedinuserid = 83;
+
+                //loggedinusereml = "ediallo@radiantdelivers.com";
+                //loggedinuserid = 69;
+
+                //loggedinusereml = "kislam@radiantdelivers.com";
+                //loggedinuserid = 145;
+
+                //loggedinusereml = "student05@radiantdelivers.com";
+                //loggedinuserid = 362;
 
 
 
@@ -1002,7 +1011,7 @@ namespace SOPManagement.Controllers
                 else
                 {
 
-                    Session["SOPMsg"] = "Signing Off SOP:Error: You have nothing to sign!";
+                    Session["SOPMsg"] = "Signing Off SOP:Error: You have already signed the SOP!";
 
                     return RedirectToAction("SOPMessage");
 
@@ -1332,17 +1341,17 @@ namespace SOPManagement.Controllers
                 //if not redirect to unauthenticated message page
                 //otherwise proceed with change request
 
-                if (!oSOP.AuthenticateUser("changerequest"))
-                 {
+                //if (!oSOP.AuthenticateUser("changerequest"))
+                // {
 
-                    oSOP = null;
+                //    oSOP = null;
 
-                    Session["SOPMsg"] = "SOP Change Request: Failed to authorize you to make a change request since your are not owner, approver, or reviewer of this SOP."; 
+                //    Session["SOPMsg"] = "SOP Change Request: Failed to authorize you to make a change request since your are not owner, approver, or reviewer of this SOP."; 
 
-                    return RedirectToAction("SOPMessage");
+                //    return RedirectToAction("SOPMessage");
 
 
-                }
+                //}
 
                 int lastchngreqid = oSOP.GetLastChngRequestID();
                 oSOP.FileChangeRqstID = lastchngreqid;
