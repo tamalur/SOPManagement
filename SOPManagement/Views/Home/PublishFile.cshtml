@@ -2,9 +2,21 @@
 @{
     ViewBag.Title = "Publish SOP";
 }
+<div class="sopmessagebox">
+    <div style="font-size:36px;font-weight:bold">
 
-<div>
-    <h3>Publishing SOP, DO NOT click any menu now, please wait...</h3>
+        @if (ViewBag.Title != null)
+        {
+            @ViewBag.Title
+        }
+        else
+        {
+            @TempData["PageTitle"]
+        }
+
+    </div>
+
+    Please wait, DO NOT click on menu’s while publishing.
 
 </div>
 

@@ -105,6 +105,14 @@ namespace SOPManagement.Controllers
         //    FormsAuthentication.SignOut(); //you write this when you use FormsAuthentication
             return RedirectToAction("LogIn", "Home");
         }
+
+        public ActionResult DataMaintHRIT()
+        {
+
+
+            return View();
+        }
+
         public ActionResult CreateUploadSOPAuth()
         {
 
@@ -152,45 +160,35 @@ namespace SOPManagement.Controllers
 
 
 
-        //public ActionResult ApproveSOP(int? id)
-        //{
-
-        //    ViewBag.employees = ViewBag.employees = (from c in ctx.vwUsers select new { c.useremailaddress, c.userfullname }).Distinct();
-
-        //    Employee model = new Employee();
-
-        //    ViewBag.FileID = id;
-
-        //    model.HasSignedSOP = true;
-
-        //    return View(model);
-
-        //    // return View();
-        //}
-
-        [Authorize(Roles = "SOPADMIN")]
+      //  [Authorize(Roles = "SOPADMIN")]
         public ActionResult AdminSOP(int? id)
         {
 
-           // http://localhost:58639/Home/AdminSOP/298
+            // http://localhost:58639/Home/AdminSOP/298
+
+            TempData["PageTitle"] = "SOP Admin";
 
             TempData["FileID"] = Convert.ToInt32(id);  //very important field in this context
 
-
              SOPClass oSOP = new SOPClass();
 
-             oSOP.FileID = Convert.ToInt32(id);
+             oSOP.FileID = Convert.ToInt32(id); 
 
 
             //currently only owner of the SOP can do admin changes
 
-            //if (!oSOP.AuthenticateUser("admin"))   //only approver can publish a signed SOP
+            oSOP.GetSOPInfoByFileID();
+            TempData["SOPName"] = oSOP.FileTitle;
 
-            //{
-            //    oSOP = null;
-            //    Session["SOPMsg"] = "Admin SOP: Failed to authenticate you as an admin of this SOP ! Only the owner of a SOP can do admin changes.";
-            //    return RedirectToAction("SOPMessage");
-            //}
+            if (!oSOP.AuthenticateUser("admin"))   //only owner can do admin changes
+
+            {
+                oSOP = null;
+                TempData["SOPMsg"] = "Error:You are not authenticated to do admin changes of the document in question.";
+         
+
+                return RedirectToAction("SOPMessage");
+            }
 
 
 
@@ -202,15 +200,7 @@ namespace SOPManagement.Controllers
 
             //2=not signed, 1=signed, 3=approved: not allowed to change at this moment since sop is under approval process
 
-            if ((lastchngreqstatcode == 2 || lastchngreqstatcode == 1) & lastchngreqstatcode != 3)
-            {
-                Session["SOPMsg"] = "Admin SOP: Error: You cannot make admin changes since the SOP:" + oSOP.SOPNo + " " + oSOP.FileTitle + " is under approval process.";
-
-                return RedirectToAction("SOPMessage");
-
-            }
-
-            oSOP.GetSOPInfoByFileID();
+            TempData["SOPName"] = oSOP.FileTitle;
 
 
             ViewBag.employees = (from c in ctx.vwUsers select new { c.useremailaddress, c.userfullname }).Distinct();
@@ -228,168 +218,469 @@ namespace SOPManagement.Controllers
 
 
         [HttpPost]
-        public ActionResult AdminSOP(SOPClass sop, string archive)
+
+        //public ActionResult AdminSOP(SOPClass sop, string archive)
+        //if (!string.IsNullOrEmpty(archive))
+
+        public ActionResult AdminSOP(SOPClass sop)
 
         {
 
-            //If archive is submitted do this and redirect to success or failure message
 
-            SOPClass oSOP = new SOPClass();
-
-            oSOP.SiteUrl = siteurl;
-
-            sop.SiteUrl = siteurl;
-
+            // do not retrieve data from database with sop object as this obejcts holds all new data entered by user
+            //I used helper class
 
             if (TempData["FileID"] != null)
-                oSOP.FileID = Convert.ToInt32(TempData["FileID"].ToString());
-
-            oSOP.GetSOPInfoByFileID();   //get current data to compare with new data from view, if any change then update it
-
-            sop.FileID = oSOP.FileID;    //very important value as all changes will be done by file id
-            sop.FilePath = oSOP.FilePath;
-            sop.FileName = oSOP.FileName;
-            sop.FileUrl = oSOP.FilePath;
-            sop.DocumentLibName = "SOP";
-            // sop.DocumentLibName = Utility.GetDocLibraryName();
-
-
-            //archive file in sharepoint folder
-
-
-            if (!string.IsNullOrEmpty(archive))
-            {
-                oSOP.ArchiveSOP();
-
-                Session["SOPMsg"] = "Admin SOP: "+ oSOP.SOPNo + " " + oSOP.FileTitle + " has been archived sucessfully.";
-
-                return RedirectToAction("SOPMessage");
-
-
-
-                //return Json(new { success = true, responseText = "The SOP " + sop.FileName + " has been successfully archived!" }, JsonRequestBehavior.AllowGet);
-
-            }
-
-            //save all admin changes
+                sop.FileID = Convert.ToInt32(TempData["FileID"].ToString());
 
             else
             {
 
-                if (sop.AllUsersReadAcc)
-                    sop.ViewAccessType = "All Users";
-                else if (sop.DepartmentCode > 0)
-                    sop.ViewAccessType = "By Department";
-                else if (sop.FileviewersArr != null && sop.FileviewersArr.Count() > 0)
-                    sop.ViewAccessType = "By Users";
+                TempData["SOPMsg"] = "Error:Invalid File ID.";
+
+                return RedirectToAction("SOPMessage");
+
+            }
+
+
+            Employee[] rvwrItems= JsonConvert.DeserializeObject<Employee[]>(sop.FilereviewersArr[0]);
+            Employee[] vwrItems= JsonConvert.DeserializeObject<Employee[]>(sop.FileviewersArr[0]);
+
+            sop.FileReviewers = rvwrItems;
+
+            sop.FileViewers = vwrItems;
+
+
+            sop.SiteUrl = siteurl;
+            sop.DocumentLibName = "SOP";
+
+
+            SOPClass oSOP = new SOPClass();
+            Employee oEmp = new Employee();
+
+            bool admindatachanged;
+            bool contributorchngd;
+            bool rvwrfound ;
+            bool vwrfound ;
+            bool updatevwr;
+
+
+            short lastchngreqstatcode = 0;
+            int lastchangerequestid = 0;
+
+            oSOP.FileID = sop.FileID;
+            oSOP.SiteUrl = siteurl;
+            oSOP.DocumentLibName = sop.DocumentLibName;
+
+            lastchangerequestid = oSOP.GetLastChngRequestID();
+
+            oSOP.FileChangeRqstID = lastchangerequestid;
+
+            lastchngreqstatcode = oSOP.GetChngReqSOPStatusCode(); //by file id
+
+
+            oSOP.GetSOPInfo();   //get current data with helper class to compare with new data from view, if any change then update it
+
+            TempData["SOPName"] = oSOP.FileTitle.Trim();
+
+            if (oSOP.ViewAccessType.Trim() == "All Users")
+                oSOP.AllUsersReadAcc = true;
+
+
+            sop.FileTitle = oSOP.FileTitle.Trim();
+            sop.FileName = oSOP.FileName;
+            sop.FilePath = oSOP.FilePath;
+            sop.FileUrl = oSOP.FileUrl;
+
+           
+            if (sop.AllUsersReadAcc)
+                sop.ViewAccessType = "All Users";
+            else if (sop.DepartmentCode != null && sop.DepartmentCode > 0)
+                sop.ViewAccessType = "By Department";
+            else if (sop.FileviewersArr != null && sop.FileviewersArr.Count() > 0)
+                sop.ViewAccessType = "By Users";
 
 
 
-                //change viewer access
-
-                Employee[] vwrItems;
-                Employee oEmp = new Employee();
-
-                short lastchngreqstatcode = 0;
-                int lastchangerequestid = 0;
-
-                //remove all permissions first
-
-                // sop.RemoveAllFilePermissions();
+            try
+            {
 
 
-                lastchangerequestid = sop.GetLastChngRequestID();
 
-                sop.FileChangeRqstID = lastchangerequestid;
+                // if admin change is made and archive SOP was selected then redirect error page. 
 
-                lastchngreqstatcode = sop.GetChngReqSOPStatusCode(); //by file id
+                //first check if there is any admin changes
 
-                //2=not signed, 1=signed, 3=approved: not allowed to change at this moment since sop is under approval process
+                admindatachanged = false;
+                contributorchngd = false;
 
-                if ((lastchngreqstatcode == 2 || lastchngreqstatcode == 1) & lastchngreqstatcode != 3)
+
+                if ((sop.Updatefreq != oSOP.Updatefreq) || (sop.Updfrequnitcode != oSOP.Updfrequnitcode))
+                    admindatachanged = true;
+
+                //check owner
+                if (sop.FileOwnerEmail.Trim().ToLower() != oSOP.FileOwnerEmail.Trim().ToLower())    //owner was changed
+                    contributorchngd = true;
+
+                //check approver
+                if (sop.FileApproverEmail.Trim().ToLower() != oSOP.FileApproverEmail.Trim().ToLower())  //approver was changed
+                    contributorchngd = true;
+
+                //check reviewers
+
+
+                if ((sop.FileReviewers!=null & oSOP.FileReviewers!=null) &
+                    (sop.FileReviewers.Count() == oSOP.FileReviewers.Count()))
                 {
-                    Session["SOPMsg"] = "Admin SOP: Error: You cannot make admin changes since the SOP:" + oSOP.SOPNo + " " + oSOP.FileTitle + " is under approval process.";
 
-                    return RedirectToAction("SOPMessage");
+                    foreach (Employee newrvwr in sop.FileReviewers)
+                    {
+                        rvwrfound = false;
+                        foreach (Employee oldrvwr in oSOP.FileReviewers)
+                        {
+                            if (newrvwr.useremailaddress.Trim().ToLower() == oldrvwr.useremailaddress.Trim().ToLower())
+                            {
+                                rvwrfound = true;
+                                break;
+                            }
+
+                        }
+
+                        if (rvwrfound == false)
+                        {
+                            contributorchngd = true;
+                            break;
+                        }
+
+                    }
+
+                }
+                else
+                {
+                    contributorchngd = true;
+                }
+
+
+                if (contributorchngd)
+                    admindatachanged = true;
+
+                //check viewer access entry 
+
+                if (oSOP.AllUsersReadAcc & !sop.AllUsersReadAcc)   //oSOP is previous an sop is new
+                    admindatachanged = true;
+
+
+                if (!oSOP.AllUsersReadAcc & sop.AllUsersReadAcc)
+                    admindatachanged = true;
+
+
+                updatevwr = false;
+
+                if (!oSOP.AllUsersReadAcc & !sop.AllUsersReadAcc)
+                {
+                    //check department was changed or not
+                    if ((sop.DepartmentCode != null) && oSOP.DepartmentCode != null)
+                    {
+                        //viewer by department will be treated as always change change becuase there could be  
+                        if (sop.DepartmentCode != oSOP.DepartmentCode)
+                        {
+                            admindatachanged = true;
+                            updatevwr = true;
+                        }
+                        else if (sop.DepartmentCode == oSOP.DepartmentCode)   //if same dept was selected now check if all employees are still same in this department 
+                        {
+
+                            Employee[] oldemps;
+                            oEmp.departmentcode = Convert.ToInt16(oSOP.DepartmentCode);
+                            oEmp.GetEmployeesByDeptCode();
+                            oldemps = oEmp.employees;
+
+                            Employee[] newemps;
+                            oEmp.departmentcode = Convert.ToInt16(sop.DepartmentCode);
+                            oEmp.GetEmployeesByDeptCode();
+                            newemps = oEmp.employees;
+
+                            if (newemps != null && oldemps != null)
+                            {
+                                foreach (Employee newvwr in newemps)
+                                {
+                                    vwrfound = false;
+                                    foreach (Employee oldvwr in oldemps)
+                                    {
+                                        if (newvwr.useremailaddress.Trim().ToLower() == oldvwr.useremailaddress.Trim().ToLower())
+                                        {
+                                            vwrfound = true;
+                                            break;
+                                        }
+
+                                    }
+
+                                    if (vwrfound == false)
+                                    {
+                                        admindatachanged = true;
+                                        updatevwr = true;
+                                        break;
+                                    }
+
+                                }
+
+
+                            }
+                            else   //if somehow one or both of the old and new employee list is null
+                            {
+                                admindatachanged = true;
+                                updatevwr = true;
+                            }
+                        }
+
+                    }
+                    else if (sop.FileViewers != null && oSOP.FileViewers != null) //check custom viewers were changed or not
+                    {
+                        //compare custom users
+                        //  sop.FileViewers
+                        //    oSOP.FileViewers
+
+
+                        if ((sop.FileViewers != null & oSOP.FileViewers != null) &
+                            (sop.FileViewers.Count() == oSOP.FileViewers.Count()))
+
+                        {
+
+                            foreach (Employee newvwr in sop.FileViewers)
+                            {
+                                vwrfound = false;
+                                foreach (Employee oldvwr in oSOP.FileViewers)
+                                {
+                                    if (newvwr.useremailaddress.Trim().ToLower() == oldvwr.useremailaddress.Trim().ToLower())
+                                    {
+                                        vwrfound = true;
+                                        break;
+                                    }
+
+                                }
+
+                                if (vwrfound == false)
+                                {
+                                    admindatachanged = true;
+                                    updatevwr = true;
+                                    break;
+                                }
+
+                            }
+
+
+                        }
+
+                        else
+                        {
+                            admindatachanged = true;
+                            updatevwr = true;
+
+
+                        }
+
+                    }
+                    else   //any other viewer combination is a change, i.e. older was by dept now by users vice versa
+                    {
+                        admindatachanged = true;
+                        updatevwr = true;
+                    }
+
 
                 }
 
 
-                //     sop.ViewAccessType = "Inherit";  //inherit previous roles as we do not know who had permissions or not
 
-                if (lastchngreqstatcode == 3)   //proceed admin changes only with published sop
+                //if there is admin change and archive was selected then redirect to error page
+                if (admindatachanged && sop.SOPArchived)
+
+                {
+
+                    TempData["SOPMsg"] = "Error:Failed to submit changes. Cannot make admin changes and archive document in the same submission.";
+
+                    // return RedirectToAction("SOPMessage");
+
+                    return Json(new { success = true, responseText = "Error:Failed to submit changes. Cannot make admin changes and archive document in the same submission." }, JsonRequestBehavior.AllowGet);
+
+                }
+
+
+                //archive document if there is admin changes and archive file was seleccted
+
+                if (!admindatachanged && sop.SOPArchived)
+                {
+                    oSOP.ArchiveSOP();
+                    oSOP.UpdateSOPFileStatus(4);  //archived
+
+                    TempData["SOPMsg"] = "Success: This SOP has been successfully ARCHIVED.";
+
+                    //return RedirectToAction("SOPMessage");
+
+                    return Json(new { success = true, responseText = "Success: This SOP has been successfully ARCHIVED." }, JsonRequestBehavior.AllowGet);
+
+                }
+
+
+                //save all admin changes if there is admin change and archive was not selected 
+
+                if (admindatachanged && !sop.SOPArchived)
                 {
 
                     //update frequency of revision if any
-
                     if ((sop.Updatefreq != oSOP.Updatefreq) || (sop.Updfrequnitcode != oSOP.Updfrequnitcode))
                         sop.UpdateDataByFieldName("Updatefreq");
 
 
-                    //step 1 owner
 
-                    if (sop.FileOwnerEmail.Trim().ToLower() != oSOP.FileOwnerEmail.Trim().ToLower())    //owner was changed
-                    {
-                        sop.AddFileOwner("no");    //do not add change request as last request is published
+                    if (contributorchngd)  //create new change request and add new sign activities of current active signatories
 
-                        oSOP.AssignFilePermissionToUsers("read", "remove", oSOP.FileOwnerEmail.Trim());  //remove last owner read permission 
-
-                        sop.AssignFilePermissionToUsers("read", "add", sop.FileOwnerEmail.Trim());
-
-                    }
-
-                    //step 2 approver
-
-                    if (sop.FileApproverEmail.Trim().ToLower() != oSOP.FileApproverEmail.Trim().ToLower())  //approver was changed
                     {
 
-                        sop.AddFileApprover("no");    //do not add change request as last request is published or signed by previous owner
+                        sop.FileChangeRqsterID = Utility.GetLoggedInUserID();
+
+                        sop.AddChangeRequest();   //it will get new chngreqid that will be used as follows
+
+                        //add owner sign activities 
+
+                        if (oSOP.FileOwner.signstatuscode == 1)  //signed 
+                            oSOP.AssignFilePermissionToUsers("read", "remove", oSOP.FileOwnerEmail.Trim());  //remove last owner read permission 
+                        else if (oSOP.FileOwner.signstatuscode == 2) //not signed
+                            oSOP.AssignFilePermissionToUsers("contribute", "remove", oSOP.FileOwnerEmail.Trim());  //remove last owner read permission                         
+
+
+                        if (sop.FileOwnerEmail.Trim().ToLower() != oSOP.FileOwnerEmail.Trim().ToLower())
+                        {
+
+                            sop.AssignFilePermissionToUsers("contribute", "add", sop.FileOwnerEmail.Trim());
+
+                            sop.AddFileOwner();
+
+                        }
+
+                        else //owner is not changed but still need new sign actvities for other signatory change
+                        {
+
+                            oSOP.FileChangeRqstID = sop.FileChangeRqstID;
+
+                            oSOP.AssignFilePermissionToUsers("contribute", "add", sop.FileOwnerEmail.Trim());
+
+                            oSOP.AddOwneractivities(oSOP.GetOwnershipID());
+
+                            // oSOP.AddFileOwner();
+
+
+                        }
+
+                        //now add new approver and activities
+
+                        //step 2 approver
 
                         if (sop.FileOwnerEmail.Trim().ToLower() != oSOP.FileApproverEmail.Trim().ToLower())  //if same then you don't need to delete same person again 
-
-                            oSOP.AssignFilePermissionToUsers("read", "remove", oSOP.FileApproverEmail.Trim());  //last approver had read permission                        }
-
-
-                        sop.AssignFilePermissionToUsers("read", "add", sop.FileApproverEmail.Trim());
-
-
-                    }
-
-
-                    //step 3 reviewers
-
-                    //remove all old reviewers' read permission and add new reviewers' read permission
-
-                    foreach (Employee oldrvwr in oSOP.FileReviewers)
-                    {
-                        if (oldrvwr.useremailaddress.Trim().ToLower() != sop.FileOwnerEmail.Trim().ToLower())
                         {
-                            if (oldrvwr.useremailaddress.Trim().ToLower() != sop.FileApproverEmail.Trim().ToLower())
-                                oSOP.AssignFilePermissionToUsers("read", "remove", oldrvwr.useremailaddress.Trim());  //last approver had read permission                        }
+
+                            if (oSOP.FileApprover.signstatuscode == 1)  //signed 
+                                oSOP.AssignFilePermissionToUsers("read", "remove", oSOP.FileApproverEmail.Trim());  //remove last owner read permission 
+                            else if (oSOP.FileApprover.signstatuscode == 2) //not signed
+                                oSOP.AssignFilePermissionToUsers("contribute", "remove", oSOP.FileApproverEmail.Trim());  //remove last owner read permission                         
+
                         }
-                    }
 
-                    //oSOP.AssignFilePermissionToUsers("read", "remove", oSOP.FileReviewers);
+                        if (sop.FileApproverEmail.Trim().ToLower() != oSOP.FileApproverEmail.Trim().ToLower())  //approver was changed
+                        {
 
-                    //add newe reviewers' read permission
 
-                    Employee[] rvwrItems = JsonConvert.DeserializeObject<Employee[]>(sop.FilereviewersArr[0]);
+                            sop.AssignFilePermissionToUsers("contribute", "add", sop.FileApproverEmail.Trim());
 
-                    sop.FileReviewers = rvwrItems;
-                    sop.AddFileReviewers();
+                            sop.AddFileApprover();
 
-                    sop.AssignFilePermissionToUsers("read", "add", sop.FileReviewers);
 
-                    //step 4 viewers
+                        }
 
-                    //foreach (Employee newrvwr in rvwrItems)   //new reviewer
-                    //{
+                        else  //create sign activities with old approver
+                        {
 
-                    //    sop.AssignFilePermissionToUsers("read", "add", newrvwr.useremailaddress.Trim());  //last approver had read permission                        }                    }
+                            oSOP.FileChangeRqstID = sop.FileChangeRqstID;
 
-                    //}  //end check if chngstatus is published
+                            oSOP.AssignFilePermissionToUsers("contribute", "add", sop.FileApproverEmail.Trim());
 
-                    //start changing viewers permission 
+                            // oSOP.AddFileOwner();
+                            oSOP.AddApproveractivities(oSOP.GetApproveID());
+
+
+                        }
+
+                        //add new reviewer and actvities
+
+                        //remove all old reviewers' permission and add new reviewers' read permission
+
+                        foreach (Employee oldrvwr in oSOP.FileReviewers)
+                        {
+                            if (oldrvwr.useremailaddress.Trim().ToLower() != sop.FileOwnerEmail.Trim().ToLower())
+                            {
+                                if (oldrvwr.useremailaddress.Trim().ToLower() != sop.FileApproverEmail.Trim().ToLower())
+
+                                {
+                                    if (oSOP.FileApprover.signstatuscode == 1)  //signed 
+                                        oSOP.AssignFilePermissionToUsers("read", "remove", oldrvwr.useremailaddress.Trim());  //remove last owner read permission 
+                                    else if (oSOP.FileApprover.signstatuscode == 2) //not signed
+                                        oSOP.AssignFilePermissionToUsers("contribute", "remove", oldrvwr.useremailaddress.Trim());  //remove last owner read permission                         
+
+
+                                }
+                            }
+                        }
+
+                        //add reviewers in sql and add contribute permission with new change request
+
+                        sop.AddFileReviewers();
+
+                        sop.AssignFilePermissionToUsers("contribute", "add", sop.FileReviewers);
+
+                        //update sop doc file with new signatories with SOP helper class
+                        //do not use sop becuase it will lose new input data such vieweraccess type etc. that we need in 
+                        //managing veiw access
+
+                        SOPClass oSOPHelper = new SOPClass();
+
+                        string templocaldirpath;
+                        templocaldirpath = Server.MapPath(Utility.GetTempLocalDirPath());
+
+                        oSOPHelper.FileID = sop.FileID;
+                        oSOPHelper.FileChangeRqstID = sop.FileChangeRqstID;
+                        oSOPHelper.FileLocalPath = templocaldirpath + sop.FileName;
+                        oSOPHelper.SiteUrl = sop.SiteUrl;
+                        oSOPHelper.DocumentLibName = sop.DocumentLibName;
+
+                        oSOPHelper.GetSOPInfo();  //get latest sop info from database including newly changed signatories info
+
+                        oSOPHelper.DownloadFileFromSharePoint(templocaldirpath);
+
+                        oSOPHelper.UpdateCoverRevhistPage(true);
+
+                        //Thread.Sleep(4000);
+
+                        oSOPHelper.FileStream = System.IO.File.ReadAllBytes(oSOPHelper.FileLocalPath);
+
+                        oSOPHelper.UploadDocument();
+
+                        oSOPHelper = null;   //thanks bye bye 
+
+                        // sop.FileLocalPath = templocaldirpath + sop.FileName;
+                        //sop.DownloadFileFromSharePoint(templocaldirpath);
+                        // sop.UpdateCoverRevhistPage(true);     
+
+                        //Thread.Sleep(4000);
+
+                        //sop.FileStream = System.IO.File.ReadAllBytes(sop.FileLocalPath);
+
+                        // sop.UploadDocument();
+
+
+                    }  //end checking signatory/contributor change
+
+
+
+                    //now process viewers changes that does not need change request
 
 
                     if (oSOP.AllUsersReadAcc & !sop.AllUsersReadAcc)   //oSOP is previois an sop is new
@@ -414,6 +705,8 @@ namespace SOPManagement.Controllers
 
                             if (sop.DepartmentCode > 0)  //if department is selected then preference is to get employees by department code
                             {
+
+                                vwrItems = null;
 
                                 sop.ViewAccessType = "By Department";
 
@@ -449,6 +742,8 @@ namespace SOPManagement.Controllers
                             if (sop.FileviewersArr.Count() > 0)   //get employees from custom user list
                             {
 
+                                vwrItems = null;
+
                                 sop.ViewAccessType = "By Users";
 
                                 vwrItems = JsonConvert.DeserializeObject<Employee[]>(sop.FileviewersArr[0]);
@@ -481,6 +776,8 @@ namespace SOPManagement.Controllers
 
                         string rvwremail = "";
 
+                     //   vwrItems = null;
+
                         if (oSOP.ViewAccessType == "By Users")
                         {
 
@@ -503,7 +800,7 @@ namespace SOPManagement.Controllers
 
                                         }
 
-                                        if (rvwremail == "")
+                                        if (rvwremail.Trim() == "")
                                             oSOP.AssignFilePermissionToUsers("read", "remove", viewer.useremailaddress.Trim());
 
                                     }
@@ -517,6 +814,8 @@ namespace SOPManagement.Controllers
 
                         if (oSOP.ViewAccessType == "By Department")
                         {
+
+                            vwrItems = null;
 
                             short sdeptcode = Convert.ToInt16(oSOP.DepartmentCode);
                             oEmp.departmentcode = sdeptcode;
@@ -546,7 +845,7 @@ namespace SOPManagement.Controllers
 
                                         }
 
-                                        if (rvwremail == "")
+                                        if (rvwremail.Trim() == "")
                                             oSOP.AssignFilePermissionToUsers("read", "remove", viewer.useremailaddress.Trim());
 
                                     }
@@ -572,7 +871,7 @@ namespace SOPManagement.Controllers
 
 
 
-                    if (!oSOP.AllUsersReadAcc & !sop.AllUsersReadAcc)
+                    if ((!oSOP.AllUsersReadAcc & !sop.AllUsersReadAcc) & updatevwr)
                     {
 
 
@@ -617,6 +916,7 @@ namespace SOPManagement.Controllers
                         if (oSOP.ViewAccessType == "By Department")
                         {
 
+                            vwrItems = null;
                             short sdeptcode = Convert.ToInt16(oSOP.DepartmentCode);
                             oEmp.departmentcode = sdeptcode;
 
@@ -668,6 +968,8 @@ namespace SOPManagement.Controllers
                             {
                                 sop.ViewAccessType = "By Department";
 
+                                vwrItems = null;
+
                                 short sdeptcode = Convert.ToInt16(sop.DepartmentCode);
                                 oEmp.departmentcode = sdeptcode;
 
@@ -700,13 +1002,14 @@ namespace SOPManagement.Controllers
                             if (sop.FileviewersArr.Count() > 0)   //get employees from custom user list
                             {
 
+                                vwrItems = null;
                                 sop.ViewAccessType = "By Users";
-
-                                vwrItems = JsonConvert.DeserializeObject<Employee[]>(sop.FileviewersArr[0]);
 
                                 //first remove existing permission from the file, default is Watercooler Visitors
 
                                 //give read permission to all custom viewers
+
+                                vwrItems = JsonConvert.DeserializeObject<Employee[]>(sop.FileviewersArr[0]);
 
                                 sop.AssignFilePermissionToUsers("read", "add", vwrItems);
 
@@ -735,20 +1038,51 @@ namespace SOPManagement.Controllers
 
                     }   //end checking publish 
 
+
+                    TempData["SOPMsg"] = "Success: Submitted administrative changes to the SOP have been updated.";
+
+                    return Json(new { success = true, responseText = "Success: Submitted administrative changes to the SOP have been updated." }, JsonRequestBehavior.AllowGet);
+
+
+
+                }  //end checking submit button type
+
+                else  //no valid data was entered
+                {
+
+                    TempData["SOPMsg"] = "Error:Valid SOP admin data is required.";
+
+                    return Json(new { success = true, responseText = "Error:Valid SOP admin data is required" }, JsonRequestBehavior.AllowGet);
+
+                    //   return RedirectToAction("SOPMessage");
+
+
                 }
 
-            }  //end checking submit button type
-
-            //sop.GetSOPInfoByFileID();
-
-            //ViewBag.employees = (from c in ctx.vwUsers select new { c.useremailaddress, c.userfullname }).Distinct();
 
 
-            //return View(sop);
+            }
+            catch (Exception ex)
+            {
 
-            Session["SOPMsg"] = "Admin SOP: You have successfully submitted all admin changes of SOP:" + sop.SOPNo;
+                TempData["SOPMsg"] = "Error:Failed to load SOP Admin page and complete admin changes due to following system error:" + ex.Message;
 
-            return Json(new { success = true, responseText = "The SOP " + sop.FileName + " has been successfully changed!" }, JsonRequestBehavior.AllowGet);
+                // return RedirectToAction("SOPMessage");
+
+                return Json(new { success = true, responseText = "Error:Failed to submit changes. Cannot make admin changes and archive document in the same submission." }, JsonRequestBehavior.AllowGet);
+
+
+            }
+
+            finally
+            {
+                oSOP = null;
+                oEmp = null;
+                vwrItems = null;
+                rvwrItems = null;
+            }
+
+
 
 
         }
@@ -765,7 +1099,7 @@ namespace SOPManagement.Controllers
             SOPSignatureModel oSM = new SOPSignatureModel();
             SOPClass oSOP = new SOPClass();
 
-            Session["SOPMsg"] = "";
+            TempData["PageTitle"] = "Signing Off on SOP";
 
             try
 
@@ -790,11 +1124,12 @@ namespace SOPManagement.Controllers
                 //loggedinusereml = "gcallaghan@radiantdelivers.com";
                 //loggedinuserid = 83;
 
+                //loggedinusereml = "kislam@radiantdelivers.com";
+                //loggedinuserid = 145;
+
                 //loggedinusereml = "ediallo@radiantdelivers.com";
                 //loggedinuserid = 69;
 
-                //loggedinusereml = "kislam@radiantdelivers.com";
-                //loggedinuserid = 145;
 
                 //loggedinusereml = "student05@radiantdelivers.com";
                 //loggedinuserid = 362;
@@ -821,6 +1156,7 @@ namespace SOPManagement.Controllers
 
                 oSOP.GetSOPInfo();
 
+                TempData["SOPName"] = oSOP.FileTitle;
 
                 //now verify if he is signatory in any approver group with logged in email address with this file
                 //and change request id
@@ -854,7 +1190,7 @@ namespace SOPManagement.Controllers
                 {
                     oSM.LoggedInUserIsApprover = "yes";
                     if (oSM.LoggedInUserAllStatus != "")
-                        oSM.LoggedInUserAllStatus = oSM.LoggedInUserAllStatus + "," + "Approver";
+                        oSM.LoggedInUserAllStatus = oSM.LoggedInUserAllStatus + ", " + "Approver";
                     else
                         oSM.LoggedInUserAllStatus = "Approver";
 
@@ -895,7 +1231,7 @@ namespace SOPManagement.Controllers
                     {
                         oSM.LoggedInUserIsReviewer = "yes";
                         if (oSM.LoggedInUserAllStatus != "")
-                            oSM.LoggedInUserAllStatus = oSM.LoggedInUserAllStatus + "," + "Reviewer";
+                            oSM.LoggedInUserAllStatus = oSM.LoggedInUserAllStatus + ", " + "Reviewer";
                         else
                             oSM.LoggedInUserAllStatus = "Reviewer";
 
@@ -922,7 +1258,7 @@ namespace SOPManagement.Controllers
 
                 {
                     // ViewBag.ErrorMessage = "SOP Application: Session not Timed out";
-                    Session["SOPMsg"] = "SOP Sign: Failed loading approval page as you are not an authenticated approver of this SOP.";
+                    TempData["SOPMsg"] = "Error: You are not an authenticated approver and cannot sign document in question.";
                     return RedirectToAction("SOPMessage");
 
 
@@ -938,8 +1274,8 @@ namespace SOPManagement.Controllers
 
             catch (Exception ex)
             {
-                // ViewBag.ErrorMessage = "SOP Application: Session not Timed out";
-                Session["SOPMsg"] = "SOP Sign Off: Error:"+ex.Message +" during loading Sign Off Page";
+
+                TempData["SOPMsg"] = "Error:Failed to load the page due to the following system error: "+ex.Message;
                 return RedirectToAction("SOPMessage");
 
 
@@ -1002,7 +1338,7 @@ namespace SOPManagement.Controllers
                 {
                     sm.UpdateChangeReqstApproval();   //if all signatories sign the SOP change sign status signed in change request activities table
 
-                    Session["SOPMsg"] = "Signing Off SOP: You signed off the SOP successfully!";
+                    TempData["SOPMsg"] = "Document Signed by:"+Utility.GetLoggedInUserFullName();
 
                     return RedirectToAction("SOPMessage");
 
@@ -1011,8 +1347,8 @@ namespace SOPManagement.Controllers
                 else
                 {
 
-                    Session["SOPMsg"] = "Signing Off SOP:Error: You have already signed the SOP!";
-
+                    TempData["SOPMsg"] = "Error:You have already signed off on this SOP.";
+                     
                     return RedirectToAction("SOPMessage");
 
 
@@ -1023,7 +1359,7 @@ namespace SOPManagement.Controllers
             catch (Exception ex)
             {
 
-                Session["SOPMsg"] = "Signing Off SOP: Error:" + ex.Message + " occured during signing off SOP !";
+                TempData["SOPMsg"] = "Error:Failed to sign off the SOP due to the following system error:" + ex.Message;
 
                 return RedirectToAction("SOPMessage");
 
@@ -1047,34 +1383,67 @@ namespace SOPManagement.Controllers
                 return RedirectToAction("LogIn");
 
 
-            return Redirect("http://camis1-bioasp01/Reports/Pages/Report.aspx?ItemPath=%2fSOP+Reports%2fSOP+Dashboard");
+           return Redirect("http://camis1-bioasp01/Reports/Pages/Report.aspx?ItemPath=%2fSOP+Reports%2fSOP+Dashboard");
+
+         //   return Redirect("http://camis1-bioasd01/Reports_BI_DEV/Pages/Report.aspx?ItemPath=%2fSOP+Reports%2fSOP+Dashboard&ViewMode=Detail");
+
+            
         }
 
-        //public ActionResult UploadSOPFile()
-        //{
-
-        //    if (Utility.IsSessionExpired())
-        //        return RedirectToAction("LogIn");
+        public ActionResult AccessArchive()
+        {
 
 
+            if (Utility.IsSessionExpired())
+                return RedirectToAction("LogIn");
 
-        //    ViewBag.Message = "Upload SOP File";
-
-
-
-        //    ViewBag.ddlDeptFolders = new SelectList(Utility.GetFolders(), "FileName", "FileName");
-
-        //    ViewBag.employees = ViewBag.employees = (from c in ctx.vwUsers select new { c.useremailaddress, c.userfullname }).Distinct();
+            SOPClass oSop = new SOPClass();
 
 
-        //    ViewBag.departments = (from c in ctx.codesdepartments select new { c.departmentname, c.departmentcode }).Distinct();
+            if (!oSop.AuthenticateUser("accessarchive"))
+            {
 
-        //    ViewBag.updfrequnits= (from c in ctx.codesUnits select new { c.Unitname, c.unitcode,c.UnitType }).Where(x=>x.UnitType == "UpdateFrequency").Distinct();
+                TempData["SOPMsg"] = "Error:SOP archive folder can only be accessed by SOP Owners.";
 
-        //    return View();
-        //}
+                return RedirectToAction("SOPMessage");
 
-        public ActionResult SOPMessage()
+            }
+
+
+            //return Redirect("http://camis1-bioasp01/Reports/Pages/Report.aspx?ItemPath=%2fSOP+Reports%2fSOP+Dashboard");
+
+            return Redirect("https://radiantdelivers.sharepoint.com/:f:/s/Watercooler/Ev0caGyQgLZBl1EaJzxcn4cB8cMsLLlWio-FJt8hq0GTnA?e=j00RuN");
+
+
+
+    }
+
+
+    //public ActionResult UploadSOPFile()
+    //{
+
+    //    if (Utility.IsSessionExpired())
+    //        return RedirectToAction("LogIn");
+
+
+
+    //    ViewBag.Message = "Upload SOP File";
+
+
+
+    //    ViewBag.ddlDeptFolders = new SelectList(Utility.GetFolders(), "FileName", "FileName");
+
+    //    ViewBag.employees = ViewBag.employees = (from c in ctx.vwUsers select new { c.useremailaddress, c.userfullname }).Distinct();
+
+
+    //    ViewBag.departments = (from c in ctx.codesdepartments select new { c.departmentname, c.departmentcode }).Distinct();
+
+    //    ViewBag.updfrequnits= (from c in ctx.codesUnits select new { c.Unitname, c.unitcode,c.UnitType }).Where(x=>x.UnitType == "UpdateFrequency").Distinct();
+
+    //    return View();
+    //}
+
+    public ActionResult SOPMessage()
         {
             
             return View();
@@ -1130,23 +1499,25 @@ namespace SOPManagement.Controllers
                 if (Utility.IsSessionExpired())
                     return RedirectToAction("LogIn");
 
+                oSOP.GetSOPInfo();  //get updated reviewers, approver, owner, version, file name etc.
+
+                TempData["SOPName"] = oSOP.FileTitle;
 
                 //start validating logged in user and SOP
 
-                //if (!oSOP.AuthenticateUser("publish"))   //only approver can publish a signed SOP
+                if (!oSOP.AuthenticateUser("publish"))   //only approver can publish a signed SOP
 
-                //{
-                //    oSOP = null;
-                //    Session["SOPMsg"] = "Publish SOP: Failed to authorize you the publisher of the SOP. Only approver of a SOP can publish it.";
-                //    return RedirectToAction("SOPMessage");
-                //}
-
+                {
+                    oSOP = null;
+                    TempData["SOPMsg"] = "Error:Only Approver of SOP can publish document.";
+                    return RedirectToAction("SOPMessage");
+                }
 
 
                 if (changereqid == 0)     //change request is required to publish aganist a change
                 {
 
-                    Session["SOPMsg"] = "SOP Publish: Error validating File ID and Change Request ID required to publish the file!";
+                    TempData["SOPMsg"] = "Error:Valid change request is required to publish the SOP.";
 
                     return RedirectToAction("SOPMessage");
 
@@ -1154,7 +1525,6 @@ namespace SOPManagement.Controllers
 
                 //assign SOP basic info
 
-                oSOP.GetSOPInfo();  //get updated reviewers, approver, owner, version, file name etc.
 
                 oSOP.FileLocalPath = templocaldirpath + oSOP.FileName;
 
@@ -1163,7 +1533,7 @@ namespace SOPManagement.Controllers
 
                 if (oSOP.FileStatuscode == 2)  //not signed
                 {
-                    Session["SOPMsg"] = "SOP Publish: Failed to load page as : SOP " + oSOP.FileName + " has not been signed by all signatories!";
+                    TempData["SOPMsg"] = "Error:Operation failed, document has not be signed by all signatories";
 
                     return RedirectToAction("SOPMessage");
 
@@ -1172,7 +1542,7 @@ namespace SOPManagement.Controllers
 
                 if (oSOP.FileStatuscode == 3)  //published 
                 {
-                    Session["SOPMsg"] = "SOP Publish: Failed as SOP "+oSOP.SOPNo+ " " + oSOP.FileTitle + " has already been publsihed!";
+                    TempData["SOPMsg"] = "Error:This SOP has already been published.";
 
                     return RedirectToAction("SOPMessage");
 
@@ -1234,7 +1604,7 @@ namespace SOPManagement.Controllers
 
                        oLogger.UpdateLogFile(DateTime.Now.ToString() + ":Publish SOP Action:Successfully published (approved) SOP in SharePoint Online SOP Library.");
 
-                        Session["SOPMsg"] = "SOP Publish: SOP " + oSOP.FileName + " has been successfully published!";
+                        TempData["SOPMsg"] = "Success:The SOP has been published.";
 
                         return RedirectToAction("SOPMessage");
 
@@ -1244,7 +1614,7 @@ namespace SOPManagement.Controllers
                     {
                         oLogger.UpdateLogFile(DateTime.Now.ToString() + ":Publish SOP Action:Failed to publish (approved) the SOP in SharePoint Online SOP Library with reaosn:"+oSOP.ErrorMessage);
 
-                        Session["SOPMsg"] = "SOP Publish: Failed to publish SOP " + oSOP.FileName + oSOP.ErrorMessage + ".Please contact IT!";
+                        TempData["SOPMsg"] = "Error:Failed to publish the SOP due to the following system error: " + oSOP.ErrorMessage ;
                         return RedirectToAction("SOPMessage");
                     }
 
@@ -1263,7 +1633,7 @@ namespace SOPManagement.Controllers
 
                 oLogger.UpdateLogFile(DateTime.Now.ToString() + ":Publish SOP Action:Failed to publish with error:" + ex.Message);
 
-                Session["SOPMsg"] = "SOP Publish: Failed to publish SOP " + oSOP.FileName +  " with error: " + ex.Message;
+                TempData["SOPMsg"] = "Failed to publish the SOP due to the following system error:" + ex.Message;
                 return RedirectToAction("SOPMessage");
 
             }
@@ -1312,6 +1682,8 @@ namespace SOPManagement.Controllers
         {
 
 
+            TempData["PageTitle"] = "SOP Change Request";
+
             if (Utility.IsSessionExpired())
                 return RedirectToAction("LogIn");
 
@@ -1331,8 +1703,9 @@ namespace SOPManagement.Controllers
 
 
             oSOP.FileID = id;   //asign file id
-            Session["SOPMsg"] = "";
+            oSOP.GetSOPInfoByFileID();
 
+            TempData["SOPName"] = oSOP.FileTitle;
 
             try
             {
@@ -1341,17 +1714,17 @@ namespace SOPManagement.Controllers
                 //if not redirect to unauthenticated message page
                 //otherwise proceed with change request
 
-                //if (!oSOP.AuthenticateUser("changerequest"))
-                // {
+                if (!oSOP.AuthenticateUser("changerequest"))
+                {
 
-                //    oSOP = null;
+                    oSOP = null;
 
-                //    Session["SOPMsg"] = "SOP Change Request: Failed to authorize you to make a change request since your are not owner, approver, or reviewer of this SOP."; 
+                    TempData["SOPMsg"] = "Error:Failed to authenticate user to make a change request.You must be the owner, approver, or reviewer of this SOP to request a change.";
 
-                //    return RedirectToAction("SOPMessage");
+                    return RedirectToAction("SOPMessage");
 
 
-                //}
+                }
 
                 int lastchngreqid = oSOP.GetLastChngRequestID();
                 oSOP.FileChangeRqstID = lastchngreqid;
@@ -1360,8 +1733,7 @@ namespace SOPManagement.Controllers
                 if (lastchngstatcode == 1 || lastchngstatcode == 2)
                 {
 
-                    Session["SOPMsg"] = "SOP Change Request: Failed to submit change request since the last change request" +
-                        " is not yet published. You can change the SOP until the last change request is published.";
+                    TempData["SOPMsg"] = "Error:Failed to complete change request as last change request is not yet published. Note: You can change the SOP until the last change request is published.";
 
                     return RedirectToAction("SOPMessage");
 
@@ -1399,7 +1771,7 @@ namespace SOPManagement.Controllers
 
                     oSOP.AssignSigatoriesPermission();
 
-                    Session["SOPMsg"] = "SOP Change Request: Successfully submitted change request with this SOP! You can change SOP through Dashboard now.";
+                    TempData["SOPMsg"] = "Success: Change request to the SOP have been submitted.";
 
                     return RedirectToAction("SOPMessage");
 
@@ -1413,7 +1785,7 @@ namespace SOPManagement.Controllers
             catch (Exception ex)
             {
 
-                Session["SOPMsg"] = "SOP Change Request: Error:"+ex.Message +" occured during submitting change request with this SOP !";
+                TempData["SOPMsg"] = "Error:Failed to submit change request due to the following system error:"+ex.Message;
 
                 return RedirectToAction("SOPMessage");
 
@@ -1443,6 +1815,7 @@ namespace SOPManagement.Controllers
 
             TempData["FileID"] = id;
 
+            TempData["PageTitle"] = "SOP Change Request";
 
             return View();
         }
@@ -1511,8 +1884,11 @@ namespace SOPManagement.Controllers
             Employee oEmp = new Employee();
 
             string user = "";
-          //  string loggedinusereml = "";
+            //  string loggedinusereml = "";
 
+            TempData.Keep();
+
+            TempData["PageTitle"] = "SOP Create/Upload";
 
             Logger oLogger = new Logger();
             oLogger.LogFileName= HttpContext.Server.MapPath(Utility.GetLogFilePath());
@@ -1524,6 +1900,30 @@ namespace SOPManagement.Controllers
 
                 //  if (!ModelState.IsValid)   //we are supposed to use ModelState but we validated data through javascript so we don't use this
 
+                if (sop.FileName != null && sop.FileName.Trim() != "")
+                {
+
+                    oSop.FileName = sop.FileName.Trim() + ".docx";
+
+                    oSop.FileTitle = Path.ChangeExtension(oSop.FileName, null);
+
+                }
+
+
+                else if (sop.UploadedFile != null)
+
+                {
+
+                    //for uploaded file copy it from posted file to temp file
+
+                    oSop.FileName = Path.GetFileName(sop.UploadedFile.FileName);
+
+                    oSop.FileTitle = Path.ChangeExtension(oSop.FileName, null);    //without exctension
+
+
+                }
+
+                TempData["SOPName"] = oSop.FileTitle ;
 
                 oLogger.UpdateLogFile(DateTime.Now.ToString() + ":CreateUpload Action:Started uploading or creating new SOP:"+sop.SOPNo);
 
@@ -1542,8 +1942,6 @@ namespace SOPManagement.Controllers
                 // then check if session is expired, if so redirect to session timeout page. 
 
                 string failurename="";
-
-                Session["SOPMsg"] = "";
 
                 if (Utility.IsSessionExpired())
                 {
@@ -1566,19 +1964,18 @@ namespace SOPManagement.Controllers
                     //now authenticate the logged in user by Folder name 
 
 
-                     //I turned it off as this is managed in client side ajax control in folder change event   
+                    //I turned it off as this is managed in client side ajax control in folder change event   
 
-                    //if (!oSop.AuthenticateUser("createupload"))
-                    //{
-                    //    Session["SOPMsg"] = "SOP Create/Upload: Error - You are not authorized to create/upload SOP. Only owner of any file of the selected department can upload/create SOP.";
+                    if (!oSop.AuthenticateUser("createupload"))
+                    {
+                        TempData["SOPMsg"] = "Error:Failed to authenticate user for Department:" + oSop.FolderName + ".You can only create or upload an SOP for a department that you are a part of.";
+
+                        bProcessCompleted = false;
+
+                        failurename = "accessdenied";
 
 
-                    //    bProcessCompleted = false;
-
-                    //    failurename = "accessdenied";
-
-
-                    //}
+                    }
 
 
                     if (bProcessCompleted)
@@ -1611,12 +2008,11 @@ namespace SOPManagement.Controllers
                         if (oSop.HasDuplicateSOPNOInDB())
 
                         {
+                            
 
-
-                            Session["SOPMsg"] = "SOP Create/Upload: Error - " + oSop.SOPNo + " is duplicated. Last SOP processing has not been completed yet." +
-                               " Please go to dashboard, refresh and check the same SOP No is in dash board with last file upload. If you still get this error " +
-                               " please contact IT";
-
+                            TempData["SOPMsg"] = "Error:Duplicate SOP found." ;
+                            TempData["SOPName"] = "SOP Name:" + oSop.FileTitle + ", SOP No:" + oSop.SOPNo;
+                            TempData.Keep();
 
                             bProcessCompleted = false;
 
@@ -1631,8 +2027,6 @@ namespace SOPManagement.Controllers
                 {
 
                     //log DateTime:sop.SOPNO: end collecting user email
-
-                    ViewBag.Message = "Upload SOP File";
 
                     //   bool fileloaded = false;
 
@@ -1653,11 +2047,6 @@ namespace SOPManagement.Controllers
                     {
 
 
-                        oSop.FileName = sop.FileName.Trim() + ".docx";
-
-                        oSop.FileTitle = Path.ChangeExtension(oSop.FileName, null);
-
-
                         //for new file copy from template to temp file
 
                         string tmpltmapfilepath = Server.MapPath(tmpfiledirpathnm + Utility.GetTemplateFileName());
@@ -1671,13 +2060,6 @@ namespace SOPManagement.Controllers
                     else if (sop.UploadedFile != null)
 
                     {
-
-                        //for uploaded file copy it from posted file to temp file
-
-                        oSop.FileName = Path.GetFileName(sop.UploadedFile.FileName);
-
-                        oSop.FileTitle = Path.ChangeExtension(oSop.FileName, null);    //without exctension
-
 
                         if (!Directory.Exists(tmpfiledirmappath))
 
@@ -1922,7 +2304,7 @@ namespace SOPManagement.Controllers
 
                     //  Send "Success" to ajax call back in view
 
-                    Session["SOPMsg"] = "SOP Create/Upload:The SOP " + sop.FileName + " with SOP NO "+ sop.SOPNo +" has been successfully processed!";
+                    TempData["SOPMsg"] = "Success: SOP has been loaded in management system.";
 
                     return Json(new { success = true, responseText = "The SOP " + sop.FileName + " has been successfully processed!" }, JsonRequestBehavior.AllowGet);
 
@@ -1933,8 +2315,8 @@ namespace SOPManagement.Controllers
 
                     oLogger.UpdateLogFile(DateTime.Now.ToString() + ":CreateUpload Action:Failed to validate SOP entry i.e. session timed out, duplicate SOP.");
 
-                    if (Session["SOPMsg"]==null || Session["SOPMsg"].ToString()=="")
-                         Session["SOPMsg"] = "SOP Create/Upload:Failed to process SOP " + sop.FileName + " , please contact IT!";
+                    if (TempData["SOPMsg"]==null || TempData["SOPMsg"].ToString()=="")
+                         TempData["SOPMsg"] = "Error:Failed to process SOP, please contact IT.";
 
 
                     if (failurename=="sessiontimeout")
@@ -1961,7 +2343,7 @@ namespace SOPManagement.Controllers
 
                 oLogger.UpdateLogFile(DateTime.Now.ToString() + ":CreateUpload Action:Failed uplaoding or creating SOP with error:"+ex.Message);
 
-                Session["SOPMsg"] = "SOP Create/Upload:Failed processing SOP "+ sop.FileName+" with error:" + ex.Message + " , please contact IT!";
+                TempData["SOPMsg"] = "Error:Failed to process the SOP due to the following system error:" + ex.Message;
                 return Json(new { success = false, responseText = "Failed processing SOP " + sop.FileName + " , please contact IT!" }, JsonRequestBehavior.AllowGet);
 
             }
@@ -2086,12 +2468,12 @@ namespace SOPManagement.Controllers
 
             bool noauthen=false;
             if (noauthen)
-             //   if (!oSOP.AuthenticateUser("createupload"))
+          //  if (!oSOP.AuthenticateUser("createupload"))
             {
-                Session["SOPMsg"] = "SOP Create/Upload: Failed to authorize you to create/upload SOP in this department. Only owner of any file of the selected department can upload/create SOP.";
+                TempData["SOPMsg"] = "Error:You are not authenticated to create or upload SOP in this department.";
 
                 oSOP = null;
-                return Json(new { success = false, message = "SOP Create/Upload: Error - You are not authorized to create/upload SOP" });
+                return Json(new { success = false, message = "ERROR: You are not authenticated to create or upload SOP in this department." });
             }
             else
             {

@@ -39,6 +39,8 @@ namespace SOPManagement.Models
         [Display(Name = "All Users")]
         public bool AllUsersReadAcc { get; set; }
 
+        public bool SOPArchived { get; set; }
+
         public short? FileStatuscode { get; set; }
 
         [Required(ErrorMessage = "File Owner is Required")]
@@ -57,7 +59,7 @@ namespace SOPManagement.Models
         [Display(Name = "Select SOP Approver")]
         public string FileApproverEmail { get; set; }
 
-
+        [Display(Name = "SOP Name")]
         public string FileTitle { get; set; }   //title is without sopno
 
         [Display(Name = "SOP File Name")]
@@ -80,7 +82,7 @@ namespace SOPManagement.Models
 
         public int ViewAccessTypeID { get; set; }
 
-
+        [Display(Name = "SOP No")]
         public string SOPNo { get; set; }
 
         public FileRevision[] FileRevisions { get; set; }
@@ -118,7 +120,8 @@ namespace SOPManagement.Models
         public Employee FileApprover { get; set; }
 
         public string DocumentLibName { get; set; }
-        
+
+        [Display(Name = "Link to SOP")]
         public string FileUrl { get; set; }
         public string SiteUrl { get; set; }
         [Display(Name = "SOP Effective Date")]
@@ -187,6 +190,22 @@ namespace SOPManagement.Models
         }
 
 
+        public void UpdateSOPFileStatus(short statuscode)
+        {
+
+            using (var dbcontext = new RadiantSOPEntities())
+            {
+                var result = dbcontext.deptsopfiles.SingleOrDefault(b => b.FileID == FileID);
+                if (result != null)
+                {
+                    result.filestatuscode = statuscode;
+                    result.LastModifiedDate = DateTime.Today;
+
+                    dbcontext.SaveChanges();
+                }
+            }
+        }
+
         public void UpdateChangeReqID(short statuscode)
         {
 
@@ -202,6 +221,7 @@ namespace SOPManagement.Models
                 }
             }
         }
+
 
 
 
@@ -272,6 +292,10 @@ namespace SOPManagement.Models
 
             int rvwrid;
 
+            int prevreviewid;
+            short prevreviewstatcode;
+            DateTime prevstatdatetime;
+
             OperationSuccess = false;
 
             UpdatePrevReviewersStatus();    //update previous reviewers status with 2 if same file name exists
@@ -286,6 +310,12 @@ namespace SOPManagement.Models
 
                 using (var dbcontext = new RadiantSOPEntities())
                 {
+
+                    prevreviewid = dbcontext.filereviewers.Where(o => o.fileid == FileID && o.reviewerid==rvwrid && o.reviewerstatuscode == 2).OrderByDescending(o => o.reviewid).Select(o => o.reviewid).FirstOrDefault();
+
+                    prevreviewstatcode = Convert.ToInt16(dbcontext.filereviewersactivities.Where(o => o.changerequestid == FileChangeRqstID && o.reviewid == prevreviewid).Select(o => o.approvalstatuscode).FirstOrDefault());
+
+                    prevstatdatetime = Convert.ToDateTime(dbcontext.filereviewersactivities.Where(o => o.changerequestid == FileChangeRqstID && o.reviewid == prevreviewid).Select(o => o.statusdatetime).FirstOrDefault());
 
                     var rvwrtable = new filereviewer()
                     {
@@ -306,7 +336,27 @@ namespace SOPManagement.Models
                     if (pAddChangRequest=="yes")
                         AddRvwractivities(rvwrid);
 
-                    OperationSuccess = true;
+                    if (pAddChangRequest == "inherit")
+                    {
+                        if (prevreviewid > 0)  //if same reviewer is in new list add him/her again with last status
+                        {
+                            AddRvwractivities(rvwrid, prevreviewstatcode, prevstatdatetime);
+                            if (prevreviewstatcode==1)
+                                 AssignFilePermissionToUsers("read", "add", rvwr.useremailaddress.Trim());
+                            else if (prevreviewstatcode == 2)
+                                AssignFilePermissionToUsers("contribute", "add", rvwr.useremailaddress.Trim());
+                        }
+                        else  // if brand new reviewer add as not signed
+                        {
+                            AddRvwractivities(rvwrid);
+                            AssignFilePermissionToUsers("contribute", "add", rvwr.useremailaddress.Trim());
+
+                        }
+                    }
+
+
+
+                        OperationSuccess = true;
                 }
 
             }
@@ -331,6 +381,23 @@ namespace SOPManagement.Models
                 dbcontex.SaveChanges();
             }
         }
+
+        public void AddRvwractivities(int pReviewid, short pRvwStatCode, DateTime pStatDateTime)
+        {
+            using (var dbcontex = new RadiantSOPEntities())
+            {
+                var rvwractvts = new filereviewersactivity()
+                {
+                    changerequestid = FileChangeRqstID,
+                    reviewid = pReviewid,
+                    approvalstatuscode = pRvwStatCode,   //inherited
+                    statusdatetime= pStatDateTime   //no sign no date
+                };
+                dbcontex.filereviewersactivities.Add(rvwractvts);
+                dbcontex.SaveChanges();
+            }
+        }
+
 
 
         public void AddRvwractvtsWithChngRqst()
@@ -370,6 +437,23 @@ namespace SOPManagement.Models
             }
         }
 
+        public void AddApproveractivities(int pApproveid, short pApprovalstatcode, DateTime pStatusDate)
+        {
+            using (var dbcontext = new RadiantSOPEntities())
+            {
+                var apprvractvs = new fileapproversactivity()
+                {
+                    changerequestid = FileChangeRqstID,
+                    approveid = pApproveid,
+                    approvalstatuscode = pApprovalstatcode,   //inherited status code
+                    statusdatetime = pStatusDate    // no date should be assigned
+                };
+                dbcontext.fileapproversactivities.Add(apprvractvs);
+                dbcontext.SaveChanges();
+            }
+        }
+
+
         public void AddPublisheractivities(int ppublisherid)
         {
             using (var dbcontext = new RadiantSOPEntities())
@@ -405,6 +489,25 @@ namespace SOPManagement.Models
 
         }
 
+        public void AddOwneractivities(int pOwnershipid, short pApprovalstatcode,DateTime pStatusDate)
+        {
+            using (var dbcontext = new RadiantSOPEntities())
+            {
+                var owneractvts = new fileownersactivity()
+                {
+                    changerequestid = FileChangeRqstID,   //got this value during creating change request
+                    ownershipid = pOwnershipid,
+                    approvalstatuscode = pApprovalstatcode,  //not signed
+                    statusdatetime = pStatusDate   //no sign no date
+
+                };
+                dbcontext.fileownersactivities.Add(owneractvts);
+                dbcontext.SaveChanges();
+            }
+
+        }
+
+
         public void AddFileApprover(string pAddChangRequest = "yes")
 
         {
@@ -412,6 +515,10 @@ namespace SOPManagement.Models
             Employee emp = new Employee();
             int apprvrid;
             int apprvid;
+            int prevapproveid;
+            short prevapprvlstatcode;
+            DateTime prevstatdate;
+
             OperationSuccess = false;
 
             emp.useremailaddress = FileApproverEmail;
@@ -424,6 +531,12 @@ namespace SOPManagement.Models
 
             using (var dbcontext = new RadiantSOPEntities())
             {
+
+                prevapproveid = dbcontext.fileapprovers.Where(o => o.fileid == FileID && o.approverstatuscode == 2).OrderByDescending(o=>o.approveid).Select(o => o.approveid).FirstOrDefault();
+
+                prevapprvlstatcode = Convert.ToInt16(dbcontext.fileapproversactivities.Where(o => o.changerequestid == FileChangeRqstID && o.approveid == prevapproveid).Select(o => o.approvalstatuscode).FirstOrDefault());
+
+                prevstatdate = Convert.ToDateTime(dbcontext.fileapproversactivities.Where(o => o.changerequestid == FileChangeRqstID && o.approveid == prevapproveid).Select(o => o.statusdatetime).FirstOrDefault());
 
                 var aprvrtable = new fileapprover()
                 {
@@ -443,8 +556,20 @@ namespace SOPManagement.Models
                 if (pAddChangRequest == "yes")
                 {
                     AddApproveractivities(apprvid);
-                    AddPublisheractivities(apprvrid);   //here publisher id
+                   // AddPublisheractivities(apprvrid);   //here publisher id
                 }
+
+                if (pAddChangRequest == "inherit")
+                {
+                    AddApproveractivities(apprvid, prevapprvlstatcode, prevstatdate);
+
+                    if (prevapprvlstatcode==1)
+                        AssignFilePermissionToUsers("read", "add", FileApproverEmail.Trim());
+                    else if (prevapprvlstatcode == 2)
+                        AssignFilePermissionToUsers("contribute", "add", FileApproverEmail.Trim());
+                }
+
+
 
                 OperationSuccess = true;
 
@@ -549,6 +674,10 @@ namespace SOPManagement.Models
             Employee emp = new Employee();
             int ownerid;
             int ownershipid;
+            int prevownershipid;
+            short prevapprovalstatcode;
+            DateTime prevstatusdate;
+
             OperationSuccess = false;
 
             emp.useremailaddress = FileOwnerEmail;
@@ -564,6 +693,11 @@ namespace SOPManagement.Models
 
             using (var dbcontext = new RadiantSOPEntities())
             {
+                prevownershipid = dbcontext.fileowners.Where(o => o.fileid == FileID && o.ownerstatuscode == 2).OrderByDescending(o=>o.ownershipid).Select(o => o.ownershipid).FirstOrDefault();
+
+                prevapprovalstatcode = Convert.ToInt16(dbcontext.fileownersactivities.Where(o => o.changerequestid == FileChangeRqstID && o.ownershipid == prevownershipid).Select(o => o.approvalstatuscode).FirstOrDefault());
+
+                prevstatusdate = Convert.ToDateTime(dbcontext.fileownersactivities.Where(o => o.changerequestid == FileChangeRqstID && o.ownershipid == prevownershipid).Select(o => o.statusdatetime).FirstOrDefault());
 
                 var ownertable = new fileowner()
                 {
@@ -581,6 +715,18 @@ namespace SOPManagement.Models
 
                 if (pAddChangRequest == "yes") 
                       AddOwneractivities(ownershipid);
+
+                if (pAddChangRequest == "inherit")
+                {
+                    AddOwneractivities(ownershipid, prevapprovalstatcode, prevstatusdate);   //polymorphic function for inheriting approval status of previous owner
+
+                    if (prevapprovalstatcode==1)
+                        AssignFilePermissionToUsers("read", "add", FileOwnerEmail.Trim());
+                    else if(prevapprovalstatcode == 2)
+                        AssignFilePermissionToUsers("contribute", "add", FileOwnerEmail.Trim());
+
+
+                }
 
                 OperationSuccess = true;
             }
@@ -2286,7 +2432,7 @@ namespace SOPManagement.Models
                 {
                     Microsoft.Office.Interop.Word.Range footerRange = wordSection.Footers[Microsoft.Office.Interop.Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].Range;
 
-                    footerRange.Tables[1].Cell(1, 1).Range.Text = SOPNo + " " +FileTitle;
+                    footerRange.Tables[1].Cell(1, 1).Range.Text = SOPNo + " " + FileTitle;
 
                 }
 
@@ -2557,9 +2703,16 @@ namespace SOPManagement.Models
 
                 if (ViewAccessType == null)
                     ViewAccessType = "";
+                else if (ViewAccessType.Trim() == "By Department")
+                    DepartmentCode = ctx.fileviewaccesstypes.Where(v => v.fileid == FileID).Select(v => v.departmentcode).FirstOrDefault();
+                else if (ViewAccessType.Trim() == "By Users")
+                    GetViewers();
 
+                Updatefreq = Convert.ToInt16(ctx.fileupdateschedules.Where(s => s.fileid == FileID).Select(s => s.frequencyofrevision).FirstOrDefault());
 
-                    //data related to change request
+                Updfrequnitcode = Convert.ToInt16(ctx.fileupdateschedules.Where(s => s.fileid == FileID).Select(s => s.unitcodeupdfreq).FirstOrDefault());
+
+                //data related to change request
 
                 Employee oSOPOwner = new Employee();
 
@@ -2681,6 +2834,7 @@ namespace SOPManagement.Models
                 //if his/her department is not same as the deaprtmetn he/selected to create file 
                 //then deny access, if same then go to next check
 
+                int useridindept;
 
                 using (var dbctx = new RadiantSOPEntities())
                 {
@@ -2689,9 +2843,11 @@ namespace SOPManagement.Models
                     if (sopfolderdeptcode == usersopdeptcode)  //user belongs to same sop department as the dept of the selected folder name 
                                                                //then find if he/she is owner of any file in that sop department, if so then authentoicate
                     {
-                        ownerid = dbctx.vwOwnrsSOPDeptCodes.Where(o => o.ownerid == loggedinuserid && o.sopdeptcode == usersopdeptcode).Select(o => o.ownerid).FirstOrDefault();
+                        //ownerid = dbctx.vwOwnrsSOPDeptCodes.Where(o => o.ownerid == loggedinuserid && o.sopdeptcode == usersopdeptcode).Select(o => o.ownerid).FirstOrDefault();
 
-                        if (ownerid >0)   //remove = in real condition
+                        useridindept = dbctx.vwUsers.Where(o => o.userid1 == loggedinuserid && o.departmentcode == usersopdeptcode).Select(o => o.userid1).FirstOrDefault();
+
+                        if (useridindept > 0)   //remove = in real condition
                             authensop = true;
                     }
                     
@@ -2702,6 +2858,18 @@ namespace SOPManagement.Models
             }
 
 
+            if (pAuthType=="accessarchive")   //only active owner of any file in any department can get access to archive folder with read permission
+            {
+
+                using (var dbctx = new RadiantSOPEntities())
+                {
+                    ownerid = dbctx.fileowners.Where(o => o.ownerid == loggedinuserid && o.ownerstatuscode == 1).Select(o => o.ownerid).FirstOrDefault();
+
+                }
+
+                if (ownerid > 0)
+                    authensop = true;
+            }
 
             return authensop;
         }
@@ -2718,6 +2886,7 @@ namespace SOPManagement.Models
 
         }
 
+  
         public int GetOwnershipID()
         {
 
@@ -2728,8 +2897,9 @@ namespace SOPManagement.Models
             {
 
                 // only active current owner can make change request
-                fileownerid = ctx.fileowners.Where(o => o.fileid == FileID && o.ownerstatuscode==1).Select(o => o.ownerid).FirstOrDefault();
-                ownershipid = ctx.fileowners.Where(o=>o.fileid == FileID && o.ownerid == fileownerid).Select(o=>o.ownershipid).FirstOrDefault();
+              //  fileownerid = ctx.fileowners.Where(o => o.fileid == FileID && o.ownerstatuscode==1).Select(o => o.ownerid).FirstOrDefault();
+                ownershipid = ctx.fileowners.Where(o=>o.fileid == FileID && o.ownerstatuscode == 1).Select(o=>o.ownershipid).FirstOrDefault();
+
             }
 
 
@@ -2746,9 +2916,9 @@ namespace SOPManagement.Models
             using (var ctx = new RadiantSOPEntities())
             {
 
-                approverid = ctx.fileapprovers.Where(a => a.fileid == FileID && a.approverstatuscode==1).Select(a => a.approverid).FirstOrDefault();
+                //approverid = ctx.fileapprovers.Where(a => a.fileid == FileID && a.approverstatuscode==1).Select(a => a.approverid).FirstOrDefault();
 
-                approveid = ctx.fileapprovers.Where(o => o.fileid == FileID && o.approverid == approverid).Select(o => o.approveid).FirstOrDefault();
+                approveid = ctx.fileapprovers.Where(o => o.fileid == FileID && o.approverstatuscode == 1).Select(o => o.approveid).FirstOrDefault();
             }
 
 
@@ -3398,6 +3568,39 @@ namespace SOPManagement.Models
 
         }
 
+
+        public void GetViewers()
+        {
+
+            using (var dbctx = new RadiantSOPEntities())
+            {
+                var vrwrs = (from c in dbctx.vwSOPViewers where c.fileid == FileID select c);
+
+                Employee[] oViewersArr = new Employee[vrwrs.Count()];
+                int i = 0;
+                Employee oVwr;
+                foreach (var r in vrwrs)
+                {
+
+                    oVwr = new Employee();
+
+                    oVwr.useremailaddress = r.useremailaddress;
+                    oVwr.userfullname = r.userfullname;
+                    oVwr.departmentcode= Convert.ToInt16(r.departmentcode);
+
+                    oViewersArr[i] = oVwr;
+
+                    i = i + 1;
+
+                }
+
+                FileViewers = oViewersArr;
+            }
+
+
+        }
+
+
         public void AssignFilePermissionToUsersBack(string plabel, string addremove, Employee[] employees)
         {
 
@@ -3947,7 +4150,7 @@ namespace SOPManagement.Models
                             ctx.Load(ra.Member);
                             ctx.ExecuteQuery();
 
-                            if (grp.Title == ra.Member.LoginName)
+                            if (grp.Title.Trim() == ra.Member.LoginName.Trim())
                             {
 
                                 file.ListItemAllFields.RoleAssignments.GetByPrincipal(grp).DeleteObject();

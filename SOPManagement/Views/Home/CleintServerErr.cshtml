@@ -1,22 +1,31 @@
 ﻿
+<div class="sopmessagebox">
 
-<div>
-    <div class="col-md-12">
-        <h1>SOP Message:</h1>
+    <div style="font-size:36px;font-weight:bold">
+
+        @if (ViewBag.Title != null)
+        {
+            @ViewBag.Title
+        }
+        else
+        {
+            @TempData["PageTitle"]
+        }
+
     </div>
+
+    <font color="red">  Critical ERROR:</font> Critical client or server error occured. Please contact IT.  
+
+
+
+    <br />
+    <br />
+    <button onclick="goBack()">Go Back</button>
 </div>
-<div>
-    <div class="col-md-12">
-        @*@ViewBag.ErrorMessage*@
 
-        <h2> <font color="red">  Critical client or server error occured. Please contact IT!  </font></h2>
 
-    </div>
-    @*<div class="col-md-12">
-        <p>
-            <button onclick="goBack()">Go Back</button>
-        </p>
-
-        <br />
-    </div>*@
-</div>
+<script>
+    function goBack() {
+        window.history.back();
+    }
+</script>

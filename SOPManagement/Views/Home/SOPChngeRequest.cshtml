@@ -1,11 +1,25 @@
 ﻿
 @{
-    ViewBag.Title = "Submit SOP Change Request";
+    ViewBag.Title = "SOP Change Request";
 }
 
 
-<div>
-    <h3>Submitting SOP new Change Request, DO NOT click any menu now, please wait...</h3>
+<div class="sopmessagebox">
+    <div style="font-size:36px;font-weight:bold">
+
+        @if (ViewBag.Title != null)
+        {
+            @ViewBag.Title
+        }
+        else
+        {
+            @TempData["PageTitle"]
+        }
+
+    </div>
+
+
+    Please wait, DO NOT click on menu’s while “Change Request” is processing.
 
 </div>
 

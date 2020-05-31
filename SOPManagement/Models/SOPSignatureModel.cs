@@ -36,13 +36,13 @@ namespace SOPManagement.Models
         [Display(Name = "Your Signature Date")]
         public DateTime LoggedInSignDate { get; set; }
         
-        [Display(Name="SOP NO")]
+        [Display(Name="SOP No")]
         public string SOPNo { get; set; }
 
         [Display(Name = "SOP Name")]
         public string SOPName { get; set; }   //with sopno in front SOPNO + " "+ FileTitle
 
-        [Display(Name = "SOP Link")]
+        [Display(Name = "Link to SOP")]
         public string SOPUrl { get; set; }   //with sopno in front SOPNO + " "+ FileTitle
 
         [Display(Name = "SOP Latest Version")]
@@ -210,6 +210,8 @@ namespace SOPManagement.Models
                 if (LoggedInSignedAsApprover)
                 {
 
+                    oSOP.GetSOPInfo();
+
                     var result = dbcontext.fileapproversactivities.SingleOrDefault(b => b.approveractivityid == ApproverActivityID);
                     if (result != null)
                     {
@@ -274,6 +276,8 @@ namespace SOPManagement.Models
       
                 if (LoggedInSignedAsReviewer)
                 {
+
+                    oSOP.GetSOPInfo();
 
                     var result = dbcontext.filereviewersactivities.SingleOrDefault(b => b.revieweractivityid == ReviewerActivityID);
                     if (result != null)

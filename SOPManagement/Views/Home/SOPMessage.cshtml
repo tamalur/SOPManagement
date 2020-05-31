@@ -1,42 +1,38 @@
-﻿
-@{
-    ViewBag.Title = "SOP Message";
-}
+﻿<div class="sopmessagebox">
 
-<div class="Content">
+    <div style="font-size:36px;font-weight:bold">
 
-    <div>
-        <div class="col-md-12">
-            <h1>SOP Message:</h1>
-        </div>
-    </div>
-    <div>
-        <div class="col-md-12">
-            @*@ViewBag.ErrorMessage*@
+        @if (ViewBag.Title != null)
+        {
+            @ViewBag.Title
+        }
+        else
+        {
+            @TempData["PageTitle"]
+        }
 
-            @if ((Session["SOPMsg"].ToString().ToLower().Contains("failed"))
-                || (Session["SOPMsg"].ToString().ToLower().Contains("error")))
-            {
-
-                <h2> <font color="red">  @Session["SOPMsg"]  </font></h2>
-            }
-            else
-
-            {
-                <h2> @Session["SOPMsg"] </h2>
-            }
-
-        </div>
-        <div class="col-md-12">
-            <p>
-                <button onclick="goBack()">Go Back</button>
-            </p>
-
-            <br />
-        </div>
     </div>
 
+
+    @if ((TempData["SOPMsg"].ToString().ToLower().Contains("failed"))
+        || (TempData["SOPMsg"].ToString().ToLower().Contains("error")))
+    {
+        <font color="red"><b>ERROR:</b> </font>@TempData["SOPMsg"].ToString().Replace("Error:", "")
+    }
+    else
+
+    {
+
+        <b>Success: </b>@TempData["SOPMsg"].ToString().Replace("Success:", "")
+
+    }
+    <br />
+    <b> SOP Name:</b> @TempData["SOPName"].ToString()
+    <br />
+    <br />
+    <button onclick="goBack()">Go Back</button>
 </div>
+
 
 <script>
     function goBack() {

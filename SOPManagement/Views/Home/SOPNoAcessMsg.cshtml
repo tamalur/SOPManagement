@@ -1,33 +1,46 @@
 ﻿
 @{
-    ViewBag.Title = "SOP Message";
+    ViewBag.Title = "Publish SOP";
 }
 
-<div class="Content">
+<div class="sopmessagebox">
 
-    <div>
-        <div class="col-md-12">
-            <h1>SOP Alert:</h1>
-        </div>
-    </div>
-    <div>
-        <div class="col-md-12">
+    <div style="font-size:36px;font-weight:bold">
 
+        @if (ViewBag.Title != null)
+        {
+            @ViewBag.Title
+        }
+        else
+        {
+            @TempData["PageTitle"]
+        }
 
-            <h2> <font color="red"> The SOP @ViewBag.SOPTitle with SOP NO @ViewBag.SOPNO cannot be accessed now since
-                 this SOP is under publishing with all approved new changes. To get access, please contact SOP approver for publishing the new changes. </font></h2>
-
-        </div>
-        <div class="col-md-12">
-            <p>
-                <button onclick="goBack()">Go Back</button>
-            </p>
-
-            <br />
-        </div>
     </div>
 
+
+    <font color="red">Error:</font>SOP must be published to allow user access.
+
+
+    <br />
+
+    @if (TempData["SOPName"] == null)
+    {
+        <b> SOP Name:</b> @ViewBag.SOPTitle
+    }
+
+    else
+    {
+        <b> SOP Name:</b> @TempData["SOPName"].ToString()
+    }
+
+    <br />
+    <br />
+    <button onclick="goBack()">Go Back</button>
 </div>
+
+
+
 
 <script>
     function goBack() {

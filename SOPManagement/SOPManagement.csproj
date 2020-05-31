@@ -327,6 +327,8 @@
     <Content Include="Content\fontawesome.css" />
     <Content Include="Content\fontawesome.min.css" />
     <Content Include="Content\Images\RadiantLogo.jpg" />
+    <Content Include="Content\Images\RadLogo.jpg" />
+    <Content Include="Content\Images\RadLogoBan.jpg" />
     <Content Include="Content\Images\soploading.gif" />
     <Content Include="Content\LogFile\SOPProcessLog.txt" />
     <Content Include="Content\regular.css" />
@@ -432,6 +434,7 @@
     <Content Include="Views\Home\SOPNoAcessMsg.cshtml" />
     <Content Include="Views\Home\LogIn.cshtml" />
     <Content Include="Views\Home\AdminSOP.cshtml" />
+    <Content Include="Views\Home\DataMaintHRIT.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

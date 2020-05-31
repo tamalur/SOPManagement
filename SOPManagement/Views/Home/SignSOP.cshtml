@@ -5,13 +5,26 @@
     </p>*@
 
 @{
-    ViewBag.Title = "Signing off SOP Changes";
+    ViewBag.Title = "Signing Off on SOP";
 }
+
+
+<div style="font-size:36px;font-weight:bold">
+
+    @if (ViewBag.Title != null)
+    {
+        @ViewBag.Title
+    }
+    else
+    {
+        @TempData["PageTitle"]
+    }
+
+</div>
 
 
 @using (Html.BeginForm())
 {
-
 
     <div>
 
@@ -26,17 +39,17 @@
                 <tr>
                     <td class="signoffield">
 
-                        @Html.DisplayNameFor(model => model.SOPName)
-                    
+                        @Html.DisplayNameFor(model => model.SOPName):
+
                     </td>
-                    <td >
+                    <td>
                         @Model.SOPName
                     </td>
                 </tr>
 
                 <tr>
                     <td class="signoffield">
-                        @Html.DisplayNameFor(model => model.SOPNo)
+                        @Html.DisplayNameFor(model => model.SOPNo):
                     </td>
                     <td>
                         @Model.SOPNo
@@ -44,7 +57,7 @@
                 </tr>
                 <tr>
                     <td class="signoffield">
-                        @Html.DisplayNameFor(model => model.SOPUrl)
+                        @Html.DisplayNameFor(model => model.SOPUrl):
                     </td>
                     <td>
                         <a href="@Model.SOPUrl" target="_blank">@Model.SOPName SOP</a>
@@ -52,7 +65,7 @@
                 </tr>
                 <tr>
                     <td class="signoffield">
-                        @Html.DisplayNameFor(model => model.SOPFilePath)
+                        @Html.DisplayNameFor(model => model.SOPFilePath):
                     </td>
                     <td>
                         @Model.SOPFilePath
@@ -88,24 +101,24 @@
 
             <table>
                 <tr>
-                    <td class="signoffield">
-                        SOP Owner Signature
+                    <td class="signoffield" colspan="4">
+                        SOP Owner Signature:
                     </td>
 
                 </tr>
                 <tr>
                     <th>
-                        @Html.Label("Name")
+                        @Html.Label("Name"):
                     </th>
                     <th>
-                        @Html.Label("Title")
+                        @Html.Label("Title"):
                     </th>
                     <th>
-                        @Html.Label("Signature")
+                        @Html.Label("Signature"):
                     </th>
 
                     <th>
-                        @Html.Label("Sign Date")
+                        @Html.Label("Sign Date"):
                     </th>
                 </tr>
 
@@ -121,7 +134,7 @@
 
                     @if (Model.LoggedInUserIsOwner == "yes")
                     {
-                        <td>
+                        <td style="text-align:center">
                             @if (Model.LoggedInSignedAsOwner)
                             {
                                 @Model.SOPOwnerSignature.signstatus
@@ -139,7 +152,7 @@
 
                     else
                     {
-                        <td>
+                        <td style="text-align:center">
                             @Model.SOPOwnerSignature.signstatus
                         </td>
                         <td>
@@ -161,24 +174,24 @@
         <p>
             <table>
                 <tr>
-                    <td class="signoffield">
-                        SOP Approver Signature
+                    <td class="signoffield" colspan="4">
+                        SOP Approver Signature:
                     </td>
 
                 </tr>
                 <tr>
                     <th>
-                        @Html.Label("Name")
+                        @Html.Label("Name"):
                     </th>
                     <th>
-                        @Html.Label("Title")
+                        @Html.Label("Title"):
                     </th>
                     <th>
-                        @Html.Label("Signature")
+                        @Html.Label("Signature"):
                     </th>
 
                     <th>
-                        @Html.Label("Sign Date")
+                        @Html.Label("Sign Date"):
                     </th>
                 </tr>
 
@@ -194,7 +207,7 @@
 
                     @if (Model.LoggedInUserIsApprover == "yes")
                     {
-                        <td>
+                        <td style="text-align:center">
                             @if (Model.LoggedInSignedAsApprover)
                             {
                                 @Model.SOPApprvrSignature.signstatus
@@ -211,7 +224,7 @@
 
                     else
                     {
-                        <td>
+                        <td style="text-align:center">
                             @Model.SOPApprvrSignature.signstatus
                         </td>
                         <td>
@@ -235,32 +248,32 @@
             <table>
 
                 <tr>
-                    <td class="signoffield">
-                        SOP Reviewer's Signature(s)
+                    <td class="signoffield" colspan="4">
+                        SOP Reviewer's Signature(s):
                     </td>
                 </tr>
                 <tr>
                     <th>
-                        @Html.Label("Name")
+                        @Html.Label("Name"):
 
                     </th>
                     <th>
-                        @Html.Label("Title")
+                        @Html.Label("Title"):
 
                     </th>
                     <th>
-                        @Html.Label("Signature")
+                        @Html.Label("Signature"):
 
                     </th>
                     <th>
-                        @Html.Label("Sign Date")
+                        @Html.Label("Sign Date"):
 
                     </th>
 
 
                 </tr>
 
-                @for (int i=0; i<=Model.SOPRvwerSignatures.Count()-1; i++)
+                @for (int i = 0; i <= Model.SOPRvwerSignatures.Count() - 1; i++)
                 {
                     <tr>
                         <td>
@@ -274,14 +287,14 @@
                         @if (Model.LoggedInUserIsReviewer == "yes" && Model.LoggedInUserEmail.Trim().ToLower() == @Model.SOPRvwerSignatures[i].useremailaddress.Trim().ToLower())
                         {
 
-                            <td>
+                            <td style="text-align:center">
                                 @if (@Model.SOPRvwerSignatures[i].HasSignedSOP)  //signed
                                 {
                                     @Model.SOPRvwerSignatures[i].signstatus
                                 }
                                 else
                                 {
-                                    @Html.CheckBox("LoggedInSignedAsReviewer",Model.SOPRvwerSignatures[i].HasSignedSOP)
+                                    @Html.CheckBox("LoggedInSignedAsReviewer", Model.SOPRvwerSignatures[i].HasSignedSOP)
                                 }
                             </td>
                             <td>
@@ -299,7 +312,7 @@
                         else
 
                         {
-                            <td>
+                            <td style="text-align:center">
                                 @Model.SOPRvwerSignatures[i].signstatus
                             </td>
 
@@ -330,10 +343,10 @@
                 </tr>
                 <tr>
                     <td>
-                        
-                           NOTE: Checking this BOX under your name, means that you approve of the document and
-                            are in agreement to electronically sign the document. After submitting document will 
-                            be signed and dated electronically.
+
+                        NOTE: Checking this BOX under your name, means that you approve of the document and
+                        are in agreement to electronically sign the document. After submitting document will
+                        be signed and dated electronically.
 
                     </td>
 

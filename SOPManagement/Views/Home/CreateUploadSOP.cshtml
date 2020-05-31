@@ -2,8 +2,24 @@
 
 
 @{
-    ViewBag.Title = "Upload or Create SOP";
+    ViewBag.Title = "SOP Create/Upload";
 }
+
+
+
+<div style="font-size:36px;font-weight:bold">
+
+    @if (ViewBag.Title != null)
+    {
+        @ViewBag.Title
+    }
+    else
+    {
+        @TempData["PageTitle"]
+    }
+
+</div>
+
 
 @using (Html.BeginForm("CreateUploadSOP", "Home", FormMethod.Post))
 
@@ -202,26 +218,26 @@
 
 
 
-         </div>
+        </div>
 
 
         <div class="form-group">
-                @Html.Label("Read Access to All", htmlAttributes: new { @class = "control-label col-md-2" })
+            @Html.Label("Read Access to All", htmlAttributes: new { @class = "control-label col-md-2" })
 
-                <div class="col-md-10">
-                    @Html.CheckBoxFor(model => model.AllUsersReadAcc, new { htmlAttributes = new { @class = "form-control" } })
-                    @Html.ValidationMessageFor(model => model.AllUsersReadAcc, "", new { @class = "text-danger" })
-                </div>
+            <div class="col-md-10">
+                @Html.CheckBoxFor(model => model.AllUsersReadAcc, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.AllUsersReadAcc, "", new { @class = "text-danger" })
             </div>
+        </div>
 
         <div class="form-group">
-                @Html.Label("Read Access to a Department", htmlAttributes: new { @class = "control-label col-md-2" })
+            @Html.Label("Read Access to a Department", htmlAttributes: new { @class = "control-label col-md-2" })
 
-                <div class="col-md-10">
-                    @Html.DropDownListFor(model => model.DepartmentCode, new SelectList(ViewBag.departments, "sopdeptcode", "sopdeptname"), "Select a department", new { @class = "form-control" })
-                    @Html.ValidationMessageFor(model => model.DepartmentCode, "", new { @class = "text-danger" })
-                </div>
+            <div class="col-md-10">
+                @Html.DropDownListFor(model => model.DepartmentCode, new SelectList(ViewBag.departments, "sopdeptcode", "sopdeptname"), "Select a department", new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.DepartmentCode, "", new { @class = "text-danger" })
             </div>
+        </div>
 
         <div class="form-group">
 
@@ -234,7 +250,7 @@
 
                         <tr>
 
-                            <th>Full Name</th> 
+                            <th>Full Name</th>
 
                             <th>Email</th>
 
@@ -302,7 +318,7 @@
 }
 
 <div class="col-md-12" style="text-align:center">
-        <button onclick="submit()" id="btnsubmit">Submit Form</button>
+    <button onclick="submit()" id="btnsubmit">Submit Form</button>
 </div>
 
 
@@ -366,46 +382,46 @@
                     })    //end ajax call function for getting subfolders by selected folder
 
 
+                //$.ajax(
+                //    {
+
+                //        type: "post",
+                //        url: "/Home/GetSOPNO",
+                //        contentType: 'application/json',
+                //        dataType: 'json',
+                //        data: JSON.stringify({ foldername: ifoldername, subfoldername: "" }),
+
+                //        success: function (data) {
+                //            //  debugger
+                //            if (data.success) {
+
+                //                //  document.getElementById("newsopno").value = data.sopno;
+
+
+                //                var n1 = ifoldername.indexOf("(");
+
+                //                var n2 = ifoldername.indexOf(")");
+
+
+                //                var sopcode = ifoldername.substring(n1 + 1, n2);
+
+                //                var currsopno = parseInt(data.sopno) + 1;
+
+                //                newsopno = sopcode + "-" + zeroPad(currsopno, 2);
+                //                document.getElementById("SOPNo").value = newsopno;
+
+
+                //            }
+                //            else {
+                //                alert('invalid SOP' + data.success);
+                //            }
+                //        }
+                //    })  //end ajax call for getting new SOPNo by folder name
+
+
+
+
                 $.ajax(
-                    {
-
-                        type: "post",
-                        url: "/Home/GetSOPNO",
-                        contentType: 'application/json',
-                        dataType: 'json',
-                        data: JSON.stringify({ foldername: ifoldername, subfoldername: "" }),
-
-                        success: function (data) {
-                            //  debugger
-                            if (data.success) {
-
-                                //  document.getElementById("newsopno").value = data.sopno;
-
-
-                                var n1 = ifoldername.indexOf("(");
-
-                                var n2 = ifoldername.indexOf(")");
-
-
-                                var sopcode = ifoldername.substring(n1 + 1, n2);
-
-                                var currsopno = parseInt(data.sopno) + 1;
-
-                                newsopno = sopcode + "-" + zeroPad(currsopno, 2);
-                                document.getElementById("SOPNo").value = newsopno;
-
-
-                            }
-                            else {
-                                alert('invalid SOP' + data.success);
-                            }
-                        }
-                    })  //end ajax call for getting new SOPNo by folder name
-
-
-
-
-                @*$.ajax(
                     {
                         type: "post",
                         url: "/Home/AuthenticateUpload?foldername=" + ifoldername,
@@ -416,13 +432,13 @@
                             if (data.success == false) {
                                // window.location.href = '@Url.Action("SOPMessage", "Home")';
                                 document.getElementById("SOPNo").value = "";
-                                document.getElementById("btnsubmit").disabled = true; 
+                                document.getElementById("btnsubmit").disabled = true;
                                 alert(data.message)
                             }
 
                             else {
 
-                                document.getElementById("btnsubmit").disabled = false; 
+                                document.getElementById("btnsubmit").disabled = false;
 
                                 $.ajax(
                                     {
@@ -479,11 +495,11 @@
 
                             }
                         }
-                    })*@
+                    })
 
 
 
-  
+
             })   //end folder change function
 
             $("#SubFolderName").change(function () {
@@ -557,7 +573,7 @@
 
             }
 
-           
+
 
             //Add Row.
 
@@ -979,19 +995,19 @@
 
                     //alert(response.redirecturl);
 
-                    if (response.redirecturl != null && response.redirecturl != "")  
+                    if (response.redirecturl != null && response.redirecturl != "")
                         window.location.href = response.redirecturl;
-                    else {  
+                    else {
                         //json field with success and responseText field
                         //alert(response.success has two values success or failure that I did not check here as I have error message in session);
                         //alert(response.responseText)
- 
+
                         @*window.location.href = '@Url.Action("SOPMessage", "Home")/' + id;*@
 
                         if (response.success == false && response.responseText == "sessiontimeout")
                             window.location.href = '@Url.Action("logIn", "Home")';
 
-                         else 
+                         else
                             window.location.href = '@Url.Action("SOPMessage", "Home")';
 
                     }
@@ -1009,7 +1025,7 @@
                    // alert("Client Error:" + response.responseText);
 
                     window.location.href = '@Url.Action("CleintServerErr", "Home")';
-                  
+
 
 
                     //Codes other than Http Success codes(200[OK]) will trigger the function in front of error: in client side(ajax).
