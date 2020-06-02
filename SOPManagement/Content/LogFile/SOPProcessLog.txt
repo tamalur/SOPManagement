@@ -354,3 +354,28 @@
 5/31/2020 6:28:58 PM:Publish SOP Action:Successfully published (approved) SOP in SharePoint Online SOP Library.
 5/31/2020 6:29:32 PM:Publish SOP Action:Started publishing with File ID:381, change request id:146
 5/31/2020 6:32:25 PM:Publish SOP Action:Started publishing with File ID:381, change request id:146
+5/31/2020 8:09:25 PM:CreateUpload Action:Started uploading or creating new SOP:QAG-22
+5/31/2020 8:10:43 PM:CreateUpload Action:Failed to validate SOP entry i.e. session timed out, duplicate SOP.
+5/31/2020 8:17:00 PM:CreateUpload Action:Started uploading or creating new SOP:QAG-22
+5/31/2020 8:17:22 PM:CreateUpload Action:Failed to validate SOP entry i.e. session timed out, duplicate SOP.
+5/31/2020 8:19:51 PM:CreateUpload Action:Started uploading or creating new SOP:QAG-22
+5/31/2020 8:19:54 PM:CreateUpload Action:Successfully saved file in local temp directory.
+5/31/2020 8:20:15 PM:UpdateCoverRevhistPage():Application was closed successfully during cover page update:
+5/31/2020 8:20:15 PM:CreateUpload Action:Successfully updated cover sheet in SOP doc file in local temp dir.
+5/31/2020 8:20:19 PM:CreateUpload Action:Successfully uploaded SOP file in SharePoint Online SOP doc library.
+5/31/2020 8:20:21 PM:CreateUpload Action:Successfully updated all SQL server table with owner, approver, reviewer etc.
+5/31/2020 8:20:37 PM:CreateUpload Action:Successfully assigned all permissions with SOP file in SharePoint and completed processing SOP:QAG-22
+5/31/2020 8:24:34 PM:CreateUpload Action:Started uploading or creating new SOP:QAG-23
+5/31/2020 8:24:40 PM:CreateUpload Action:Successfully saved file in local temp directory.
+5/31/2020 8:24:57 PM:UpdateCoverRevhistPage():Application was closed successfully during cover page update:
+5/31/2020 8:24:57 PM:CreateUpload Action:Successfully updated cover sheet in SOP doc file in local temp dir.
+5/31/2020 8:25:02 PM:CreateUpload Action:Successfully uploaded SOP file in SharePoint Online SOP doc library.
+5/31/2020 8:25:05 PM:CreateUpload Action:Successfully updated all SQL server table with owner, approver, reviewer etc.
+5/31/2020 8:25:17 PM:CreateUpload Action:Successfully assigned all permissions with SOP file in SharePoint and completed processing SOP:QAG-23
+5/31/2020 10:23:15 PM:Publish SOP Action:Started publishing with File ID:381, change request id:152
+5/31/2020 10:23:46 PM:Publish SOP Action:Successfully validated  SOP for publishing.
+5/31/2020 10:23:55 PM:Publish SOP Action:Successfully downloaded SOP into local dir from SharePoint Online
+5/31/2020 10:24:26 PM:UpdateCoverRevhistPage(Publish true):Application was closed successfully during cover page update:
+5/31/2020 10:24:38 PM:Publish SOP Action:Successfully updated cover sheet with updated owner, approver etc. and revision history in SOP at local dir
+5/31/2020 10:24:49 PM:Publish SOP Action:Successfully uoloaded updated SOP in SharePoint Online SOP Library
+5/31/2020 10:25:44 PM:Publish SOP Action:Successfully published (approved) SOP in SharePoint Online SOP Library.

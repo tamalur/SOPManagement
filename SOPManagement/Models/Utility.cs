@@ -285,13 +285,14 @@ namespace SOPManagement.Models
             string useremail="";
             int userid = 0;
 
-            useremail = GetCurrentLoggedInUserEmail();
+            useremail = GetCurrentLoggedInUserEmail().Trim();
 
+          //  useremail = "mschmidt@radiantdelivers.com";
 
             using (var dbctx = new RadiantSOPEntities())
             {
 
-                userid = dbctx.users.Where(u => u.useremailaddress == useremail && u.userstatuscode==1).Select(u => u.userid).FirstOrDefault();
+                userid = dbctx.users.Where(u => u.useremailaddress.Trim().ToLower() == useremail.Trim().ToLower() && u.userstatuscode==1).Select(u => u.userid).FirstOrDefault();
             }
 
             return userid;
@@ -301,6 +302,9 @@ namespace SOPManagement.Models
         public static short GetLoggedInUserSOPDeptCode()
         {
             string useremail = GetCurrentLoggedInUserEmail();
+
+          //  string useremail = "mschmidt@radiantdelivers.com";
+
             int userid = 0;
             short deptcode = 0;
 
@@ -312,7 +316,7 @@ namespace SOPManagement.Models
             using (var dbctx = new RadiantSOPEntities())
             {
 
-                deptcode = Convert.ToInt16(dbctx.users.Where(u => u.useremailaddress == useremail && u.userstatuscode==1).Select(u => u.departmentcode).FirstOrDefault());
+                deptcode = Convert.ToInt16(dbctx.users.Where(u => u.useremailaddress.Trim().ToLower() == useremail.Trim().ToLower() && u.userstatuscode==1).Select(u => u.departmentcode).FirstOrDefault());
                 sopdeptcode= Convert.ToInt16(dbctx.codesdepartments.Where(u => u.departmentcode == deptcode).Select(u => u.sopdeptcode).FirstOrDefault());
 
             }

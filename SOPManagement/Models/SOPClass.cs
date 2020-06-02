@@ -2781,7 +2781,12 @@ namespace SOPManagement.Models
             int ownerid = 0;
             int approverid = 0;
             int reviewerid = 0;
+
             int loggedinuserid = Utility.GetLoggedInUserID();
+
+
+           // int loggedinuserid = 199;
+
             short usersopdeptcode = Utility.GetLoggedInUserSOPDeptCode();
 
             short sopfolderdeptcode=0;
@@ -2844,7 +2849,8 @@ namespace SOPManagement.Models
                                                                //then find if he/she is owner of any file in that sop department, if so then authentoicate
                     {
                         //ownerid = dbctx.vwOwnrsSOPDeptCodes.Where(o => o.ownerid == loggedinuserid && o.sopdeptcode == usersopdeptcode).Select(o => o.ownerid).FirstOrDefault();
-
+                   
+                        //if user is in selected department then it will allow
                         useridindept = dbctx.vwUsers.Where(o => o.userid1 == loggedinuserid && o.departmentcode == usersopdeptcode).Select(o => o.userid1).FirstOrDefault();
 
                         if (useridindept > 0)   //remove = in real condition

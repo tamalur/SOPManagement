@@ -1399,6 +1399,9 @@ namespace SOPManagement.Controllers
 
             SOPClass oSop = new SOPClass();
 
+            TempData["PageTitle"] = "Access SOP Archive";
+
+            TempData["SOPName"] = "N/A";
 
             if (!oSop.AuthenticateUser("accessarchive"))
             {
@@ -1409,6 +1412,7 @@ namespace SOPManagement.Controllers
 
             }
 
+            oSop = null;
 
             //return Redirect("http://camis1-bioasp01/Reports/Pages/Report.aspx?ItemPath=%2fSOP+Reports%2fSOP+Dashboard");
 
@@ -1593,10 +1597,11 @@ namespace SOPManagement.Controllers
 
 
                     //reassing approvers permission as reader before publishing
+                    
+                    //remove this on regular schedule as signing a page will remove this contribute permission.
+                  //  oSOP.ViewAccessType = "Inherit";
 
-                 //   oSOP.ViewAccessType = "Inherit";
-
-                //    oSOP.AssignSignatoresReadPermission();
+                  //  oSOP.AssignSignatoresReadPermission();
 
 
                     if (oSOP.PublishFile())
@@ -1966,16 +1971,16 @@ namespace SOPManagement.Controllers
 
                     //I turned it off as this is managed in client side ajax control in folder change event   
 
-                    if (!oSop.AuthenticateUser("createupload"))
-                    {
-                        TempData["SOPMsg"] = "Error:Failed to authenticate user for Department:" + oSop.FolderName + ".You can only create or upload an SOP for a department that you are a part of.";
+                    //if (!oSop.AuthenticateUser("createupload"))
+                    //{
+                    //    TempData["SOPMsg"] = "Error:Failed to authenticate user for Department:" + oSop.FolderName + ".You can only create or upload an SOP for a department that you are a part of.";
 
-                        bProcessCompleted = false;
+                    //    bProcessCompleted = false;
 
-                        failurename = "accessdenied";
+                    //    failurename = "accessdenied";
 
 
-                    }
+                    //}
 
 
                     if (bProcessCompleted)
@@ -2467,8 +2472,8 @@ namespace SOPManagement.Controllers
             //now authenticate the logged in user by Folder name 
 
             bool noauthen=false;
-            if (noauthen)
-          //  if (!oSOP.AuthenticateUser("createupload"))
+         //  if (noauthen)
+           if (!oSOP.AuthenticateUser("createupload"))
             {
                 TempData["SOPMsg"] = "Error:You are not authenticated to create or upload SOP in this department.";
 
