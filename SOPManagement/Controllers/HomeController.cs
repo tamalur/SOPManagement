@@ -25,6 +25,8 @@ namespace SOPManagement.Controllers
         public ActionResult Index()
         {
 
+            Session["ShowTitle"] = "no";
+
             if (Utility.IsSessionExpired())
             {
 
@@ -39,7 +41,19 @@ namespace SOPManagement.Controllers
         public ActionResult LogIn()
         {
 
-            return View();
+
+            Session["ShowTitle"] = "no";
+
+            Session["PageTitle"] = "SOP Application";
+            Session["SOPMsg"] = "Error:Your Session has timed out. Please close web browser (with all open tabs).Reopen web browser to start a new session.";
+
+            Session["SOPName"] = "N/A";
+
+            return RedirectToAction("SOPMessage");
+
+
+
+            //return View();
         }
 
         public ActionResult About()
@@ -54,7 +68,7 @@ namespace SOPManagement.Controllers
         }
 
        
-        public ActionResult Contact()
+        public ActionResult DTM()
         {
 
             if (Utility.IsSessionExpired())
@@ -65,7 +79,8 @@ namespace SOPManagement.Controllers
 
             }
 
-            ViewBag.Message = "Your contact page.";
+            Session["SOPMsg"] = "Data Maintenance (HR/IT)";
+            Session["SOPName"] = "NA";
 
             return View();
         }
@@ -81,6 +96,9 @@ namespace SOPManagement.Controllers
             ViewBag.SOPTitle = oSOP.FileTitle;
             ViewBag.SOPNO = oSOP.SOPNo;
 
+            Session["ShowTitle"] = "no";
+
+
             oSOP = null;
 
 
@@ -93,7 +111,14 @@ namespace SOPManagement.Controllers
             if (Session["UserFullName"] == null)
                 return RedirectToAction("LogIn");
 
-            return View();
+            Session["ShowTitle"] = "no";
+
+            Session["PageTitle"] = "SOP Application";
+            Session["SOPMsg"] = "Critical client or server error occured. Close the browser, open the application and try again.";
+            Session["SOPName"] = "N/A";
+      
+            return RedirectToAction("SOPMessage");
+
         }
 
 
@@ -106,12 +131,6 @@ namespace SOPManagement.Controllers
             return RedirectToAction("LogIn", "Home");
         }
 
-        public ActionResult DataMaintHRIT()
-        {
-
-
-            return View();
-        }
 
         public ActionResult CreateUploadSOPAuth()
         {
@@ -166,7 +185,8 @@ namespace SOPManagement.Controllers
 
             // http://localhost:58639/Home/AdminSOP/298
 
-            TempData["PageTitle"] = "SOP Admin";
+            //TempData["PageTitle"] = "SOP Admin";
+
 
             TempData["FileID"] = Convert.ToInt32(id);  //very important field in this context
 
@@ -178,13 +198,15 @@ namespace SOPManagement.Controllers
             //currently only owner of the SOP can do admin changes
 
             oSOP.GetSOPInfoByFileID();
-            TempData["SOPName"] = oSOP.FileTitle;
+
+
+            Session["SOPName"] = oSOP.FileTitle;
 
             if (!oSOP.AuthenticateUser("admin"))   //only owner can do admin changes
 
             {
                 oSOP = null;
-                TempData["SOPMsg"] = "Error:You are not authenticated to do admin changes of the document in question.";
+                Session["SOPMsg"] = "Error:You are not authenticated to do admin changes of the document in question.";
          
 
                 return RedirectToAction("SOPMessage");
@@ -200,7 +222,7 @@ namespace SOPManagement.Controllers
 
             //2=not signed, 1=signed, 3=approved: not allowed to change at this moment since sop is under approval process
 
-            TempData["SOPName"] = oSOP.FileTitle;
+            Session["SOPName"] = oSOP.FileTitle;
 
 
             ViewBag.employees = (from c in ctx.vwUsers select new { c.useremailaddress, c.userfullname }).Distinct();
@@ -236,7 +258,7 @@ namespace SOPManagement.Controllers
             else
             {
 
-                TempData["SOPMsg"] = "Error:Invalid File ID.";
+                Session["SOPMsg"] = "Error:Invalid File ID.";
 
                 return RedirectToAction("SOPMessage");
 
@@ -281,7 +303,7 @@ namespace SOPManagement.Controllers
 
             oSOP.GetSOPInfo();   //get current data with helper class to compare with new data from view, if any change then update it
 
-            TempData["SOPName"] = oSOP.FileTitle.Trim();
+            Session["SOPName"] = oSOP.FileTitle.Trim();
 
             if (oSOP.ViewAccessType.Trim() == "All Users")
                 oSOP.AllUsersReadAcc = true;
@@ -496,7 +518,7 @@ namespace SOPManagement.Controllers
 
                 {
 
-                    TempData["SOPMsg"] = "Error:Failed to submit changes. Cannot make admin changes and archive document in the same submission.";
+                    Session["SOPMsg"] = "Error:Failed to submit changes. Cannot make admin changes and archive document in the same submission.";
 
                     // return RedirectToAction("SOPMessage");
 
@@ -512,7 +534,7 @@ namespace SOPManagement.Controllers
                     oSOP.ArchiveSOP();
                     oSOP.UpdateSOPFileStatus(4);  //archived
 
-                    TempData["SOPMsg"] = "Success: This SOP has been successfully ARCHIVED.";
+                    Session["SOPMsg"] = "Success: This SOP has been successfully ARCHIVED.";
 
                     //return RedirectToAction("SOPMessage");
 
@@ -535,18 +557,35 @@ namespace SOPManagement.Controllers
                     if (contributorchngd)  //create new change request and add new sign activities of current active signatories
 
                     {
+                        string lockedbyuser = "";
+
+                        lockedbyuser = sop.GetLockedByUserName();
+
+
+                        if (lockedbyuser != "")
+
+                        {
+                            oEmp.useremailaddress = lockedbyuser;
+                            oEmp.GetUserByEmail();
+
+                            Session["SOPMsg"] = "Error:Failed to submit admin changes while the SOP is locked for editing by " +oEmp.userfullname+ ".Please advise the user to close the file for submitting admin changes." ;
+
+                            // return RedirectToAction("SOPMessage");
+
+                            return Json(new { success = true, responseText = "Error:Failed to make admin changes while the SOP is locked for editing by "+ oEmp.userfullname }, JsonRequestBehavior.AllowGet);
+
+                        }
+
 
                         sop.FileChangeRqsterID = Utility.GetLoggedInUserID();
-
-                        sop.AddChangeRequest();   //it will get new chngreqid that will be used as follows
-
                         //add owner sign activities 
 
                         if (oSOP.FileOwner.signstatuscode == 1)  //signed 
-                            oSOP.AssignFilePermissionToUsers("read", "remove", oSOP.FileOwnerEmail.Trim());  //remove last owner read permission 
+                            oSOP.AssignFilePermissionToUsers("View Only", "remove", oSOP.FileOwnerEmail.Trim());  //remove last owner read permission 
                         else if (oSOP.FileOwner.signstatuscode == 2) //not signed
                             oSOP.AssignFilePermissionToUsers("contribute", "remove", oSOP.FileOwnerEmail.Trim());  //remove last owner read permission                         
 
+                        sop.AddChangeRequest();   //it will get new chngreqid that will be used as follows
 
                         if (sop.FileOwnerEmail.Trim().ToLower() != oSOP.FileOwnerEmail.Trim().ToLower())
                         {
@@ -579,7 +618,7 @@ namespace SOPManagement.Controllers
                         {
 
                             if (oSOP.FileApprover.signstatuscode == 1)  //signed 
-                                oSOP.AssignFilePermissionToUsers("read", "remove", oSOP.FileApproverEmail.Trim());  //remove last owner read permission 
+                                oSOP.AssignFilePermissionToUsers("View Only", "remove", oSOP.FileApproverEmail.Trim());  //remove last owner read permission 
                             else if (oSOP.FileApprover.signstatuscode == 2) //not signed
                                 oSOP.AssignFilePermissionToUsers("contribute", "remove", oSOP.FileApproverEmail.Trim());  //remove last owner read permission                         
 
@@ -621,7 +660,7 @@ namespace SOPManagement.Controllers
 
                                 {
                                     if (oSOP.FileApprover.signstatuscode == 1)  //signed 
-                                        oSOP.AssignFilePermissionToUsers("read", "remove", oldrvwr.useremailaddress.Trim());  //remove last owner read permission 
+                                        oSOP.AssignFilePermissionToUsers("View Only", "remove", oldrvwr.useremailaddress.Trim());  //remove last owner read permission 
                                     else if (oSOP.FileApprover.signstatuscode == 2) //not signed
                                         oSOP.AssignFilePermissionToUsers("contribute", "remove", oldrvwr.useremailaddress.Trim());  //remove last owner read permission                         
 
@@ -688,9 +727,9 @@ namespace SOPManagement.Controllers
 
                         //remove all group readers permissions
 
-                        oSOP.AssignFilePermissionToGroup("read", "remove", "Watercooler Visitors");
-                        oSOP.AssignFilePermissionToGroup("read", "remove", "SOPAllReaders");
-                        oSOP.AssignFilePermissionToGroup("read", "remove", "SEC_Everyone_RadiantCanada");
+                        oSOP.AssignFilePermissionToGroup("View Only", "remove", "Watercooler Visitors");
+                        oSOP.AssignFilePermissionToGroup("View Only", "remove", "SOPAllReaders");
+                        oSOP.AssignFilePermissionToGroup("View Only", "remove", "SEC_Everyone_RadiantCanada");
 
                         //give custom permissions with new changes
 
@@ -721,7 +760,7 @@ namespace SOPManagement.Controllers
                                 //first remove existing permission from the file, default is Watercooler Visitors
 
 
-                                sop.AssignFilePermissionToUsers("read", "add", vwrItems);
+                                sop.AssignFilePermissionToUsers("View Only", "add", vwrItems);
 
                                 //now add view access info by department in SQL Table
                                 //we need this to retrieve and change in admin page
@@ -748,7 +787,7 @@ namespace SOPManagement.Controllers
 
                                 vwrItems = JsonConvert.DeserializeObject<Employee[]>(sop.FileviewersArr[0]);
 
-                                sop.AssignFilePermissionToUsers("read", "add", vwrItems);
+                                sop.AssignFilePermissionToUsers("View Only", "add", vwrItems);
 
 
                                 //now add view access info by custom users in SQL table
@@ -801,7 +840,7 @@ namespace SOPManagement.Controllers
                                         }
 
                                         if (rvwremail.Trim() == "")
-                                            oSOP.AssignFilePermissionToUsers("read", "remove", viewer.useremailaddress.Trim());
+                                            oSOP.AssignFilePermissionToUsers("View Only", "remove", viewer.useremailaddress.Trim());
 
                                     }
 
@@ -846,7 +885,7 @@ namespace SOPManagement.Controllers
                                         }
 
                                         if (rvwremail.Trim() == "")
-                                            oSOP.AssignFilePermissionToUsers("read", "remove", viewer.useremailaddress.Trim());
+                                            oSOP.AssignFilePermissionToUsers("View Only", "remove", viewer.useremailaddress.Trim());
 
                                     }
 
@@ -858,9 +897,9 @@ namespace SOPManagement.Controllers
                         }
 
                         //give visitor group permission as reader
-                        sop.AssignFilePermissionToGroup("read", "add", "Watercooler Visitors");
-                        sop.AssignFilePermissionToGroup("read", "add", "SOPAllReaders");
-                        sop.AssignFilePermissionToGroup("read", "add", "SEC_Everyone_RadiantCanada");
+                        sop.AssignFilePermissionToGroup("View Only", "add", "Watercooler Visitors");
+                        sop.AssignFilePermissionToGroup("View Only", "add", "SOPAllReaders");
+                        sop.AssignFilePermissionToGroup("View Only", "add", "SEC_Everyone_RadiantCanada");
 
                         sop.ViewAccessType = "All Users";
 
@@ -902,7 +941,7 @@ namespace SOPManagement.Controllers
                                         }
 
                                         if (rvwremail == "")
-                                            oSOP.AssignFilePermissionToUsers("read", "remove", viewer.useremailaddress.Trim());
+                                            oSOP.AssignFilePermissionToUsers("View Only", "remove", viewer.useremailaddress.Trim());
 
                                     }
 
@@ -946,7 +985,7 @@ namespace SOPManagement.Controllers
                                         }
 
                                         if (rvwremail == "")
-                                            oSOP.AssignFilePermissionToUsers("read", "remove", viewer.useremailaddress.Trim());
+                                            oSOP.AssignFilePermissionToUsers("View Only", "remove", viewer.useremailaddress.Trim());
 
                                     }
 
@@ -981,7 +1020,7 @@ namespace SOPManagement.Controllers
                                 //first remove existing permission from the file, default is Watercooler Visitors
 
 
-                                sop.AssignFilePermissionToUsers("read", "add", vwrItems);
+                                sop.AssignFilePermissionToUsers("View Only", "add", vwrItems);
 
                                 //now add view access info by department in SQL Table
                                 //we need this to retrieve and change in admin page
@@ -1011,7 +1050,7 @@ namespace SOPManagement.Controllers
 
                                 vwrItems = JsonConvert.DeserializeObject<Employee[]>(sop.FileviewersArr[0]);
 
-                                sop.AssignFilePermissionToUsers("read", "add", vwrItems);
+                                sop.AssignFilePermissionToUsers("View Only", "add", vwrItems);
 
 
                                 //now add view access info by custom users in SQL table
@@ -1039,7 +1078,7 @@ namespace SOPManagement.Controllers
                     }   //end checking publish 
 
 
-                    TempData["SOPMsg"] = "Success: Submitted administrative changes to the SOP have been updated.";
+                    Session["SOPMsg"] = "Success: Submitted administrative changes to the SOP have been updated.";
 
                     return Json(new { success = true, responseText = "Success: Submitted administrative changes to the SOP have been updated." }, JsonRequestBehavior.AllowGet);
 
@@ -1050,7 +1089,7 @@ namespace SOPManagement.Controllers
                 else  //no valid data was entered
                 {
 
-                    TempData["SOPMsg"] = "Error:Valid SOP admin data is required.";
+                    Session["SOPMsg"] = "Error:Valid SOP admin data is required.";
 
                     return Json(new { success = true, responseText = "Error:Valid SOP admin data is required" }, JsonRequestBehavior.AllowGet);
 
@@ -1065,7 +1104,7 @@ namespace SOPManagement.Controllers
             catch (Exception ex)
             {
 
-                TempData["SOPMsg"] = "Error:Failed to load SOP Admin page and complete admin changes due to following system error:" + ex.Message;
+                Session["SOPMsg"] = "Error:Failed to load SOP Admin page and complete admin changes due to following system error:" + ex.Message;
 
                 // return RedirectToAction("SOPMessage");
 
@@ -1092,14 +1131,20 @@ namespace SOPManagement.Controllers
 
             //http://localhost:58639/Home/SignSOP/41?chngreqid=8
 
+            
             string user = "";
             string loggedinusereml = "";
             int loggedinuserid = 0;
 
+            Session["SOPName"] = "";
+
+            TempData["PageTitle"] = "Signing Off on SOP";
+
             SOPSignatureModel oSM = new SOPSignatureModel();
             SOPClass oSOP = new SOPClass();
 
-            TempData["PageTitle"] = "Signing Off on SOP";
+            //TempData["PageTitle"] = "Signing Off on SOP";
+            
 
             try
 
@@ -1156,7 +1201,7 @@ namespace SOPManagement.Controllers
 
                 oSOP.GetSOPInfo();
 
-                TempData["SOPName"] = oSOP.FileTitle;
+                Session["SOPName"] = oSOP.FileTitle;
 
                 //now verify if he is signatory in any approver group with logged in email address with this file
                 //and change request id
@@ -1258,7 +1303,7 @@ namespace SOPManagement.Controllers
 
                 {
                     // ViewBag.ErrorMessage = "SOP Application: Session not Timed out";
-                    TempData["SOPMsg"] = "Error: You are not an authenticated approver and cannot sign document in question.";
+                    Session["SOPMsg"] = "Error: You are not an authenticated signatory of the SOP in question.";
                     return RedirectToAction("SOPMessage");
 
 
@@ -1275,7 +1320,7 @@ namespace SOPManagement.Controllers
             catch (Exception ex)
             {
 
-                TempData["SOPMsg"] = "Error:Failed to load the page due to the following system error: "+ex.Message;
+                Session["SOPMsg"] = "Error:Failed to load the page due to the following system error: "+ex.Message;
                 return RedirectToAction("SOPMessage");
 
 
@@ -1292,6 +1337,9 @@ namespace SOPManagement.Controllers
         [HttpPost]
         public ActionResult SignSOP(SOPSignatureModel sm)
         {
+
+
+            TempData["PageTitle"]= "Signing Off on SOP";
 
 
             try
@@ -1338,7 +1386,7 @@ namespace SOPManagement.Controllers
                 {
                     sm.UpdateChangeReqstApproval();   //if all signatories sign the SOP change sign status signed in change request activities table
 
-                    TempData["SOPMsg"] = "Document Signed by:"+Utility.GetLoggedInUserFullName();
+                    Session["SOPMsg"] = "Document Signed by:"+Utility.GetLoggedInUserFullName();
 
                     return RedirectToAction("SOPMessage");
 
@@ -1347,7 +1395,7 @@ namespace SOPManagement.Controllers
                 else
                 {
 
-                    TempData["SOPMsg"] = "Error:You have already signed off on this SOP.";
+                    Session["SOPMsg"] = "Error:You have already signed off on this SOP.";
                      
                     return RedirectToAction("SOPMessage");
 
@@ -1359,7 +1407,7 @@ namespace SOPManagement.Controllers
             catch (Exception ex)
             {
 
-                TempData["SOPMsg"] = "Error:Failed to sign off the SOP due to the following system error:" + ex.Message;
+                Session["SOPMsg"] = "Error:Failed to sign off the SOP due to the following system error:" + ex.Message;
 
                 return RedirectToAction("SOPMessage");
 
@@ -1397,26 +1445,34 @@ namespace SOPManagement.Controllers
             if (Utility.IsSessionExpired())
                 return RedirectToAction("LogIn");
 
-            SOPClass oSop = new SOPClass();
 
             TempData["PageTitle"] = "Access SOP Archive";
 
-            TempData["SOPName"] = "N/A";
+             Session["SOPMsg"] = "Under construction.";
 
-            if (!oSop.AuthenticateUser("accessarchive"))
-            {
+            Session["SOPName"] = "";
 
-                TempData["SOPMsg"] = "Error:SOP archive folder can only be accessed by SOP Owners.";
+             return RedirectToAction("SOPMessage");
 
-                return RedirectToAction("SOPMessage");
 
-            }
 
-            oSop = null;
+            //SOPClass oSop = new SOPClass();
 
-            //return Redirect("http://camis1-bioasp01/Reports/Pages/Report.aspx?ItemPath=%2fSOP+Reports%2fSOP+Dashboard");
+            //TempData["PageTitle"] = "Access SOP Archive";
 
-            return Redirect("https://radiantdelivers.sharepoint.com/:f:/s/Watercooler/Ev0caGyQgLZBl1EaJzxcn4cB8cMsLLlWio-FJt8hq0GTnA?e=j00RuN");
+            //Session["SOPName"] = "N/A";
+
+            //if (!oSop.AuthenticateUser("accessarchive"))
+            //{
+
+            //    Session["SOPMsg"] = "Error:SOP archive folder can only be accessed by SOP Owners.";
+
+            //    return RedirectToAction("SOPMessage");
+
+            //}
+
+           // oSop = null;
+
 
 
 
@@ -1449,7 +1505,9 @@ namespace SOPManagement.Controllers
 
     public ActionResult SOPMessage()
         {
-            
+
+            Session["ShowTitle"] = "no";
+
             return View();
 
         }
@@ -1470,6 +1528,7 @@ namespace SOPManagement.Controllers
             //changereqid = ViewBag.ChangeIReqID;
 
             Session["SOPMsg"] = "";
+            Session["PageTitle"] = "Publish SOP";
 
             //Session["Dashboardlink"] = "http://camis1-bioasp01/Reports/Pages/Report.aspx?ItemPath=%2fSOP+Reports%2fSOP+Dashboard";
 
@@ -1505,7 +1564,7 @@ namespace SOPManagement.Controllers
 
                 oSOP.GetSOPInfo();  //get updated reviewers, approver, owner, version, file name etc.
 
-                TempData["SOPName"] = oSOP.FileTitle;
+                Session["SOPName"] = oSOP.FileTitle;
 
                 //start validating logged in user and SOP
 
@@ -1513,7 +1572,7 @@ namespace SOPManagement.Controllers
 
                 {
                     oSOP = null;
-                    TempData["SOPMsg"] = "Error:Only Approver of SOP can publish document.";
+                    Session["SOPMsg"] = "Error:Only Approver of SOP can publish document.";
                     return RedirectToAction("SOPMessage");
                 }
 
@@ -1521,7 +1580,7 @@ namespace SOPManagement.Controllers
                 if (changereqid == 0)     //change request is required to publish aganist a change
                 {
 
-                    TempData["SOPMsg"] = "Error:Valid change request is required to publish the SOP.";
+                    Session["SOPMsg"] = "Error:Valid change request is required to publish the SOP.";
 
                     return RedirectToAction("SOPMessage");
 
@@ -1537,7 +1596,7 @@ namespace SOPManagement.Controllers
 
                 if (oSOP.FileStatuscode == 2)  //not signed
                 {
-                    TempData["SOPMsg"] = "Error:Operation failed, document has not be signed by all signatories";
+                    Session["SOPMsg"] = "Error:Operation failed, document has not be signed by all signatories";
 
                     return RedirectToAction("SOPMessage");
 
@@ -1546,7 +1605,7 @@ namespace SOPManagement.Controllers
 
                 if (oSOP.FileStatuscode == 3)  //published 
                 {
-                    TempData["SOPMsg"] = "Error:This SOP has already been published.";
+                    Session["SOPMsg"] = "Error:This SOP has already been published.";
 
                     return RedirectToAction("SOPMessage");
 
@@ -1609,7 +1668,7 @@ namespace SOPManagement.Controllers
 
                        oLogger.UpdateLogFile(DateTime.Now.ToString() + ":Publish SOP Action:Successfully published (approved) SOP in SharePoint Online SOP Library.");
 
-                        TempData["SOPMsg"] = "Success:The SOP has been published.";
+                        Session["SOPMsg"] = "Success:The SOP has been published.";
 
                         return RedirectToAction("SOPMessage");
 
@@ -1619,7 +1678,7 @@ namespace SOPManagement.Controllers
                     {
                         oLogger.UpdateLogFile(DateTime.Now.ToString() + ":Publish SOP Action:Failed to publish (approved) the SOP in SharePoint Online SOP Library with reaosn:"+oSOP.ErrorMessage);
 
-                        TempData["SOPMsg"] = "Error:Failed to publish the SOP due to the following system error: " + oSOP.ErrorMessage ;
+                        Session["SOPMsg"] = "Error:Failed to publish the SOP due to the following system error: " + oSOP.ErrorMessage ;
                         return RedirectToAction("SOPMessage");
                     }
 
@@ -1638,7 +1697,7 @@ namespace SOPManagement.Controllers
 
                 oLogger.UpdateLogFile(DateTime.Now.ToString() + ":Publish SOP Action:Failed to publish with error:" + ex.Message);
 
-                TempData["SOPMsg"] = "Failed to publish the SOP due to the following system error:" + ex.Message;
+                Session["SOPMsg"] = "Failed to publish the SOP due to the following system error:" + ex.Message;
                 return RedirectToAction("SOPMessage");
 
             }
@@ -1668,6 +1727,10 @@ namespace SOPManagement.Controllers
                 return RedirectToAction("LogIn");
 
 
+            TempData["PageTitle"] = "Publish SOP";
+
+            Session["ShowTitle"] = "no";
+            Session["SOPName"] = "N/A";
 
             string changereqid = Request.QueryString["chngreqid"];
 
@@ -1677,7 +1740,15 @@ namespace SOPManagement.Controllers
             TempData["FileID"] = id;
             TempData["ChangeIReqID"] = changereqid;
 
+            SOPClass oSOPHelper = new SOPClass();
 
+            oSOPHelper.FileID = Convert.ToInt32(id);
+
+            oSOPHelper.GetSOPInfoByFileID();
+
+            Session["SOPName"] =oSOPHelper.FileTitle;
+
+            oSOPHelper = null;
 
             return View();
         }
@@ -1710,7 +1781,7 @@ namespace SOPManagement.Controllers
             oSOP.FileID = id;   //asign file id
             oSOP.GetSOPInfoByFileID();
 
-            TempData["SOPName"] = oSOP.FileTitle;
+            Session["SOPName"] = oSOP.FileTitle;
 
             try
             {
@@ -1724,7 +1795,7 @@ namespace SOPManagement.Controllers
 
                     oSOP = null;
 
-                    TempData["SOPMsg"] = "Error:Failed to authenticate user to make a change request.You must be the owner, approver, or reviewer of this SOP to request a change.";
+                    Session["SOPMsg"] = "Error:Failed to authenticate user to make a change request.You must be the owner, approver, or reviewer of this SOP to request a change.";
 
                     return RedirectToAction("SOPMessage");
 
@@ -1735,10 +1806,10 @@ namespace SOPManagement.Controllers
                 oSOP.FileChangeRqstID = lastchngreqid;
                 short lastchngstatcode = oSOP.GetChngReqSOPStatusCode();
 
-                if (lastchngstatcode == 1 || lastchngstatcode == 2)
+                if (lastchngstatcode == 1 || lastchngstatcode == 2)   //signed not publsihed
                 {
 
-                    TempData["SOPMsg"] = "Error:Failed to complete change request as last change request is not yet published. Note: You can change the SOP until the last change request is published.";
+                    Session["SOPMsg"] = "Error:Failed to complete change request as last change request is not yet published. Note: You cannot change the SOP until the last change request is published.";
 
                     return RedirectToAction("SOPMessage");
 
@@ -1776,7 +1847,7 @@ namespace SOPManagement.Controllers
 
                     oSOP.AssignSigatoriesPermission();
 
-                    TempData["SOPMsg"] = "Success: Change request to the SOP have been submitted.";
+                    Session["SOPMsg"] = "Success: Change request to the SOP have been submitted.";
 
                     return RedirectToAction("SOPMessage");
 
@@ -1790,7 +1861,7 @@ namespace SOPManagement.Controllers
             catch (Exception ex)
             {
 
-                TempData["SOPMsg"] = "Error:Failed to submit change request due to the following system error:"+ex.Message;
+                Session["SOPMsg"] = "Error:Failed to submit change request due to the following system error:"+ex.Message;
 
                 return RedirectToAction("SOPMessage");
 
@@ -1822,6 +1893,12 @@ namespace SOPManagement.Controllers
 
             TempData["PageTitle"] = "SOP Change Request";
 
+            Session["ShowTitle"] = "no";
+
+            Session["SOPName"] = "";
+
+
+
             return View();
         }
 
@@ -1841,14 +1918,14 @@ namespace SOPManagement.Controllers
             if (Utility.IsSessionExpired())
                 return RedirectToAction("LogIn");
 
-
+            
 
             //run this protect configuration to encrypt config file so hacker cannot read 
             //sensitive data even they get the config file
             //run this just one time to encrypt or one time to dycript
 
             //  Utility.ProtectConfiguration();
-         //   Utility.UnProtectConfiguration();   //dycrip it when you need to change any data in config file
+            //   Utility.UnProtectConfiguration();   //dycrip it when you need to change any data in config file
 
             // ViewBag.Title = "Upload or Create SOP";  //I assigned in cshtml file
 
@@ -1928,7 +2005,7 @@ namespace SOPManagement.Controllers
 
                 }
 
-                TempData["SOPName"] = oSop.FileTitle ;
+                Session["SOPName"] = oSop.FileTitle ;
 
                 oLogger.UpdateLogFile(DateTime.Now.ToString() + ":CreateUpload Action:Started uploading or creating new SOP:"+sop.SOPNo);
 
@@ -1973,7 +2050,7 @@ namespace SOPManagement.Controllers
 
                     //if (!oSop.AuthenticateUser("createupload"))
                     //{
-                    //    TempData["SOPMsg"] = "Error:Failed to authenticate user for Department:" + oSop.FolderName + ".You can only create or upload an SOP for a department that you are a part of.";
+                    //    Session["SOPMsg"] = "Error:Failed to authenticate user for Department:" + oSop.FolderName + ".You can only create or upload an SOP for a department that you are a part of.";
 
                     //    bProcessCompleted = false;
 
@@ -2015,8 +2092,8 @@ namespace SOPManagement.Controllers
                         {
                             
 
-                            TempData["SOPMsg"] = "Error:Duplicate SOP found." ;
-                            TempData["SOPName"] = "SOP Name:" + oSop.FileTitle + ", SOP No:" + oSop.SOPNo;
+                            Session["SOPMsg"] = "Error:Duplicate SOP found." ;
+                            Session["SOPName"] = "SOP Name:" + oSop.FileTitle + ", SOP No:" + oSop.SOPNo;
                             TempData.Keep();
 
                             bProcessCompleted = false;
@@ -2232,7 +2309,7 @@ namespace SOPManagement.Controllers
 
                             // oSop.AssignFilePermission("add", "read", vwrItems);  //this one hits sp server three times in a employee loop
 
-                            oSop.AssignFilePermissionToUsers("read", "add", vwrItems);
+                            oSop.AssignFilePermissionToUsers("View Only", "add", vwrItems);
 
                             //now add view access info by department in SQL Table
                             //we need this to retrieve and change in admin page
@@ -2256,7 +2333,7 @@ namespace SOPManagement.Controllers
 
                             // oSop.AssignFilePermission("add", "read", vwrItems);
 
-                            oSop.AssignFilePermissionToUsers("read", "add", vwrItems);
+                            oSop.AssignFilePermissionToUsers("View Only", "add", vwrItems);
 
 
                             //now add view access info by custom users in SQL table
@@ -2309,7 +2386,7 @@ namespace SOPManagement.Controllers
 
                     //  Send "Success" to ajax call back in view
 
-                    TempData["SOPMsg"] = "Success: SOP has been loaded in management system.";
+                    Session["SOPMsg"] = "Success: SOP has been loaded in management system.";
 
                     return Json(new { success = true, responseText = "The SOP " + sop.FileName + " has been successfully processed!" }, JsonRequestBehavior.AllowGet);
 
@@ -2320,8 +2397,8 @@ namespace SOPManagement.Controllers
 
                     oLogger.UpdateLogFile(DateTime.Now.ToString() + ":CreateUpload Action:Failed to validate SOP entry i.e. session timed out, duplicate SOP.");
 
-                    if (TempData["SOPMsg"]==null || TempData["SOPMsg"].ToString()=="")
-                         TempData["SOPMsg"] = "Error:Failed to process SOP, please contact IT.";
+                    if (Session["SOPMsg"]==null || Session["SOPMsg"].ToString()=="")
+                         Session["SOPMsg"] = "Error:Failed to process SOP, please contact IT.";
 
 
                     if (failurename=="sessiontimeout")
@@ -2348,7 +2425,7 @@ namespace SOPManagement.Controllers
 
                 oLogger.UpdateLogFile(DateTime.Now.ToString() + ":CreateUpload Action:Failed uplaoding or creating SOP with error:"+ex.Message);
 
-                TempData["SOPMsg"] = "Error:Failed to process the SOP due to the following system error:" + ex.Message;
+                Session["SOPMsg"] = "Error:Failed to process the SOP due to the following system error:" + ex.Message;
                 return Json(new { success = false, responseText = "Failed processing SOP " + sop.FileName + " , please contact IT!" }, JsonRequestBehavior.AllowGet);
 
             }
@@ -2475,7 +2552,7 @@ namespace SOPManagement.Controllers
          //  if (noauthen)
            if (!oSOP.AuthenticateUser("createupload"))
             {
-                TempData["SOPMsg"] = "Error:You are not authenticated to create or upload SOP in this department.";
+                Session["SOPMsg"] = "Error:You are not authenticated to create or upload SOP in this department.";
 
                 oSOP = null;
                 return Json(new { success = false, message = "ERROR: You are not authenticated to create or upload SOP in this department." });
@@ -2712,7 +2789,7 @@ namespace SOPManagement.Controllers
 
                         //give read permission to all users who are in the selected department
 
-                        oSop.AssignFilePermission("add", "read", vwrItems);
+                        oSop.AssignFilePermission("add", "View Only", vwrItems);
 
                         //now add view access info by department in SQL Table
                         //we need this to retrieve and change in admin page
@@ -2734,7 +2811,7 @@ namespace SOPManagement.Controllers
 
                         //give read permission to all custom viewers
 
-                        oSop.AssignFilePermission("add", "read", vwrItems);
+                        oSop.AssignFilePermission("add", "View Only", vwrItems);
 
                         //now add view access info by custom users in SQL table
                         //we need this to retrieve and change in admin page

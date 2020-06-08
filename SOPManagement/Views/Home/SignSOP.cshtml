@@ -1,15 +1,14 @@
 ﻿@model SOPManagement.Models.SOPSignatureModel
 
-@*<p>
-        @Html.ActionLink("Create New", "Create")
-    </p>*@
 
 @{
-    ViewBag.Title = "Signing Off on SOP";
+
+    TempData["PageTitle"] = "Signing Off on SOP";
+    Session["ShowTitle"] = "yes";
 }
 
 
-<div style="font-size:36px;font-weight:bold">
+@*<div style="font-size:36px;font-weight:bold">
 
     @if (ViewBag.Title != null)
     {
@@ -20,10 +19,10 @@
         @TempData["PageTitle"]
     }
 
-</div>
+</div>*@
 
 
-@using (Html.BeginForm())
+@using (Html.BeginForm("SignSOP", "Home", FormMethod.Post, new { @id = "form1" }))
 {
 
     <div>
@@ -355,7 +354,10 @@
                 <tr>
 
                     <td style="text-align:center">
-                        <input type="submit" value="Submit" disabled="disabled" id="sopsubmit" />
+                        @*<input type="submit" value="Submit" disabled="disabled" id="sopsubmit" />*@
+                        <input type="submit" value="Submit" id="sopsubmit"  onclick="return clicksubmit();" />
+
+
                     </td>
                 </tr>
 
@@ -370,12 +372,78 @@
 
 <script>
 
+
+    function clicksubmit() {
+
+
+        var signed=false;
+        //var aprvrsigned=false;
+        //var rvwrsigned=false;
+
+
+        var ownerchk = document.getElementById("LoggedInSignedAsOwner");
+        var aprvrchk = document.getElementById("LoggedInSignedAsApprover");
+        var rvwrchk = document.getElementById("LoggedInSignedAsReviewer");
+
+
+        if (ownerchk == null && aprvrchk == null && rvwrchk == null) {
+
+            alert("The SOP is signed by all signatories.");
+            document.getElementById("chksignAgrmnt").checked = false;
+            return false;
+
+
+        }
+
+
+        if (ownerchk != null && ownerchk.checked)
+            signed = true;
+
+        if (aprvrchk != null && aprvrchk.checked)
+            signed = true;
+
+        if (rvwrchk != null && rvwrchk.checked)
+            signed = true;
+
+
+
+        //if (!document.getElementById("chksignAgrmnt").checked) {
+        //    alert("Please select agreement checkbox to comeplete signing the SOP.");
+        //    return false;
+        //}
+
+
+        if (!signed)
+            {
+                
+                alert("Please sign SOP first.");
+                document.getElementById("chksignAgrmnt").checked = false;
+                return false;
+
+            }
+
+         else {   //signed , now check agreement
+
+                if (!document.getElementById("chksignAgrmnt").checked) {
+                    alert("Please select agreement checkbox to comeplete signing the SOP.");
+                    return false;
+                }
+                else  //signed and agreed
+                    return true;
+            }
+   
+
+    }
+
     function isChecked(checkbox, sub1) {
         var button = document.getElementById(sub1);
 
-        if (checkbox.checked === true) {
+        if (checkbox.checked == true) {
             button.disabled = "";
         } else {
+
+            alert("Please select agreement checkbox to sign the SOP.");
+
             button.disabled = "disabled";
         }
     }

@@ -6,17 +6,19 @@
     <title>@ViewBag.Title - SOP ASP.NET Web Application</title>
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
+    
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 
 </head>
 
 
 <body>
     @*<div class="navbar navbar-inverse navbar-fixed-top" style="background-color:#6699FF">*@
-    
+
 
     <div class="navbar navbar-inverse navbar-fixed-top" style="background-color:#6699FF">
 
-        <p class="nav navbar-text navbar-left;"><img src="~/Content/Images/RadLogoBan.jpg" /> </p>
+        <p class="nav navbar-text navbar-left;"><a href="@Url.Action("Index", "Home", new { id = "imghome" })"><img src="~/Content/Images/RadLogoBan.jpg" /> </a></p>
 
         <div class="container">
 
@@ -38,9 +40,11 @@
 
                         @*<li>@Html.ActionLink("Home", "Index", "Home")</li>*@
 
-                        <li>@Html.ActionLink("SOP Dashboard", "SOPDashboard", "Home", new { Style = "color:White;font-size:150%;font-weight: bold;", target = "_blank" })</li>
+                        @*<li>@Html.ActionLink("SOP Dashboard", "SOPDashboard", "Home", new { Style = "color:White;font-size:150%;font-weight: bold;", target = "_blank" })</li>*@
+                        <li>@Html.ActionLink("SOP Dashboard", "SOPDashboard", "Home", new { Style = "color:White;font-size:150%;font-weight: bold;" })</li>
+
                         <li>@Html.ActionLink("Create Upload SOP", "CreateUploadSOP", "Home", new { Style = "color:White;font-size:150%;font-weight: bold;" })</li>
-                        <li>@Html.ActionLink("Data Maintenance (HR/IT)", "DataMaintHRIT", "Home", new { Style = "color:White;font-size:150%;font-weight: bold;" })</li>
+                        @*<li>@Html.ActionLink("Data Maintenance (HR/IT)", "DataMaintHRIT", "Home", new { Style = "color:White;font-size:150%;font-weight: bold;" })</li>*@
                     </ul>
                 </p>
                 @*@User.Identity.Name!*@
@@ -48,11 +52,16 @@
                 @*<p class="nav navbar-text navbar-right" style="color:white">Hello, @Session["UserFullName"] </p>*@
 
                 <p class="nav navbar-text navbar-right" style="color:white;">
-                    @Html.ActionLink("Access SOP Archive", "AccessArchive", "Home",
-                    new { Style = "color:White;font-weight: bold;text-decoration:none;font-size:100%;", target = "_blank" })
-                </p>
+                    
+                        @Html.ActionLink("Data Maintenance (HR/IT)", "DTM", "Home",
+                        new { Style = "color:White;font-weight: bold;text-decoration:none;font-size:100%;" })
+                    
+                        <br />
+                        @Html.ActionLink("Access SOP Archive", "AccessArchive", "Home",
+                        new { Style = "color:White;font-weight: bold;text-decoration:none;font-size:100%;" })
 
-
+                    
+                </p> 
 
             </div>
 
@@ -64,32 +73,53 @@
 
     <div class="container body-content">
 
-        @*@if (TempData["SOPMsg"] == null)
+        @if (Session["ShowTitle"] != null && Session["ShowTitle"].ToString().Trim().ToLower()=="yes")
         {
 
-        <div class="col-md-12" style="font-size: 36px;margin-top:10px">
-
-            <br />
+        <div class="col-md-12" style="font-size: 36px;margin-top:4%">
+            
             <b>
-                @if (ViewBag.Title != null)
-                {
-                    @ViewBag.Title
-                }
-                else
+               @if (TempData["PageTitle"] != null)
                 {
                     @TempData["PageTitle"]
                 }
 
+                else if (Session["PageTitle"] != null)
+                {
+
+                    @Session["PageTitle"]
+                }
+
+
             </b>
         </div>
-        }*@
-        
-        <br />
-        <br />
-         <div class="col-md-12">
-            @RenderBody()
+        }
+
+        <div id="sopalert" class="w3-modal" style="top:15%">
+            <div class="w3-modal-content">
+
+                <header class="w3-container w3-teal" style="background-color:#6699FF!important">
+                    <span onclick="document.getElementById('sopalert').style.display='none'"
+                          class="w3-button w3-display-topright">&times;</span>
+                    <h2>SOP Alert</h2>
+                </header>
+
+                <div class="w3-container">
+                    <p id="sopalertmsg">Some text..</p>
+                </div>
+
+                @*<footer class="w3-container w3-teal">
+                    <p>Modal Footer</p>
+                </footer>*@
+
+            </div>
         </div>
 
+       
+        <div class="col-md-12">
+            @RenderBody()
+        </div>
+        
         @*<footer>
             <p>&copy; @DateTime.Now.Year - SOP ASP.NET Application</p>
         </footer>*@
@@ -101,31 +131,28 @@
 
         @*Add this JavaScript in _Layout (when session end 1 minute before this code makes redirect, it makes count time after user last action, not first visit on site)*@
 
-        @*<script>
-        //session end
-        var sessionTimeoutWarning = @Session.Timeout- 1;
+        <script>
 
-            var sTimeout = parseInt(sessionTimeoutWarning) * 60 * 1000;
 
-            var timeoutHandle = window.setTimeout("SessionEnd()", sTimeout);
+            window.alert = function (message, title) {
+                var myElementToShow = document.getElementById("sopalert");
 
-            //setTimeout(function SessionEnd() {
-            //    alert('layout');
-            //    window.location = "/Home/LogOff";
-            //}, sTimeout);
+                var myAlertToShow = document.getElementById("sopalertmsg");
 
-            function SessionEnd() {
+                myAlertToShow.innerHTML = '</br>' + message + "</br></br>" + "<input type='button' value='OK' id='btnalert' onclick='closealert()' />";
 
-            window.location = "/Home/LogOff";
+                myElementToShow.style.display = "block";
             }
 
-            function UpdateTimeoutTimer() {
-                clearTimeout(myTimeReminder);
-                clearTimeout(myTimeOut);
-                myTimeReminder = setTimeout('doReminder()', sessionTimeReminder);
-                myTimeOut = setTimeout('doRedirect()', sessionTimeout);
+
+            function closealert() {
+
+                var myElementToShow = document.getElementById("sopalert");
+                myElementToShow.style.display = "none";
+
             }
-        </script>*@
+
+        </script>
 
 </body>
 </html>

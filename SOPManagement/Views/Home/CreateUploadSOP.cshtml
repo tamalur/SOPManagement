@@ -2,24 +2,11 @@
 
 
 @{
-    ViewBag.Title = "SOP Create/Upload";
-    TempData["PageTitle"]= "SOP Create/Upload";
+
+    TempData["PageTitle"] = "SOP Create/Upload";
+    Session["ShowTitle"] = "yes";
 }
 
-
-
-<div style="font-size:36px;font-weight:bold">
-
-    @if (ViewBag.Title != null)
-    {
-        @ViewBag.Title
-    }
-    else
-    {
-        @TempData["PageTitle"]
-    }
-
-</div>
 
 
 @using (Html.BeginForm("CreateUploadSOP", "Home", FormMethod.Post))
@@ -28,6 +15,20 @@
     @Html.AntiForgeryToken()
 
     <div class="form-horizontal">
+
+        @*<div style="font-size:36px;font-weight:bold;margin-top:4%">
+
+            @if (ViewBag.Title != null)
+            {
+                @ViewBag.Title
+            }
+            else
+            {
+                @TempData["PageTitle"]
+            }
+
+        </div>*@
+
 
         @*<h4>Upload or Create SOP</h4>*@
         <hr />
@@ -333,10 +334,20 @@
 
 
 <div class="submit-progress hidden" id="progessdiv">
-    <img src="~/Content/Images/soploading.gif" style="width:55px;height:55px" />
+
+    <div class="row">
+        <div class="col-md-3">
+            <img src="~/Content/Images/soploading.gif" style="width:55px;height:55px" />
+        </div>
+        <div class="col-md-9">
+            <h5> Please wait while submitting SOP... </h5>
+        </div>
+    </div>
+
+
     @*<i class="fa fa-2x fa-spinner fa-spin"></i>
         <label>Please wait while submitting SOP...</label>*@
-    <label>Please wait while submitting SOP...</label>
+
 </div>
 
 
@@ -356,7 +367,10 @@
 <script>
 
 
+
         $(document).ready(function () {
+
+
 
             @*window.location.href = '@Url.Action("CreateUploadSOPAuth", "Home")';*@
 
@@ -434,7 +448,9 @@
                                // window.location.href = '@Url.Action("SOPMessage", "Home")';
                                 document.getElementById("SOPNo").value = "";
                                 document.getElementById("btnsubmit").disabled = true;
-                                alert(data.message)
+                                alert(data.message);
+                                return true;
+
                             }
 
                             else {
@@ -776,12 +792,16 @@
 
             if (document.getElementById("UploadedFile").files.length > 0 && filenamenew != "")
             {
-            alert("Please either upload a file or enter new file name, not both!");
+            alert("Please either upload a file or enter new file name, not both.");
             return true;
             }
 
             if (document.getElementById("UploadedFile").files.length == 0 && filenamenew == "") {
-                alert("Please upload a file or enter new file name!");
+
+
+                window.alert("Please upload a file or enter new file name.", "SOP Alert");
+
+
                 return true;
             }
 
@@ -790,14 +810,14 @@
 
 
             if (deptfoldernm == "Please select a folder" || deptfoldernm == "" ) {
-                alert("Folder name is required!")
+                alert("Folder name is required.")
                 return true;
             }
 
             var sopnonew = $('#SOPNo').val();     //document.getElementById("SOPNo").value;
 
             if (sopnonew == "") {
-                alert("SOP No is required!")
+                alert("SOP No is required.")
                 return true;
 
             }
@@ -806,7 +826,7 @@
 
                 if (!hasAlpha(sopnonew)) {
 
-                    alert("SOP No is not valid!")
+                    alert("SOP No is not valid.")
                     return true;
 
                 }
@@ -824,12 +844,12 @@
 
 
             if (updfreq == "") {
-                alert("Update frequency is required!")
+                alert("Update frequency is required.")
                 return true;
             }
 
             if (updfreq != "" && isNaN(updfreq) == true) {
-                alert("Update frequency must be numeric!")
+                alert("Update frequency must be numeric.")
                 return true;
 
             }
@@ -850,7 +870,7 @@
 
 
             if (owneremail == "") {
-                alert("SOP Owner is required!")
+                alert("SOP Owner is required.")
                 return true;
 
             }
@@ -886,7 +906,7 @@
 
             if (reviewerarr === undefined || reviewerarr.length == 0) {
                 // array empty or does not exist
-                alert("Reviewers are required, plesae add at least one reviewer!");
+                alert("Reviewers are required, please add at least one reviewer.");
                 return true;
             }
 
@@ -926,7 +946,7 @@
 
                 if (vwrdeptcode == "" && (viewersarr === undefined || viewersarr.length == 0)) {
                     // array empty or does not exist
-                    alert("Plesae add at least one viewer!");
+                    alert("Please add at least one viewer!");
                     return true;
                 }
 
@@ -1040,6 +1060,9 @@
 
 
         }
+
+
+
 
         function chekcDuplicateSOP(sopno) {
 

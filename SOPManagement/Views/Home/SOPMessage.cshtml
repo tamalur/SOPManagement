@@ -2,32 +2,35 @@
 
     <div style="font-size:36px;font-weight:bold">
 
-        @if (ViewBag.Title != null)
-        {
-            @ViewBag.Title
-        }
-        else
+        @if (TempData["PageTitle"] != null)
         {
             @TempData["PageTitle"]
         }
 
+        else if (Session["PageTitle"] != null)
+        {
+
+            @Session["PageTitle"]
+        }
+
+
     </div>
 
 
-    @if ((TempData["SOPMsg"].ToString().ToLower().Contains("failed"))
-        || (TempData["SOPMsg"].ToString().ToLower().Contains("error")))
+    @if ((Session["SOPMsg"].ToString().ToLower().Contains("failed"))
+        || (Session["SOPMsg"].ToString().ToLower().Contains("error")))
     {
-        <font color="red"><b>ERROR:</b> </font>@TempData["SOPMsg"].ToString().Replace("Error:", "")
+        <font color="red"><b>ERROR:</b> </font>@Session["SOPMsg"].ToString().Replace("Error:", "")
     }
     else
 
     {
 
-        <b>Success: </b>@TempData["SOPMsg"].ToString().Replace("Success:", "")
+        <b>Success: </b>@Session["SOPMsg"].ToString().Replace("Success:", "")
 
     }
     <br />
-    <b> SOP Name:</b> @TempData["SOPName"].ToString()
+    <b> SOP Name:</b> @Session["SOPName"].ToString()
     <br />
     <br />
     @*<button onclick="goBack()">Go Back</button>*@

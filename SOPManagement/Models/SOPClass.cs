@@ -342,7 +342,7 @@ namespace SOPManagement.Models
                         {
                             AddRvwractivities(rvwrid, prevreviewstatcode, prevstatdatetime);
                             if (prevreviewstatcode==1)
-                                 AssignFilePermissionToUsers("read", "add", rvwr.useremailaddress.Trim());
+                                 AssignFilePermissionToUsers("View Only", "add", rvwr.useremailaddress.Trim());
                             else if (prevreviewstatcode == 2)
                                 AssignFilePermissionToUsers("contribute", "add", rvwr.useremailaddress.Trim());
                         }
@@ -564,7 +564,7 @@ namespace SOPManagement.Models
                     AddApproveractivities(apprvid, prevapprvlstatcode, prevstatdate);
 
                     if (prevapprvlstatcode==1)
-                        AssignFilePermissionToUsers("read", "add", FileApproverEmail.Trim());
+                        AssignFilePermissionToUsers("View Only", "add", FileApproverEmail.Trim());
                     else if (prevapprvlstatcode == 2)
                         AssignFilePermissionToUsers("contribute", "add", FileApproverEmail.Trim());
                 }
@@ -634,7 +634,7 @@ namespace SOPManagement.Models
 
             foreach (Employee vwr in FileViewers)
             {
-                emp.useremailaddress = vwr.useremailaddress;
+                emp.useremailaddress = vwr.useremailaddress.Trim();
                 emp.GetUserByEmail();
                 vwrid = emp.userid;
 
@@ -680,7 +680,7 @@ namespace SOPManagement.Models
 
             OperationSuccess = false;
 
-            emp.useremailaddress = FileOwnerEmail;
+            emp.useremailaddress = FileOwnerEmail.Trim();
             emp.GetUserByEmail();
             ownerid = emp.userid;
 
@@ -721,7 +721,7 @@ namespace SOPManagement.Models
                     AddOwneractivities(ownershipid, prevapprovalstatcode, prevstatusdate);   //polymorphic function for inheriting approval status of previous owner
 
                     if (prevapprovalstatcode==1)
-                        AssignFilePermissionToUsers("read", "add", FileOwnerEmail.Trim());
+                        AssignFilePermissionToUsers("View Only", "add", FileOwnerEmail.Trim());
                     else if(prevapprovalstatcode == 2)
                         AssignFilePermissionToUsers("contribute", "add", FileOwnerEmail.Trim());
 
@@ -748,7 +748,7 @@ namespace SOPManagement.Models
                 {
                     fileid = FileID,
                     approvalstatuscode = 2,   //2=not signed
-                    statusdatetime = DateTime.Today,
+                    statusdatetime = DateTime.Now,
                     requesterid = FileChangeRqsterID
                 };
                 dbcontex.filechangerequestactivities.Add(chngtable);
@@ -863,7 +863,7 @@ namespace SOPManagement.Models
 
                     //update 1st table in cover page, file title, Owner, SOP #, Rev #, Eff date, owner
 
-                    emp.useremailaddress = FileOwnerEmail;
+                    emp.useremailaddress = FileOwnerEmail.Trim();
                     emp.GetUserByEmail();
                     ownerfullname = emp.userfullname;
 
@@ -3960,6 +3960,51 @@ namespace SOPManagement.Models
 
         }
 
+
+        public string GetLockedByUserName()
+        {
+            string lockedbyusername = "";
+
+            ErrorMessage = "";
+
+            ClientContext ctx = new ClientContext(SiteUrl);
+
+            SecureString spassword = GetSecureString(password);
+
+            ctx.Credentials = new SharePointOnlineCredentials(userName, spassword);
+
+            ctx.Load(ctx.Web);
+
+            Web web = ctx.Web;
+
+            //The ServerRelativeUrl property returns a string in the following form, which excludes the name of
+            //    the server or root folder: / Site_Name / Subsite_Name / Folder_Name / File_Name.
+
+            ctx.Load(web, wb => wb.ServerRelativeUrl);
+            ctx.ExecuteQuery();
+
+            // string filerelurl = web.ServerRelativeUrl + "/SOP/Information Technology (IT)/" + "IT-07 OperationTestFile.docx";
+
+            string filerelurl = web.ServerRelativeUrl + "/" + FilePath.Trim() + FileName;
+
+            Microsoft.SharePoint.Client.File file = web.GetFileByServerRelativeUrl(filerelurl);
+
+
+            ctx.Load(file.LockedByUser);
+            ctx.ExecuteQuery();
+
+            if (file.LockedByUser.ServerObjectIsNull==false)
+                lockedbyusername = file.LockedByUser.Email;
+
+
+
+            return lockedbyusername;
+
+
+
+
+        }
+
         public void AssignFilePermissionToUsers(string plabel, string addremove, string empemail)
         {
 
@@ -4007,6 +4052,8 @@ namespace SOPManagement.Models
                     file.ListItemAllFields.BreakRoleInheritance(true, false);   //inherit permission for all users selection
                 else
                     file.ListItemAllFields.BreakRoleInheritance(false, false);   //do not inherit if all users are not selected
+
+               
 
                 emailfound = true;
                 emailfound = false;
@@ -4222,7 +4269,7 @@ namespace SOPManagement.Models
 
             string filerelurl = web.ServerRelativeUrl + "/" + FilePath.Trim() + FileName;
 
-            string filenewrelurl = web.ServerRelativeUrl + "/SOP/Archive/"+ SOPNo+" "+FileName;
+            string filenewrelurl = web.ServerRelativeUrl + "/SOP/Archive/"+ FilePath.Replace("SOP/","").Trim() + FileName;
 
             Microsoft.SharePoint.Client.File file = web.GetFileByServerRelativeUrl(filerelurl);
 
@@ -4407,7 +4454,7 @@ namespace SOPManagement.Models
 
             //now reassign them as reader
 
-            AssignSigatoriesPermission("read");
+            AssignSigatoriesPermission("View Only");
 
 
             //AssignFilePermissionToUsers("read", "add", FileReviewers);

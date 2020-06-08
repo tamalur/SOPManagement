@@ -199,7 +199,7 @@ namespace SOPManagement.Models
                             oSOP.AssignFilePermissionToUsers("contribute", "remove", owneremail.Trim().ToLower());
                             // System.Threading.Thread.Sleep(3000);
 
-                            oSOP.AssignFilePermissionToUsers("read", "add", owneremail.Trim().ToLower());
+                            oSOP.AssignFilePermissionToUsers("View Only", "add", owneremail.Trim().ToLower());
                         }
 
 
@@ -267,7 +267,7 @@ namespace SOPManagement.Models
                             oSOP.AssignFilePermissionToUsers("contribute", "remove", approveremail.Trim().ToLower());
                             // System.Threading.Thread.Sleep(3000);
 
-                            oSOP.AssignFilePermissionToUsers("read", "add", approveremail.Trim().ToLower());
+                            oSOP.AssignFilePermissionToUsers("View Only", "add", approveremail.Trim().ToLower());
                         }
                     }
 
@@ -325,7 +325,7 @@ namespace SOPManagement.Models
                             oSOP.AssignFilePermissionToUsers("contribute", "remove", revieweremail.Trim().ToLower());
                             // System.Threading.Thread.Sleep(3000);
 
-                            oSOP.AssignFilePermissionToUsers("read", "add", revieweremail.Trim().ToLower());
+                            oSOP.AssignFilePermissionToUsers("View Only", "add", revieweremail.Trim().ToLower());
                         }
 
 

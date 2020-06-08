@@ -1,31 +1,8 @@
 ﻿
-<div class="sopmessagebox">
+@{
 
-    <div style="font-size:36px;font-weight:bold">
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    Session["ShowTitle"] = "no";
 
-        @if (ViewBag.Title != null)
-        {
-            @ViewBag.Title
-        }
-        else
-        {
-            @TempData["PageTitle"]
-        }
+}
 
-    </div>
-
-    <font color="red">  Critical ERROR:</font> Critical client or server error occured. Close the browser, open the application and try again.   
-
-
-
-    <br />
-    <br />
-    @*<button onclick="goBack()">Go Back</button>*@
-</div>
-
-
-<script>
-    function goBack() {
-        window.history.back();
-    }
-</script>

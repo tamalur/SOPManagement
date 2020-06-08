@@ -1,19 +1,23 @@
 ﻿
 @{
-    ViewBag.Title = "Publish SOP";
+    
     TempData["PageTitle"] = "Publish SOP";
 }
+
 <div class="sopmessagebox">
     <div style="font-size:36px;font-weight:bold">
 
-        @if (ViewBag.Title != null)
-        {
-            @ViewBag.Title
-        }
-        else
+        @if (TempData["PageTitle"] != null)
         {
             @TempData["PageTitle"]
         }
+
+        else if (Session["PageTitle"] != null)
+        {
+
+            @Session["PageTitle"]
+        }
+
 
     </div>
 

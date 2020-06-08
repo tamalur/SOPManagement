@@ -199,7 +199,7 @@ namespace SOPManagement.Models
                     departmentcode = (short)x.departmentcode,
                     departmentname = x.departmentname
 
-                }).Where(q => q.useremailaddress == useremailaddress);
+                }).Where(q => q.useremailaddress.Trim().ToLower() == useremailaddress.Trim().ToLower());
 
 
                 //assign property from returned object from linq above

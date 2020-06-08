@@ -2,21 +2,26 @@
 
 
 @{
-    ViewBag.Title = "SOP Admin";
+
+
+    TempData["PageTitle"]= "SOP Admin";
+    Session["ShowTitle"] = "yes";
+
+
 }
 
-<div style="font-size:36px;font-weight:bold">
+@*<div style="font-size:36px;font-weight:bold">
 
-    @if (ViewBag.Title != null)
-    {
-        @ViewBag.Title
-    }
-    else
-    {
-        @TempData["PageTitle"]
-    }
+        @if (ViewBag.Title != null)
+        {
+            @ViewBag.Title
+        }
+        else
+        {
+            @TempData["PageTitle"]
+        }
 
-</div>
+    </div>*@
 
 @using (Html.BeginForm("AdminSOP", "Home", FormMethod.Post, new { @id = "Form1" }))
 {
@@ -417,41 +422,41 @@
 
         </p>
 
-   </div>
+    </div>
 
 
 }
 
-    <div>
+<div>
 
-        <p>
+    <p>
 
-            <table>
+        <table>
 
-                <tr>
-                    @*<td style="text-align:center">
+            <tr>
+                @*<td style="text-align:center">
 
                         @using (Html.BeginForm("AdminSOP", "Home", FormMethod.Post, new { @id = "Form2" }))
                         {
                             <input type="submit" value="Archive" name="archive" id="soparchive" />
                         }
                     </td>*@
-                    <td style="text-align:center">
-                        <input value="Submit Changes" type="submit" onclick="confirmsave();"  name="save" id="sopsubmit" />
-                    </td>
-                </tr>
+                <td style="text-align:center">
+                    <input value="Submit Changes" type="submit" onclick="confirmsave();" name="save" id="sopsubmit" />
+                </td>
+            </tr>
 
-            </table>
-        </p>
+        </table>
+    </p>
 
-    </div>
+</div>
 
-    <div class="submit-progress hidden" id="progessdiv">
-        <img src="~/Content/Images/soploading.gif" style="width:55px;height:55px" />
-        @*<i class="fa fa-2x fa-spinner fa-spin"></i>
+<div class="submit-progress hidden" id="progessdiv">
+    <img src="~/Content/Images/soploading.gif" style="width:55px;height:55px" />
+    @*<i class="fa fa-2x fa-spinner fa-spin"></i>
         <label>Please wait while submitting SOP...</label>*@
-        <label>Please wait while submitting SOP...</label>
-    </div>
+    <label>Please wait while submitting SOP...</label>
+</div>
 
 
 <script src="~/Scripts/jquery-3.3.1.min.js"></script>
@@ -519,8 +524,8 @@
 
         var upfrequnit = $('#Updfrequnitcode :selected').text();
         var updfrequcode = $('#Updfrequnitcode :selected').val();
-        
-  
+
+
         if (upfrequnit == "Please select freq. unit" || upfrequnit == "") {
             alert("Update frequency unit is required!")
             return true;
@@ -626,7 +631,7 @@
 
         DisplayProgressMessage(document.getElementById('sopsubmit'), "Processing SOP");
 
-         //submit reviewers, viewers etc. to controler through ajax 
+         //submit reviewers, viewers etc. to controler through ajax
 
            // confirmsave();
 
@@ -660,19 +665,19 @@
                 dataType: "json",     //data type that we expect from server
                 success: function (response) {  //server sends OK 200 response to the client
 
-                    if (response.redirecturl != null && response.redirecturl != "")  
+                    if (response.redirecturl != null && response.redirecturl != "")
                         window.location.href = response.redirecturl;
-                    else {  
+                    else {
                         //json field with success and responseText field
                         //alert(response.success has two values success or failure that I did not check here as I have error message in session);
                         //alert(response.responseText)
- 
+
                         @*window.location.href = '@Url.Action("SOPMessage", "Home")/' + id;*@
 
                         if (response.success == false && response.responseText == "sessiontimeout")
                             window.location.href = '@Url.Action("logIn", "Home")';
 
-                         else 
+                         else
                             window.location.href = '@Url.Action("SOPMessage", "Home")';
 
                     }
@@ -688,7 +693,7 @@
                     //Codes other than Http Success codes(200[OK]) will trigger the function in front of error: in client side(ajax).
 
                     window.location.href = '@Url.Action("CleintServerErr", "Home")';
-                  
+
                 }
 
 
