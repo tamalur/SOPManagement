@@ -1448,62 +1448,64 @@ namespace SOPManagement.Controllers
 
             TempData["PageTitle"] = "Access SOP Archive";
 
-             Session["SOPMsg"] = "Under construction.";
+          //   Session["SOPMsg"] = "Under construction.";
 
             Session["SOPName"] = "";
 
-             return RedirectToAction("SOPMessage");
+            Session["UserDeptName"] = Utility.GetLoggedInUserSOPDeptName();
+
+
+            SOPClass oSop = new SOPClass();
+
+            TempData["PageTitle"] = "Access SOP Archive";
+
+            Session["SOPName"] = "N/A";
+
+            if (!oSop.AuthenticateUser("accessarchive"))
+            {
+
+                Session["SOPMsg"] = "Error:SOP archive folder can only be accessed by SOP Owners.";
+
+                return RedirectToAction("SOPMessage");
+
+            }
+
+            oSop = null;
+
+
+            //  return RedirectToAction("SOPMessage");
+
+            return View();
+
+
+        }
+
+
+        //public ActionResult UploadSOPFile()
+        //{
+
+        //    if (Utility.IsSessionExpired())
+        //        return RedirectToAction("LogIn");
 
 
 
-            //SOPClass oSop = new SOPClass();
-
-            //TempData["PageTitle"] = "Access SOP Archive";
-
-            //Session["SOPName"] = "N/A";
-
-            //if (!oSop.AuthenticateUser("accessarchive"))
-            //{
-
-            //    Session["SOPMsg"] = "Error:SOP archive folder can only be accessed by SOP Owners.";
-
-            //    return RedirectToAction("SOPMessage");
-
-            //}
-
-           // oSop = null;
+        //    ViewBag.Message = "Upload SOP File";
 
 
 
+        //    ViewBag.ddlDeptFolders = new SelectList(Utility.GetFolders(), "FileName", "FileName");
 
-    }
-
-
-    //public ActionResult UploadSOPFile()
-    //{
-
-    //    if (Utility.IsSessionExpired())
-    //        return RedirectToAction("LogIn");
+        //    ViewBag.employees = ViewBag.employees = (from c in ctx.vwUsers select new { c.useremailaddress, c.userfullname }).Distinct();
 
 
+        //    ViewBag.departments = (from c in ctx.codesdepartments select new { c.departmentname, c.departmentcode }).Distinct();
 
-    //    ViewBag.Message = "Upload SOP File";
+        //    ViewBag.updfrequnits= (from c in ctx.codesUnits select new { c.Unitname, c.unitcode,c.UnitType }).Where(x=>x.UnitType == "UpdateFrequency").Distinct();
 
+        //    return View();
+        //}
 
-
-    //    ViewBag.ddlDeptFolders = new SelectList(Utility.GetFolders(), "FileName", "FileName");
-
-    //    ViewBag.employees = ViewBag.employees = (from c in ctx.vwUsers select new { c.useremailaddress, c.userfullname }).Distinct();
-
-
-    //    ViewBag.departments = (from c in ctx.codesdepartments select new { c.departmentname, c.departmentcode }).Distinct();
-
-    //    ViewBag.updfrequnits= (from c in ctx.codesUnits select new { c.Unitname, c.unitcode,c.UnitType }).Where(x=>x.UnitType == "UpdateFrequency").Distinct();
-
-    //    return View();
-    //}
-
-    public ActionResult SOPMessage()
+        public ActionResult SOPMessage()
         {
 
             Session["ShowTitle"] = "no";

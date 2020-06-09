@@ -4,8 +4,99 @@
 
     Session["SOPName"] = "N/A";
 
+    Session["ShowTitle"] = "yes";
+
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>AccessArchive</h2>
+<p>
+    <table style="width:80%;border-bottom:none">
+
+        <tr>
+            <td class="signoffield">
+
+                @Html.Label("Department Name"):
+
+            </td>
+            <td>
+                @if (Session["UserDeptName"]!=null)
+                {
+
+                    @Session["UserDeptName"]
+                }
+            </td>
+        </tr>
+
+
+    </table>
+</p>
+
+<p>
+
+    <table style="width:80%">
+        <thead>
+            <tr>
+                <td class="signoffield" colspan="4">
+                    Archived SOPs:
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    @Html.Label("Link to SOP"):
+
+                </th>
+                <th>
+                    @Html.Label("SOP NO"):
+
+                </th>
+                <th>
+                    @Html.Label("Version No"):
+
+                </th>
+                <th>
+                    @Html.Label("Archive Folder"):
+
+                </th>
+
+
+            </tr>
+        </thead>
+
+
+        <tbody>
+
+            @using (var db = new SOPManagement.Models.RadiantSOPEntities())
+            {
+
+                //foreach (var soparcvd in db.vwArchivedSOPs.Where(x => x.DeptName == Convert.ToString(Session["UserDeptName"])))
+                foreach (var soparcvd in db.vwArchivedSOPs)
+
+                {
+
+                    if (soparcvd.DeptName.Trim().ToUpper() == Session["UserDeptName"].ToString().Trim().ToUpper())
+                    {
+                          <tr>
+
+                        <td width="35%"> <a href="@soparcvd.SPFileLink">@soparcvd.SOPName</a> </td>
+
+                        <td width="10%"> @soparcvd.SOPNo </td>
+
+                        <td width="15%"> @soparcvd.VersionNo </td>
+
+                        <td width="40%"> @soparcvd.ArcihveFilePath </td>
+
+                        @*<a href="@Model.SOPUrl" target="_blank">@Model.SOPName SOP</a>*@
+
+                        </tr>
+                    }
+
+                }
+            }
+
+        </tbody>
+
+
+    </table>
+
+</p>
 

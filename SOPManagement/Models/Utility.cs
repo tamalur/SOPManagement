@@ -326,6 +326,26 @@ namespace SOPManagement.Models
         }
 
 
+        public static string GetLoggedInUserSOPDeptName()
+        {
+            string useremail = GetCurrentLoggedInUserEmail();
+
+            //  string useremail = "mschmidt@radiantdelivers.com";
+
+            string sopdeptname = "";
+
+
+            using (var dbctx = new RadiantSOPEntities())
+            {
+                sopdeptname = dbctx.vwUsers.Where(u => u.useremailaddress.Trim().ToLower() == useremail.Trim().ToLower()).Select(u => u.departmentname).FirstOrDefault();
+
+            }
+
+            return sopdeptname;
+
+        }
+
+
 
         public static string GetTempLocalDirPath()
         {

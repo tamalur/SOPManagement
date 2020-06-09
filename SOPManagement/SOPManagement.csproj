@@ -286,6 +286,9 @@
     <Compile Include="Models\vwApprvrsSignature.cs">
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\vwArchivedSOP.cs">
+      <DependentUpon>SOPEDM.tt</DependentUpon>
+    </Compile>
     <Compile Include="Models\vwDepartmentFolder.cs">
       <DependentUpon>SOPEDM.tt</DependentUpon>
     </Compile>

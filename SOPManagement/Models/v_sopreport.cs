@@ -62,5 +62,6 @@ namespace SOPManagement.Models
         public string SignURL { get; set; }
         public string ChangeRequestURL { get; set; }
         public string SPFilePath_Error { get; set; }
+        public string AdminAccessURL { get; set; }
     }
 }
