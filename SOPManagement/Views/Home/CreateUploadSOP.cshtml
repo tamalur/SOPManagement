@@ -224,97 +224,121 @@
 
 
         <div class="form-group">
-            @Html.Label("Read Access to All", htmlAttributes: new { @class = "control-label col-md-2" })
 
-            <div class="col-md-10">
-                @Html.CheckBoxFor(model => model.AllUsersReadAcc, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.AllUsersReadAcc, "", new { @class = "text-danger" })
-            </div>
-        </div>
+                @Html.Label("View Access To:", htmlAttributes: new { @class = "control-label col-md-2" })
 
-        <div class="form-group">
-            @Html.Label("Read Access to a Department", htmlAttributes: new { @class = "control-label col-md-2" })
 
-            <div class="col-md-10">
-                @Html.DropDownListFor(model => model.DepartmentCode, new SelectList(ViewBag.departments, "sopdeptcode", "sopdeptname"), "Select a department", new { @class = "form-control" })
-                @Html.ValidationMessageFor(model => model.DepartmentCode, "", new { @class = "text-danger" })
-            </div>
-        </div>
+                <div class="col-md-10">
 
-        <div class="form-group">
-
-            @Html.Label("Add Viewers", htmlAttributes: new { @class = "control-label col-md-2" })
-
-            <div class="col-md-10">
-                <table id="tblViewers" style="width:50%">
-
-                    <thead>
-
+                    <table>
                         <tr>
+                            <td width="30%">
 
-                            <th>Full Name</th>
+                                @Html.Label("All Users:")
 
-                            <th>Email</th>
+                            </td>
 
-                            <th></th>
-
+                            <td width="70%">
+                                @Html.CheckBoxFor(model => model.AllUsersReadAcc, new { htmlAttributes = new { @class = "form-control" } })
+                                @Html.ValidationMessageFor(model => model.AllUsersReadAcc, "", new { @class = "text-danger" })
+                            </td>
+                            
                         </tr>
 
-                    </thead>
+                        <tr>
+                            <td>
+                                @Html.Label("By Department:")
+                            </td>
 
-                    <tbody>
+                            <td>
+                                @Html.DropDownListFor(model => model.DepartmentCode, new SelectList(ViewBag.departments, "sopdeptcode", "sopdeptname"), "Select a department", new { @class = "form-control" })
+                                @Html.ValidationMessageFor(model => model.DepartmentCode, "", new { @class = "text-danger" })
 
-                        @using (var db = new SOPManagement.Models.RadiantSOPEntities())
-                        {
+                            </td>
 
-                            foreach (var usr in db.vwSOPReviewers.Where(x => x.fileid == -1))
-
-                            {
-
-
-                                <tr>
-
-                                    <td> @usr.userfullname </td>
-
-                                    <td> @usr.useremailaddress </td>
-
-                                    @*<td> @usr.jobtitle </td>*@
-
-                                    <td><input type="button" value="Remove" onclick="Remove(this,'#tblViewers')" /></td>
-
-
-
-                                </tr>
-
-                            }
-                        }
-
-                    </tbody>
-
-                    <tfoot>
+                        </tr>
 
                         <tr>
 
                             <td>
+                                @Html.Label("By Users:")
 
-                                @Html.DropDownList("userid", new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select a viewer", new { @id = "ddlViewers" })
                             </td>
 
-                            <td><input type="button" id="btnAddVwer" value="Add" /></td>
+                            <td>
 
+                                <table id="tblViewers" style="width:50%">
+
+                                    <thead>
+
+                                        <tr>
+
+                                            <th>Full Name</th>
+
+                                            <th>Email</th>
+
+                                            <th></th>
+
+                                        </tr>
+
+                                    </thead>
+
+                                    <tbody>
+
+                                        @using (var db = new SOPManagement.Models.RadiantSOPEntities())
+                                        {
+
+                                            foreach (var usr in db.vwSOPReviewers.Where(x => x.fileid == -1))
+
+                                            {
+
+
+                                                <tr>
+
+                                                    <td> @usr.userfullname </td>
+
+                                                    <td> @usr.useremailaddress </td>
+
+                                                    @*<td> @usr.jobtitle </td>*@
+
+                                                    <td><input type="button" value="Remove" onclick="Remove(this,'#tblViewers')" /></td>
+
+
+
+                                                </tr>
+
+                                            }
+                                        }
+
+                                    </tbody>
+
+                                    <tfoot>
+
+                                        <tr>
+
+                                            <td>
+
+                                                @Html.DropDownList("userid", new SelectList(ViewBag.employees, "useremailaddress", "userfullname"), "Please select a viewer", new { @id = "ddlViewers" })
+                                            </td>
+
+                                            <td><input type="button" id="btnAddVwer" value="Add" /></td>
+
+                                        </tr>
+
+                                    </tfoot>
+
+                                </table>
+
+                            </td>
                         </tr>
 
-                    </tfoot>
+                    </table>
 
-                </table>
-
-            </div>
+               </div>
 
         </div>
 
-
-
-    </div>
+   </div>
 
 
 }
@@ -757,23 +781,44 @@
 
             var row = $(button).closest("TR");
 
-            var name = $("TD", row).eq(0).html();
-
-            if (confirm("Do you want to delete: " + name)) {
-
-                //Get the reference of the Table.
-
-                // var table = $("#tblReviewers")[0];
-
-                var table = $(tableid)[0];
+             var name = $("TD", row).eq(0).html();
 
 
+             window.confirm("Do you want to delete: " + name,
+                 function () {
+                     // Do something for yes
 
-                //Delete the Table row using it's Index.
+                    // alert('clicked OK');
+                     var table = $(tableid)[0];
 
-                table.deleteRow(row[0].rowIndex);
+                    //Delete the Table row using it's Index.
 
-            }
+                     table.deleteRow(row[0].rowIndex);
+
+
+                 },
+                 function () {
+                     // Do something for No
+                    // alert('clicked Cancel');
+                 }
+             );
+
+
+            //if (confirm("Do you want to delete: " + name)) {
+
+            //    //Get the reference of the Table.
+
+            //    // var table = $("#tblReviewers")[0];
+
+            //    var table = $(tableid)[0];
+
+
+
+            //    //Delete the Table row using it's Index.
+
+            //    table.deleteRow(row[0].rowIndex);
+
+            //}
 
         };
 

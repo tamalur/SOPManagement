@@ -103,7 +103,7 @@ th {
     border-width: 2px;
     padding: 10px;
     width: 100%;
-    margin-top: 15%;
+    margin-top: 10%;
     
 }
 
@@ -121,4 +121,25 @@ th {
    
 }
 
+.soptitle {
+    font-size: 36px;
+    margin-top: 4%
+}
 
+
+@media only screen and (max-width: 1000px) {
+
+    .soptitle {
+        font-size: 36px;
+        margin-top: 15%
+    }
+
+    .sopmessagebox {
+        font-size: 18px;
+        border-style: solid;
+        border-width: 2px;
+        padding: 10px;
+        width: 100%;
+        margin-top: 20%;
+    }
+}

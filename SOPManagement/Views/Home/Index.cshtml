@@ -3,15 +3,53 @@
 }
 
 
-<div class="jumbotron" style="margin-top:4%">
-    <h2>Radiant Canada Standard Operating Procedure (SOP) Document Management</h2>
-    <p class="lead">SOP is a ASP.NET web application that makes SOP management and access very easy through dashboard.</p>
-    <p>It stores SOP documents in Microsoft SharePoint Online and manage changes of document through database.
-    Users can easily manage SOP and access SOP without even having any training on this</p>
-    
-</div> 
+@*<div class="jumbotron" style="margin-top:4%;text-align:center">*@
+
+    <div style="margin-top:4%;text-align:center;background-color:lightgray;padding-top:5px;padding-bottom:5px;width:80%">
+
+        <h2><b>Radiant SOP Document Management System</b></h2>
+        <p>
+            This application is designed to make creation and maintenance of SOP's <br />
+            (Standard Operating Procedures) within Radiant Canada easy to manage <br />
+            through a simple yet powerful dashboard.
+        </p>
+        <p>
+            The links below under <i>Using the System</i> will allow you to <br />
+            quickly gain an understanding of how to use this tool.
+        </p>
+
+        <p>
+            <font style="font-weight:bold"> PLEASE NOTE: All users are governed by the items under <i>Reference Information below.</i> </font>
+              
+        </p>
+    </div> 
 
 <div class="row">
+    <div class="col-md-12" style="padding-top:10px">
+        <u><b>Using the System: </b> </u>
+        <ul style="list-style-type: none;">
+            <li> <a href="@Url.Action("DashboardMan", "Home")">SOP Dashboard Overview: Accessing SOP's</a>  </li>
+            <li> <a href="@Url.Action("SOPUploadCreateMan", "Home")">SOP Upload/Creation </a> </li>
+            <li><a href="@Url.Action("ChngReqMan", "Home")">Change Request: Document Changes, Review & Approval Cycle </a> </li>
+            <li><a href="@Url.Action("SignOffMan", "Home")">Signing Off & Publishing SOP's to System </a> </li>
+            <li><a href="@Url.Action("AdminMan", "Home")">Admin Changes:  Changing core document items (Users/Timeframes/Archiving) </a> </li>
+            <li><a href="@Url.Action("ArchiveMan", "Home")">Accessing SOP Archive </a> </li>
+
+        </ul>
+
+        <b><u>Reference Information: </u> </b>
+        <ul style="list-style-type: none;">
+
+            <li> <a href="@Url.Action("PurposeMan", "Home")">Purpose</a>  </li>
+            <li> <a href="@Url.Action("SOPIDControl", "Home")">SOP Identification & Control</a>  </li>
+            <li> <a href="@Url.Action("SOPFormat", "Home")">SOP Format</a>  </li>
+
+        </ul>
+    </div>
+
+</div>
+
+@*<div class="row">
     <div class="col-md-4">.
         <h2>How to access SOP</h2>
         <p>
@@ -29,4 +67,4 @@
         <p>Coming soon...</p>
         <p><a class="btn btn-default" href="">Learn more &raquo;</a></p>
     </div>
-</div>
+</div>*@

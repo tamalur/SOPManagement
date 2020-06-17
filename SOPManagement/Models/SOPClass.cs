@@ -67,11 +67,11 @@ namespace SOPManagement.Models
 
         public byte[] FileStream { get; set; }  //with sopno in front SOPNO + " "+ FileTitle
 
-        [Display(Name = "Select Folder")]
+        [Display(Name = "Select Department")]
         [Required(ErrorMessage = "Folder name is Required")]
         public string FolderName { get; set; }
 
-        [Display(Name = "Select Subfolder")]
+        [Display(Name = "Select Sub-department")]
         public string SubFolderName { get; set; }
 
         [Display(Name = "By Department")]
@@ -89,15 +89,20 @@ namespace SOPManagement.Models
 
         public string FileCurrVersion { get; set; }
 
+        public string FileCurrDraftVersion { get; set; }
+
 
         [Required(ErrorMessage = "Frequency Required")]
-        [Display(Name = "Update Frequency")]
+        [Display(Name = "Update every")]
         public short Updatefreq { get; set; }
 
-        [Display(Name = "Freq. Unit")]
+        [Display(Name = "Period")]
         public string Updatefrequnit { get; set; }
 
         public short Updfrequnitcode { get; set; }
+
+        public DateTime UpdScheduleDate { get; set; }
+
 
         public string FileLink { get; set; }
 
@@ -158,15 +163,39 @@ namespace SOPManagement.Models
             if (pFieldName== "Updatefreq")
             {
 
+                DateTime freqschdl=DateTime.Now ;    
+
+                
                 using (var dbcontext = new RadiantSOPEntities())
                 {
+                    //get last update date of schedule update and modify schdeule date based on that last update date  
+
+                    freqschdl = Convert.ToDateTime(dbcontext.fileupdateschedules.Where(u => u.fileid == FileID).Select(u => u.updatedatetime).FirstOrDefault());
+
                     var result = dbcontext.fileupdateschedules.SingleOrDefault(b => b.fileid == FileID);
                     if (result != null)
                     {
 
                         result.frequencyofrevision = Updatefreq;
                         result.unitcodeupdfreq = Updfrequnitcode;
-                        result.updatedatetime = DateTime.Today;
+
+
+                        switch (Updfrequnitcode)
+                        {
+                            case 1:    //yearly
+                                freqschdl = freqschdl.AddYears(Updatefreq);
+                                break;
+                            case 2:    //monthly
+                                freqschdl = freqschdl.AddMonths(Updatefreq);
+                                break;
+                            case 3:    //weekly
+                                freqschdl = freqschdl.AddDays(Updatefreq*7);   // 7 days in a week.
+                                break;
+
+                        }
+
+                        result.scheduledatetime = freqschdl;
+                        result.updatedatetime = DateTime.Now;
                         result.upatedbyuserid = Utility.GetLoggedInUserID();
 
 
@@ -176,6 +205,53 @@ namespace SOPManagement.Models
 
 
             }  //end udpate freq
+
+            if (pFieldName == "UpdatefreqAfterPublish")
+            {
+
+                DateTime freqschdl = DateTime.Now;
+
+
+                using (var dbcontext = new RadiantSOPEntities())
+                {
+                    //get last update date of schedule update and modify schdeule date based on that last update date  
+
+                 //  freqschdl = Convert.ToDateTime(dbcontext.fileupdateschedules.Where(u => u.fileid == FileID).Select(u => u.updatedatetime).FirstOrDefault());
+
+                    var result = dbcontext.fileupdateschedules.SingleOrDefault(b => b.fileid == FileID);
+                    if (result != null)
+                    {
+
+                        result.frequencyofrevision = Updatefreq;
+                        result.unitcodeupdfreq = Updfrequnitcode;
+
+
+                        switch (Updfrequnitcode)
+                        {
+                            case 1:    //yearly
+                                freqschdl = freqschdl.AddYears(Updatefreq);
+                                break;
+                            case 2:    //monthly
+                                freqschdl = freqschdl.AddMonths(Updatefreq);
+                                break;
+                            case 3:    //weekly
+                                freqschdl = freqschdl.AddDays(Updatefreq * 7);   // 7 days in a week.
+                                break;
+
+                        }
+
+                        result.scheduledatetime = freqschdl;
+                        result.updatedatetime = DateTime.Now;
+                        result.upatedbyuserid = Utility.GetLoggedInUserID();
+
+
+                        dbcontext.SaveChanges();
+                    }
+                }
+
+
+            }  //end udpate freq
+
 
             if (pFieldName == "FileOwnerEmail")
                 AddFileOwner("no");  //without any change request
@@ -205,6 +281,25 @@ namespace SOPManagement.Models
                 }
             }
         }
+
+        public void UpdateSOPArchiveStatus()
+        {
+
+            using (var dbcontext = new RadiantSOPEntities())
+            {
+                var result = dbcontext.deptsopfiles.SingleOrDefault(b => b.FileID == FileID);
+                if (result != null)
+                {
+                    result.filestatuscode = FileStatuscode;
+                    result.SPFileLink = FileUrl;
+                    result.SPFilePath = FilePath;
+                    result.LastModifiedDate = DateTime.Now;
+
+                    dbcontext.SaveChanges();
+                }
+            }
+        }
+
 
         public void UpdateChangeReqID(short statuscode)
         {
@@ -767,22 +862,7 @@ namespace SOPManagement.Models
             OperationSuccess = false;
             DateTime freqschdl = DateTime.Now;
 
-            //switch (Updatefrequnit.Trim().ToLower())
-            //{
-            //    case "yearly":
-            //        freqschdl = freqschdl.AddYears(Updatefreq);
-            //        break;
-            //    case "monthly":
-            //        freqschdl = freqschdl.AddMonths(Updatefreq);
-            //        break;
-            //    case "weekly":
-            //        freqschdl = freqschdl.AddDays(Updatefreq);
-            //        break;
-
-            //}
-
-
-            switch (Updfrequnitcode)
+           switch (Updfrequnitcode)
             {
                 case 1:    //yearly
                     freqschdl = freqschdl.AddYears(Updatefreq);
@@ -791,7 +871,7 @@ namespace SOPManagement.Models
                     freqschdl = freqschdl.AddMonths(Updatefreq);
                     break;
                 case 3:    //weekly
-                    freqschdl = freqschdl.AddDays(Updatefreq);
+                    freqschdl = freqschdl.AddDays(Updatefreq*7);   //7 days in a week
                     break;
 
             }
@@ -804,11 +884,11 @@ namespace SOPManagement.Models
                 {
                     fileid = FileID,
                     frequencyofrevision = Updatefreq,
-                    unitoffrequency = Updatefrequnit,
                     unitcodeupdfreq = Updfrequnitcode,
-                    lastrevisionno = "1.0",
-                    scheduledatetime = freqschdl
-
+                    scheduledatetime = freqschdl,
+                    updatedatetime = DateTime.Now,
+                    upatedbyuserid=Utility.GetLoggedInUserID()
+                    
 
                 };
                 dbcontext.fileupdateschedules.Add(updfreqtable);
@@ -1745,7 +1825,8 @@ namespace SOPManagement.Models
 
                     //end updating 3rd table for approver
 
-                    //update last table to add data into Revison history table 
+
+                    //update last table to add new revision data into Revison history table 
 
                     Microsoft.Office.Interop.Word.Table tab = wdoc.Tables[totalTables];
                     Microsoft.Office.Interop.Word.Range range = tab.Range;
@@ -1754,60 +1835,83 @@ namespace SOPManagement.Models
                     int selectedRow = tab.Rows.Count;
 
 
-                    //we don't need revision history for new upload
+                    // Select and copy content of the source row.
 
-                    //delete rows if the table has more than three rows 
-
-                    //if (selectedRow > 2)
-                    //{
-                    //    rowstodel = selectedRow - 2;
-                    //    for (int i = 1; i <= rowstodel; i++)
-                    //    {
-                    //        tab.Rows[3].Delete();
-
-                    //    }
-                    //    selectedRow = tab.Rows.Count;
-                    //}
-
-                    //// Select and copy content of the source row.
-                    //range.Start = tab.Rows[selectedRow].Cells[1].Range.Start;
-                    //range.End = tab.Rows[selectedRow].Cells[tab.Rows[selectedRow].Cells.Count].Range.End;
-                    //range.Copy();
+                    range.Start = tab.Rows[selectedRow].Cells[1].Range.Start;
+                    range.End = tab.Rows[selectedRow].Cells[tab.Rows[selectedRow].Cells.Count].Range.End;
+                    range.Copy();
 
 
-                    //donotaddrow = false;
+                    donotaddrow = false;
 
-                    //int filevercount = 1;
+                    bool lastrowtoupd;
 
-                    //if (FileRevisions!=null)
-                    //     foreach (FileRevision rev in FileRevisions)
-                    //     {
+                    // int filevercount = 1;
 
-                    //    if (selectedRow == 2 && filevercount == 1)
-                    //    {
-                    //        donotaddrow = true;
-                    //    }
+                    foreach (FileRevision rev in FileRevisions)
+                    {
+                        decimal drevno;
+                        drevno = Convert.ToDecimal(rev.RevisionNo);
 
-                    //    else
-                    //        donotaddrow = false;
+                        //check whether this revision is already in table. if not then only
+                        // add new revision so we do not replace historical revision description
 
-                    //    if (!donotaddrow)
-                    //        tab.Rows.Add(ref missObj);
+                        donotaddrow = false;
+                        lastrowtoupd = false;
 
-                    //    // Moves the cursor to the first cell of target row.
-                    //    range.Start = tab.Rows[tab.Rows.Count].Cells[1].Range.Start;
-                    //    range.End = range.Start;
+                        // this loop ensures we do not replace existing revision history 
+                        for (int i = 2; i <= tab.Rows.Count; i++)
+                        {
+                            if (rev.RevisionNo.Trim() == tab.Rows[i].Cells[1].Range.Text.Replace("\r\a", "").Trim())
+                            {
+                                donotaddrow = true;
+                                break;
+                            }
 
-                    //// Paste values to target row.
-                    //    range.Paste();
+                        }
+
+                        //if this is first revision history rev no 1, then do not add row  
+                        if (selectedRow == 2 && tab.Rows[2].Cells[1].Range.Text.Replace("\r\a", "").Trim() == "" && rev.RevisionNo.Trim() == "1")
+                        {
+                            donotaddrow = true;
+                            lastrowtoupd = true;  //ensure new data
+                        }
+
+                        if (!donotaddrow)
+                        {
+                            tab.Rows.Add(ref missObj);
+                            lastrowtoupd = true;   //ensure new data
+                        }
+
+                        if (lastrowtoupd) //update last row only if it is new data
+                        {
+                            // Moves the cursor to the first cell of target row.
+                            range.Start = tab.Rows[tab.Rows.Count].Cells[1].Range.Start;
+                            range.End = range.Start;
+
+                            // Paste values to target row.
+                            range.Paste();
 
 
-                    //    // Write new vaules to each cell.
-                    //    tab.Rows[tab.Rows.Count].Cells[1].Range.Text = rev.RevisionNo;
-                    //    tab.Rows[tab.Rows.Count].Cells[2].Range.Text = rev.RevisionDate.ToString("M/d/yyyy");
-                    //    tab.Rows[tab.Rows.Count].Cells[3].Range.Text = rev.Description;
+                            // Write new vaules to each cell.
 
-                    //    filevercount = filevercount + 1;
+                            tab.Rows[tab.Rows.Count].Cells[1].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
+                            tab.Rows[tab.Rows.Count].Cells[1].Range.Text = rev.RevisionNo;
+
+                            tab.Rows[tab.Rows.Count].Cells[2].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
+                            tab.Rows[tab.Rows.Count].Cells[2].Range.Text = rev.RevisionDate.ToString("MMMM dd, yyyy");
+
+                            tab.Rows[tab.Rows.Count].Cells[3].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
+                            tab.Rows[tab.Rows.Count].Cells[3].Range.Text = rev.Description;
+
+
+                        }
+
+                        //     filevercount = filevercount + 1;
+
+                    }  //end for loop of revision history
+
+
 
 
                 }
@@ -2169,7 +2273,7 @@ namespace SOPManagement.Models
         }
 
 
-        public void UpdateCoverRevhistPage(bool pUpdSignatureRev)
+        public void UpdateCoverRevhistPage(bool pPublishingSOP)
         {
 
 
@@ -2212,9 +2316,12 @@ namespace SOPManagement.Models
 
                     // Write new vaules to each cell.
                     tab1.Rows[1].Cells[2].Range.Text = FileTitle;
-                 //   tab1.Rows[2].Cells[2].Range.Text = SOPNo;
+                    tab1.Rows[2].Cells[2].Range.Text = SOPNo;
                     tab1.Rows[2].Cells[4].Range.Text = FileCurrVersion;
-                    tab1.Rows[3].Cells[2].Range.Text = DateTime.Today.ToString("MMMM dd, yyyy"); //current bcs it will publish now
+
+                    if (pPublishingSOP)     //update effective date only when publishing SOP
+                        tab1.Rows[3].Cells[2].Range.Text = DateTime.Today.ToString("MMMM dd, yyyy"); //current bcs it will publish now
+
                     tab1.Rows[4].Cells[2].Range.Text =FileOwner.userfullname;
 
                     //update 2nd table in  cover page for updating reviewers
@@ -2333,23 +2440,32 @@ namespace SOPManagement.Models
                     // Select the last row as source row.
                     int selectedRow = tab.Rows.Count;
 
+                    //if no revision history found that means it is new file and history has version 1 
+                    //now update revision date of version 1 with the publish date
 
-                    //delete rows if the table has more than three rows 
-
-                    //if (selectedRow > 2)
+                    //if (FileRevisions.Count()==0 && pPublishingSOP)
                     //{
-                    //    rowstodel = selectedRow - 2;
-                    //    for (int i = 1; i <= rowstodel; i++)
+
+                    //    for (int i = 2; i <= tab.Rows.Count; i++)
                     //    {
-                    //        tab.Rows[3].Delete();   //keep first two rows
+                    //        if (tab.Rows[i].Cells[1].Range.Text.Replace("\r\a", "").Trim()=="1")
+                    //        {
+
+                    //            tab.Rows[i].Cells[2].Range.Text = DateTime.Now.ToString("MMMM dd, yyyy");   //if we find revision history no in table, then update the revision date with publish date 
+
+                    //            //donotaddrow = true;
+                    //            break;
+                    //        }
 
                     //    }
-                    //    selectedRow = tab.Rows.Count;
+
                     //}
 
-                    
+                    //end checking new file with version 1
+
+
                     // Select and copy content of the source row.
-                    
+
                     range.Start = tab.Rows[selectedRow].Cells[1].Range.Start;
                     range.End = tab.Rows[selectedRow].Cells[tab.Rows[selectedRow].Cells.Count].Range.End;
                     range.Copy();
@@ -2375,8 +2491,11 @@ namespace SOPManagement.Models
                         // this loop ensures we do not replace existing revision history 
                         for (int i = 2; i <= tab.Rows.Count; i++)
                         {
-                            if (rev.RevisionNo.Trim() == tab.Rows[i].Cells[1].Range.Text.Replace("\r\a", "").Trim())
+                            if (rev.RevisionNo.Trim() == tab.Rows[i].Cells[1].Range.Text.Replace("\r\a", "").Trim() && rev.RevisionID>0)
                             {
+
+                                tab.Rows[i].Cells[2].Range.Text= rev.RevisionDate.ToString("MMMM dd, yyyy");   //if we find revision history no in table, then update the revision date from sharepoint 
+
                                 donotaddrow = true;
                                 break;
                             }
@@ -2390,7 +2509,7 @@ namespace SOPManagement.Models
                             lastrowtoupd = true;  //ensure new data
                         }
 
-                        if (!donotaddrow)
+                        if (!donotaddrow)  
                         {
                             tab.Rows.Add(ref missObj);
                             lastrowtoupd = true;   //ensure new data
@@ -2424,7 +2543,43 @@ namespace SOPManagement.Models
 
                     }  //end for loop of revision history
 
+
+                    //if revision history is not in history in sp update with today's date
+                    bool revfoundinsp = false;
+
+                    //if ((FileRevisions.Count() < (selectedRow - 1)) && pPublishingSOP)
+
+                      if (FileRevisions.Count() >0 && pPublishingSOP)
+                        {
+                        for (int i = 2; i <= tab.Rows.Count; i++)
+                        {
+                            revfoundinsp = false;
+                            foreach (FileRevision rev in FileRevisions)
+                            {
+                                //if (rev.RevisionNo.Trim() == tab.Rows[i].Cells[1].Range.Text.Replace("\r\a", "").Trim())
+                                if (rev.RevisionID>0 && rev.RevisionNo.Trim() == tab.Rows[i].Cells[1].Range.Text.Replace("\r\a", "").Trim())
+                                {
+
+                                    revfoundinsp = true;
+                                    break;
+                                }
+                            }
+
+
+                            if (!revfoundinsp)
+                            {
+
+                                tab.Rows[i].Cells[2].Range.Text = DateTime.Today.ToString("MMMM dd, yyyy");   //if we find rev no in sharepoint , then update the revision date with publish date 
+                            }
+
+                        }  //end looping rev history table
+
+                    }  //end updating revision date with publish date if rev not found in rev history 
+
+
                 }
+
+
 
 
                 // Set footers
@@ -2524,7 +2679,7 @@ namespace SOPManagement.Models
                 FileLink = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SPFileLink).FirstOrDefault();
                 FileCurrVersion = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.VersionNo).FirstOrDefault();
                 Updatefreq = Convert.ToInt16(ctx.fileupdateschedules.Where(d => d.fileid == FileID).Select(d => d.frequencyofrevision).FirstOrDefault());
-                Updatefrequnit =ctx.fileupdateschedules.Where(d => d.fileid == FileID).Select(d => d.unitoffrequency).FirstOrDefault();
+             //   Updatefrequnit =ctx.fileupdateschedules.Where(d => d.fileid == FileID).Select(d => d.unitoffrequency).FirstOrDefault();
                 Updfrequnitcode= Convert.ToInt16(ctx.fileupdateschedules.Where(d => d.fileid == FileID).Select(d => d.unitcodeupdfreq).FirstOrDefault());
 
                 if (FileCurrVersion != null && FileCurrVersion != "")
@@ -2688,7 +2843,11 @@ namespace SOPManagement.Models
                 FileTitle = Path.ChangeExtension(FileName, null);
                 FileLink = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.SPFileLink).FirstOrDefault();
 
+                ApprovalStatus= ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.ApprovalStatus).FirstOrDefault();
+
                 FileCurrVersion = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.VersionNo).FirstOrDefault();
+
+                FileCurrDraftVersion = FileCurrVersion;
 
                 if (FileCurrVersion != null && FileCurrVersion != "")
                 {
@@ -2696,7 +2855,9 @@ namespace SOPManagement.Models
 
                 }
 
-                    // ApprovalStatus = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.ApprovalStatus).FirstOrDefault();
+                
+
+                // ApprovalStatus = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.ApprovalStatus).FirstOrDefault();
                 AuthorName = ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.CreatedBy).FirstOrDefault();
                 SOPCreateDate = Convert.ToDateTime(ctx.deptsopfiles.Where(d => d.FileID == FileID).Select(d => d.CreateDate).FirstOrDefault());
                 ViewAccessType = ctx.fileviewaccesstypes.Where(v => v.fileid == FileID).Select(v => v.viewtypename).FirstOrDefault();
@@ -2712,6 +2873,7 @@ namespace SOPManagement.Models
 
                 Updfrequnitcode = Convert.ToInt16(ctx.fileupdateschedules.Where(s => s.fileid == FileID).Select(s => s.unitcodeupdfreq).FirstOrDefault());
 
+                UpdScheduleDate = Convert.ToDateTime(ctx.fileupdateschedules.Where(s => s.fileid == FileID).Select(s => s.scheduledatetime).FirstOrDefault());
                 //data related to change request
 
                 Employee oSOPOwner = new Employee();
@@ -3504,7 +3666,7 @@ namespace SOPManagement.Models
                 }
             }
 
-            FileRevision[] oRVArr=new FileRevision[totrev] ;
+            FileRevision[] oRVArr=new FileRevision[totrev] ;    //while changing add current version in history too. 
 
             int i = 0;
 
@@ -3531,8 +3693,11 @@ namespace SOPManagement.Models
                     oRVArr[i] = oRiv;
 
                     i = i + 1;
+
                 }
             }
+
+
 
             FileRevisions = oRVArr;
 
@@ -4269,9 +4434,12 @@ namespace SOPManagement.Models
 
             string filerelurl = web.ServerRelativeUrl + "/" + FilePath.Trim() + FileName;
 
+            string filepath = "/SOP/Archive/" + FilePath.Replace("SOP/", "").Trim();
+
             string filenewrelurl = web.ServerRelativeUrl + "/SOP/Archive/"+ FilePath.Replace("SOP/","").Trim() + FileName;
 
             Microsoft.SharePoint.Client.File file = web.GetFileByServerRelativeUrl(filerelurl);
+          
 
             ctx.Load(file);
             ctx.ExecuteQuery();
@@ -4279,7 +4447,33 @@ namespace SOPManagement.Models
             file.MoveTo(filenewrelurl, MoveOperations.Overwrite);
 
             ctx.ExecuteQuery();
+
+            //get uri after moving file
+
+            Microsoft.SharePoint.Client.File filearcvd = web.GetFileByServerRelativeUrl(filenewrelurl);
+
+            ctx.Load(filearcvd);
+
+            ctx.Load(filearcvd, f => f.ListItemAllFields["FileRef"]);
+
+            ctx.ExecuteQuery();
+
+            string absoluteUrl = filearcvd.ListItemAllFields["FileRef"].ToString();
+
+            string linktofile = filearcvd.LinkingUri;
+
+            filepath = "SOP/Archive/" + FilePath.Replace("SOP/", "").Trim();
+
+            //update database for archive path
+
+            FilePath = filepath;
+            FileUrl = linktofile;
+            UpdateSOPArchiveStatus();
+
+
+
         }
+        
 
         //publish/approve file in sharepoint so all users having read permission can view the sop 
         public bool PublishFile()
@@ -4335,6 +4529,12 @@ namespace SOPManagement.Models
                 //user to wait until the current request is approved.
 
                 UpdateChangeReqID(3);
+
+                //reset schedule based on current update schedule setting each time we publish a change.
+
+             // if (UpdScheduleDate.ToString("dd/MM/yyyy")   == DateTime.Today.ToString("dd/MM/yyyy"))
+
+                UpdateDataByFieldName("UpdatefreqAfterPublish");       
 
                 pdone = true;
             }
@@ -4425,7 +4625,7 @@ namespace SOPManagement.Models
 
 
 
-        public void AssignSignatoresReadPermission()
+        public void AssignSignatoresViewePermission()
         {
 
 

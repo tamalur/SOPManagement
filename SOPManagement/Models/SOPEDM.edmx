@@ -173,10 +173,7 @@ warning 6002: The table/view 'RadiantYYZ.sop.codesuserstatus' does not have a pr
           </Key>
           <Property Name="scheduleid" Type="smallint" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="fileid" Type="int" Nullable="false" />
-          <Property Name="lastpublishdate" Type="datetime" />
           <Property Name="frequencyofrevision" Type="smallint" />
-          <Property Name="unitoffrequency" Type="nvarchar" MaxLength="50" />
-          <Property Name="lastrevisionno" Type="nvarchar" MaxLength="50" />
           <Property Name="scheduledatetime" Type="datetime" />
           <Property Name="unitcodeupdfreq" Type="smallint" />
           <Property Name="updatedatetime" Type="datetime" />
@@ -823,9 +820,6 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
           <Property Name="scheduleid" Type="Int16" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="fileid" Type="Int32" Nullable="false" />
           <Property Name="frequencyofrevision" Type="Int16" />
-          <Property Name="unitoffrequency" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="lastrevisionno" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="lastpublishdate" Type="DateTime" Precision="3" />
           <Property Name="scheduledatetime" Type="DateTime" Precision="3" />
           <Property Name="unitcodeupdfreq" Type="Int16" />
           <Property Name="updatedatetime" Type="DateTime" Precision="3" />
@@ -1317,12 +1311,9 @@ warning 6002: The table/view 'RadiantYYZ.sop.vwUsers' does not have a primary ke
                 <ScalarProperty Name="updatedatetime" ColumnName="updatedatetime" />
                 <ScalarProperty Name="unitcodeupdfreq" ColumnName="unitcodeupdfreq" />
                 <ScalarProperty Name="scheduledatetime" ColumnName="scheduledatetime" />
-                <ScalarProperty Name="lastpublishdate" ColumnName="lastpublishdate" />
                 <ScalarProperty Name="scheduleid" ColumnName="scheduleid" />
                 <ScalarProperty Name="fileid" ColumnName="fileid" />
                 <ScalarProperty Name="frequencyofrevision" ColumnName="frequencyofrevision" />
-                <ScalarProperty Name="unitoffrequency" ColumnName="unitoffrequency" />
-                <ScalarProperty Name="lastrevisionno" ColumnName="lastrevisionno" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

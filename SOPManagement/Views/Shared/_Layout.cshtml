@@ -52,16 +52,16 @@
                 @*<p class="nav navbar-text navbar-right" style="color:white">Hello, @Session["UserFullName"] </p>*@
 
                 <p class="nav navbar-text navbar-right" style="color:white;">
-                    
-                        @Html.ActionLink("Data Maintenance (HR/IT)", "DTM", "Home",
-                        new { Style = "color:White;font-weight: bold;text-decoration:none;font-size:100%;" })
-                    
-                        <br />
-                        @Html.ActionLink("Access SOP Archive", "AccessArchive", "Home",
-                        new { Style = "color:White;font-weight: bold;text-decoration:none;font-size:100%;" })
 
-                    
-                </p> 
+                    @Html.ActionLink("Data Maintenance (HR/IT)", "DTM", "Home",
+                    new { Style = "color:White;font-weight: bold;text-decoration:none;font-size:100%;" })
+
+                    <br />
+                    @Html.ActionLink("Access SOP Archive", "AccessArchive", "Home",
+                    new { Style = "color:White;font-weight: bold;text-decoration:none;font-size:100%;" })
+
+
+                </p>
 
             </div>
 
@@ -69,90 +69,174 @@
         </div>
     </div>
 
-
-
     <div class="container body-content">
 
-        @if (Session["ShowTitle"] != null && Session["ShowTitle"].ToString().Trim().ToLower()=="yes")
+        @if (Session["ShowTitle"] != null && Session["ShowTitle"].ToString().Trim().ToLower() == "yes")
         {
 
-        <div class="col-md-12" style="font-size: 36px;margin-top:4%">
-            
-            <b>
-               @if (TempData["PageTitle"] != null)
-                {
-                    @TempData["PageTitle"]
-                }
+            @*<div class="col-md-12" style="font-size: 36px;margin-top:4%">*@
 
-                else if (Session["PageTitle"] != null)
-                {
+            <div class="col-md-12 soptitle">
 
-                    @Session["PageTitle"]
-                }
+                <b>
+                    @if (TempData["PageTitle"] != null)
+                    {
+                        @TempData["PageTitle"]
+                    }
+
+                    else if (Session["PageTitle"] != null)
+                    {
+
+                        @Session["PageTitle"]
+                    }
 
 
-            </b>
-        </div>
+                </b>
+            </div>
         }
 
-        <div id="sopalert" class="w3-modal" style="top:15%">
-            <div class="w3-modal-content">
 
-                <header class="w3-container w3-teal" style="background-color:#6699FF!important">
+        <div id="sopalert" class="w3-modal" style="top:15%">
+            <div class="w3-modal-content" style="width:32%">
+
+                <header class="w3-container w3-teal" style="background-color:darkred!important">
                     <span onclick="document.getElementById('sopalert').style.display='none'"
                           class="w3-button w3-display-topright">&times;</span>
                     <h2>SOP Alert</h2>
                 </header>
 
-                <div class="w3-container">
+                <div class="w3-container" style="text-align:center">
                     <p id="sopalertmsg">Some text..</p>
                 </div>
 
                 @*<footer class="w3-container w3-teal">
-                    <p>Modal Footer</p>
-                </footer>*@
+                        <p>Modal Footer</p>
+                    </footer>*@
 
             </div>
         </div>
 
-       
+
+        <div id="sopconfirm" class="w3-modal" style="top:15%">
+            <div class="w3-modal-content" style="width:32%">
+
+                <header class="w3-container w3-teal" style="background-color:darkred!important">
+                    <span onclick="document.getElementById('sopconfirm').style.display='none'"
+                          class="w3-button w3-display-topright">&times;</span>
+                    <h2>SOP Confirmation</h2>
+                </header>
+
+                <div class="w3-container" style="text-align:center">
+                    <p id="sopconfirmmsg">Some text..</p>
+                </div>
+
+                @*<footer class="w3-container w3-teal">
+                <p>Modal Footer</p>
+            </footer>*@
+
+            </div>
+        </div>
+
         <div class="col-md-12">
             @RenderBody()
         </div>
-        
+
         @*<footer>
-            <p>&copy; @DateTime.Now.Year - SOP ASP.NET Application</p>
-        </footer>*@
+                <p>&copy; @DateTime.Now.Year - SOP ASP.NET Application</p>
+            </footer>*@
     </div>
 
-        @Scripts.Render("~/bundles/jquery")
-        @Scripts.Render("~/bundles/bootstrap")
-        @RenderSection("scripts", required: false)
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
 
-        @*Add this JavaScript in _Layout (when session end 1 minute before this code makes redirect, it makes count time after user last action, not first visit on site)*@
+    @*Add this JavaScript in _Layout (when session end 1 minute before this code makes redirect, it makes count time after user last action, not first visit on site)*@
 
-        <script>
+    <script>
+
+        window.alert = function (message, title) {
+            var myElementToShow = document.getElementById("sopalert");
+
+            var myAlertToShow = document.getElementById("sopalertmsg");
+
+            myAlertToShow.innerHTML = '</br>' + message + "</br></br>" + "<input type='button' value='OK' id='btnalert' onclick='closealert()' />";
+
+            myElementToShow.style.display = "block";
+
+        }
 
 
-            window.alert = function (message, title) {
-                var myElementToShow = document.getElementById("sopalert");
+        function closealert() {
 
-                var myAlertToShow = document.getElementById("sopalertmsg");
+            var myElementToShow = document.getElementById("sopalert");
+            myElementToShow.style.display = "none";
 
-                myAlertToShow.innerHTML = '</br>' + message + "</br></br>" + "<input type='button' value='OK' id='btnalert' onclick='closealert()' />";
-
-                myElementToShow.style.display = "block";
-            }
+        }
 
 
-            function closealert() {
+        function closeconfirm() {
 
-                var myElementToShow = document.getElementById("sopalert");
-                myElementToShow.style.display = "none";
+            var myElementToShow = document.getElementById("sopconfirm");
+            myElementToShow.style.display = "none";
 
-            }
+        }
 
-        </script>
+
+        window.confirm = function (message, yesCallback, noCallback) {
+            var myElementToShow = document.getElementById("sopconfirm");
+
+            var myAlertToShow = document.getElementById("sopconfirmmsg");
+
+            myAlertToShow.innerHTML = '</br>' + message + "</br></br>" + "<input type='button' value='Yes' id='btnYes' />" + "&nbsp" + "&nbsp" + "&nbsp" + "&nbsp" + "&nbsp" + "&nbsp" + "<input type='button' value='No' id='btnNo' />";
+
+            myElementToShow.style.display = "block";
+
+            $('#btnYes').click(function () {
+                closeconfirm();
+                yesCallback();
+            });
+            $('#btnNo').click(function () {
+                closeconfirm();
+                noCallback();
+            });
+
+        }
+
+
+
+
+        //function closealertok() {
+
+        //    var myElementToShow = document.getElementById("sopalert");
+
+        //    document.getElementById("cinfirmmsg").value = true;
+
+        //    alert(document.getElementById("cinfirmmsg").value);
+
+
+
+        //    confirmmsg = true;
+
+        //    myElementToShow.style.display = "none";
+        //    alert(confirmmsg);
+        //    //return true;
+        //}
+
+        //function closealertcan() {
+
+        //    var myElementToShow = document.getElementById("sopalert");
+
+        //    confirmmsg = false;
+
+        //    myElementToShow.style.display = "none";
+        //    alert('cancel called');
+        //    //window.confirm = false;
+        //}
+
+
+
+
+    </script>
 
 </body>
 </html>

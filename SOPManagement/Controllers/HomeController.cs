@@ -185,8 +185,7 @@ namespace SOPManagement.Controllers
 
             // http://localhost:58639/Home/AdminSOP/298
 
-            //TempData["PageTitle"] = "SOP Admin";
-
+            Session["PageTitle"] = "SOP Admin";
 
             TempData["FileID"] = Convert.ToInt32(id);  //very important field in this context
 
@@ -313,7 +312,7 @@ namespace SOPManagement.Controllers
             sop.FileName = oSOP.FileName;
             sop.FilePath = oSOP.FilePath;
             sop.FileUrl = oSOP.FileUrl;
-
+            sop.FileCurrVersion = oSOP.FileCurrVersion;
            
             if (sop.AllUsersReadAcc)
                 sop.ViewAccessType = "All Users";
@@ -531,8 +530,16 @@ namespace SOPManagement.Controllers
 
                 if (!admindatachanged && sop.SOPArchived)
                 {
+
+
+                    if (oSOP.ApprovalStatus.Trim()!="Approved")
+                        oSOP.AssignSignatoresViewePermission();
+
+                    oSOP.FileStatuscode = 4;
                     oSOP.ArchiveSOP();
-                    oSOP.UpdateSOPFileStatus(4);  //archived
+                    
+
+                   // oSOP.UpdateSOPFileStatus(4);  //archived
 
                     Session["SOPMsg"] = "Success: This SOP has been successfully ARCHIVED.";
 
@@ -676,8 +683,8 @@ namespace SOPManagement.Controllers
                         sop.AssignFilePermissionToUsers("contribute", "add", sop.FileReviewers);
 
                         //update sop doc file with new signatories with SOP helper class
-                        //do not use sop becuase it will lose new input data such vieweraccess type etc. that we need in 
-                        //managing veiw access
+                        //do not use sop becuase it will lose new input data such as vieweraccess type etc. that we need in 
+                        //managing veiw access after this process
 
                         SOPClass oSOPHelper = new SOPClass();
 
@@ -694,7 +701,73 @@ namespace SOPManagement.Controllers
 
                         oSOPHelper.DownloadFileFromSharePoint(templocaldirpath);
 
-                        oSOPHelper.UpdateCoverRevhistPage(true);
+                        //Update revision history with current published revision no and next revision no that signatory will may update in revision history 
+
+                        string nextrevisionno = "";
+                        int totrevisions = oSOPHelper.FileRevisions.Count();
+
+                        //if (oSOPHelper.FileCurrVersion != "" && oSOPHelper.ApprovalStatus.Trim() == "Approved")
+                        //{
+
+                        //    nextrevisionno = (Convert.ToInt32(oSOPHelper.FileCurrVersion) + 1).ToString();
+                        //}
+
+                        int i = 0;
+
+
+                        if (totrevisions > 0 && Convert.ToInt32(oSOPHelper.FileRevisions[totrevisions-1].RevisionNo)<Convert.ToInt32(oSOPHelper.FileCurrVersion))
+                        {
+                            FileRevision[] oRVArr = new FileRevision[totrevisions + 1];
+                            FileRevision oRivCurr;
+
+                            foreach (FileRevision fr in oSOPHelper.FileRevisions)
+
+
+                            {
+                                //oRiv = new FileRevision();
+                                //oRiv = fr;
+
+                                oRVArr[i] = fr;
+                                i = i + 1;
+                                if (i == totrevisions)
+                                {
+                                    oRivCurr = new FileRevision();
+
+                                    oRivCurr.FileID = oSOPHelper.FileID;
+                                    oRivCurr.RevisionNo = oSOPHelper.FileCurrVersion;
+                                    oRivCurr.RevisionDate = DateTime.Today;
+
+                                    oRVArr[i] = oRivCurr;
+
+                                    oSOPHelper.FileRevisions = oRVArr;
+
+
+                                }
+
+                            }
+
+                        }
+                        //else if (totrevisions ==0)   //no history in sharepoint
+                        //{
+
+                        //    oRivCurr = new FileRevision();
+
+                        //    oRivCurr.FileID = oSOPHelper.FileID;
+                        //    oRivCurr.RevisionNo = oSOPHelper.FileCurrVersion;
+                        //    oRivCurr.RevisionDate = DateTime.Today;
+
+                        //    oRVArr[0] = oRivCurr;
+
+
+                        //}
+
+
+                      //  oSOPHelper.FileCurrVersion = nextrevisionno;
+
+
+
+
+                        oSOPHelper.UpdateCoverRevhistPage(false);
 
                         //Thread.Sleep(4000);
 
@@ -1481,6 +1554,148 @@ namespace SOPManagement.Controllers
         }
 
 
+        public ActionResult UsingSystem()
+        {
+
+            TempData["PageTitle"] = "Using System";
+
+            Session["SOPMsg"] = "Contents to follow.";
+
+            Session["SOPName"] = "N/A";
+
+            return RedirectToAction("SOPMessage");
+
+
+        }
+
+        public ActionResult DashboardMan()
+        {
+
+            TempData["PageTitle"] = "SOP Dashboard Overview: Accessing SOP's";
+
+            Session["SOPMsg"] = "Contents to follow.";
+
+            Session["SOPName"] = "N/A";
+
+            return RedirectToAction("SOPMessage");
+
+
+        }
+
+        public ActionResult SOPUploadCreateMan()
+        {
+
+            TempData["PageTitle"] = "SOP Upload/Creation";
+
+            Session["SOPMsg"] = "Contents to follow.";
+
+            Session["SOPName"] = "N/A";
+
+            return RedirectToAction("SOPMessage");
+
+
+        }
+
+
+        public ActionResult ChngReqMan()
+        {
+
+            TempData["PageTitle"] = "Change Request: Document Changes, Review & Approval Cycle";
+
+            Session["SOPMsg"] = "Contents to follow.";
+
+            Session["SOPName"] = "N/A";
+
+            return RedirectToAction("SOPMessage");
+
+
+        }
+
+        public ActionResult SignOffMan()
+        {
+
+            TempData["PageTitle"] = "Signing Off & Publishing SOP's to System";
+
+            Session["SOPMsg"] = "Contents to follow.";
+
+            Session["SOPName"] = "N/A";
+
+            return RedirectToAction("SOPMessage");
+
+
+        }
+
+        public ActionResult AdminMan()
+        {
+
+            TempData["PageTitle"] = "Admin Changes:  Changing core document items (Users/Timeframes/Archiving)";
+
+            Session["SOPMsg"] = "Contents to follow.";
+
+            Session["SOPName"] = "N/A";
+
+            return RedirectToAction("SOPMessage");
+
+
+        }
+
+        public ActionResult ArchiveMan()
+        {
+
+            TempData["PageTitle"] = "Accessing SOP Archive";
+
+            Session["SOPMsg"] = "Contents to follow.";
+
+            Session["SOPName"] = "N/A";
+
+            return RedirectToAction("SOPMessage");
+
+
+        }
+
+        public ActionResult PurposeMan()
+        {
+
+            TempData["PageTitle"] = "Purpose";
+
+            Session["SOPMsg"] = "Contents to follow.";
+
+            Session["SOPName"] = "N/A";
+
+            return RedirectToAction("SOPMessage");
+
+
+        }
+
+        public ActionResult SOPIDControl()
+        {
+
+            TempData["PageTitle"] = "SOP Identification & Control";
+
+            Session["SOPMsg"] = "Contents to follow.";
+
+            Session["SOPName"] = "N/A";
+
+            return RedirectToAction("SOPMessage");
+
+
+        }
+
+        public ActionResult SOPFormat()
+        {
+
+            TempData["PageTitle"] = "SOP Format";
+
+            Session["SOPMsg"] = "Contents to follow.";
+
+            Session["SOPName"] = "N/A";
+
+            return RedirectToAction("SOPMessage");
+
+
+        }
+
+
         //public ActionResult UploadSOPFile()
         //{
 
@@ -1637,7 +1852,7 @@ namespace SOPManagement.Controllers
 
               //       oSOP.UpdateCoverRevhistPageDocX(true);
 
-                    oSOP.UpdateCoverRevhistPage(true);     //interop com version does not work.
+                    oSOP.UpdateCoverRevhistPage(true);     
 
                     oLogger.UpdateLogFile(DateTime.Now.ToString() + ":Publish SOP Action:Successfully updated cover sheet with updated owner, approver etc. and revision history in SOP at local dir");
 
@@ -1760,6 +1975,8 @@ namespace SOPManagement.Controllers
         {
 
 
+            string templocaldirpath="";
+
             TempData["PageTitle"] = "SOP Change Request";
 
             if (Utility.IsSessionExpired())
@@ -1826,6 +2043,116 @@ namespace SOPManagement.Controllers
 
                     oSOP.FileChangeRqsterID = Utility.GetLoggedInUserID();
 
+
+                    oSOP.GetSOPInfo();
+
+                    //download SOP and update coversheet and revision history with next revision no so signatories can add comments under the revision 
+
+                    templocaldirpath = Server.MapPath(Utility.GetTempLocalDirPath());
+                    oSOP.FileLocalPath = templocaldirpath + oSOP.FileName;
+
+                    oSOP.DownloadFileFromSharePoint(templocaldirpath);
+
+                    //Update revision history with current published revision no and next revision no that signatory will may update in revision history 
+
+                   // string nextrevisionno = "";
+                    int totrevisions= oSOP.FileRevisions.Count();
+
+                    ////if (oSOP.FileCurrVersion!="" && oSOP.ApprovalStatus.Trim()=="Approved")
+                    ////{
+
+                    ////    nextrevisionno = (Convert.ToInt32(oSOP.FileCurrVersion) + 1).ToString();
+                    ////}
+
+                    int i = 0;
+
+                    FileRevision oRivCurr;
+                  //  FileRevision oRivNext;
+
+                    if (totrevisions > 0)
+                    {
+
+                        FileRevision[] oRVArr = new FileRevision[totrevisions + 1];
+
+                        foreach (FileRevision fr in oSOP.FileRevisions)
+                        {
+                            //oRiv = new FileRevision();
+                            //oRiv = fr;
+
+                            oRVArr[i] = fr;
+                            i = i + 1;
+                            if (i== totrevisions)
+                            {
+                                oRivCurr = new FileRevision();
+
+                                oRivCurr.FileID = oSOP.FileID;
+                                oRivCurr.RevisionNo = oSOP.FileCurrVersion;
+                                oRivCurr.RevisionDate = DateTime.Today;
+
+                                oRVArr[i] = oRivCurr;
+
+                                //oRivNext = new FileRevision();
+
+                                //oRivNext.FileID = oSOP.FileID;
+                                //oRivNext.RevisionNo = nextrevisionno;
+                                //oRivNext.RevisionDate = DateTime.Today;
+
+                                //oRVArr[i+1] = oRivNext;
+
+                                oSOP.FileRevisions = oRVArr;
+
+
+                            }
+
+                        }
+
+                    }
+                    //else   //no history in sharepoint for first version
+                    //{
+
+                    //    oRivCurr = new FileRevision();
+
+                    //    oRivCurr.FileID = oSOP.FileID;
+                    //    oRivCurr.RevisionNo = oSOP.FileCurrVersion;
+                    //    oRivCurr.RevisionDate = DateTime.Today;
+
+                    //    oRVArr[0] = oRivCurr;
+
+                    //    //oRivNext = new FileRevision();
+
+                    //    //oRivNext.FileID = oSOP.FileID;
+                    //    //oRivNext.RevisionNo = nextrevisionno;
+                    //    //oRivNext.RevisionDate = DateTime.Today;
+
+                    //    //oRVArr[1] = oRivNext;
+
+
+                    //}
+
+
+                    //oSOP.FileCurrVersion = nextrevisionno;
+
+
+                    //update coversheet with next full version no and add this to revision history so signatory can add description under this version while the change it
+
+                    oSOP.UpdateCoverRevhistPage(false);    //do not update review date as this is a change request. 
+
+                    oSOP.DocumentLibName = "SOP";
+                    oSOP.FileStream = System.IO.File.ReadAllBytes(oSOP.FileLocalPath);
+
+                    oSOP.UploadDocument();
+
+
+                    //reassign contribute permission permissions to all current signatories with new change request
+                    //so they can start editing file
+                    //Inheirt permissions so we don't loose previous permissions
+
+                    oSOP.ViewAccessType = "Inherit";
+
+                    oSOP.AssignSigatoriesPermission();
+
+
+                    //in SQL database add new change request
                     oSOP.AddChangeRequest();   //it will get new chngreqid that will be used as follows
 
                     ownershipid = oSOP.GetOwnershipID();
@@ -1838,16 +2165,8 @@ namespace SOPManagement.Controllers
 
                     oSOP.AddRvwractvtsWithChngRqst();
 
-                    //reassign edit permission permissions to all current signatories with new change request
-                    //so they can start editing file
 
 
-                    oSOP.GetSOPInfo();
-
-                    //we must inheirt permissions so we don't loose previous permissions
-                    oSOP.ViewAccessType = "Inherit";
-
-                    oSOP.AssignSigatoriesPermission();
 
                     Session["SOPMsg"] = "Success: Change request to the SOP have been submitted.";
 
@@ -1966,6 +2285,10 @@ namespace SOPManagement.Controllers
             SOPClass oSop = new SOPClass();
 
             Employee oEmp = new Employee();
+
+           // Employee oFileOwner = new Employee();
+          //  Employee oFileApprover = new Employee();
+
 
             string user = "";
             //  string loggedinusereml = "";
@@ -2176,28 +2499,33 @@ namespace SOPManagement.Controllers
                     oSop.Updatefreq = supdfreq;
                     oSop.Updatefrequnit = sop.Updatefrequnit;
                     oSop.Updfrequnitcode = sop.Updfrequnitcode;
+
                     // oSop.SOPEffectiveDate = Convert.ToDateTime(sop.SOPEffectiveDate);
 
-                    //Employee oFileOwner = new Employee();
                     //oFileOwner.useremailaddress = sop.FileOwnerEmail;
                     //oFileOwner.GetUserByEmail();
                     //oSop.FileOwner = oFileOwner;
 
+                    //oFileApprover.useremailaddress = sop.FileApproverEmail;
+                    //oFileApprover.GetUserByEmail();
+                    //oSop.FileApprover = oFileApprover;
+
 
                     oSop.FileLocalPath = tmpfiledirmappath + oSop.FileName;
 
-                    //we don't have any revision history for new or first time uploaded file
-                    //FileRevision[] oRevarr = new FileRevision[1];
+                    //Users need to add current version 1 in revision history so they can add comment under this revision
+                    
+                    FileRevision[] oRevarr = new FileRevision[1];
 
-                    //FileRevision rev1 = new FileRevision();
+                    FileRevision rev1 = new FileRevision();
 
-                    //rev1.RevisionNo = "";
-                    //rev1.RevisionDate = DateTime.Now;
-                    //rev1.Description = "";
+                    rev1.RevisionNo = "1";
+                    rev1.RevisionDate = DateTime.Now;
+                    rev1.Description = "";
 
-                    //oRevarr[0] = rev1;
+                    oRevarr[0] = rev1;
 
-                    //oSop.FileRevisions = oRevarr;
+                    oSop.FileRevisions = oRevarr;
 
 
                     oSop.SiteUrl = siteurl;
@@ -2206,9 +2534,10 @@ namespace SOPManagement.Controllers
 
                     //udpate coverpage with sop basic info and owner, reviewers, approver
 
-               //     oSop.UpdateCoverRevhistPageDocX();
+                    //     oSop.UpdateCoverRevhistPageDocX();
 
-                     oSop.UpdateCoverRevhistPage();
+                    oSop.UpdateCoverRevhistPage();
+
 
                     oLogger.UpdateLogFile(DateTime.Now.ToString() + ":CreateUpload Action:Successfully updated cover sheet in SOP doc file in local temp dir.");
 
@@ -2436,9 +2765,13 @@ namespace SOPManagement.Controllers
             {
                 oSop = null;
                 oEmp = null;
+              
+                //  oFileOwner = null;
+              //  oFileApprover = null;
+
                 oLogger = null;
 
-                GC.Collect();
+               GC.Collect();
             }
             
 
@@ -2551,8 +2884,8 @@ namespace SOPManagement.Controllers
             //now authenticate the logged in user by Folder name 
 
             bool noauthen=false;
-         //  if (noauthen)
-           if (!oSOP.AuthenticateUser("createupload"))
+          // if (noauthen)
+          if (!oSOP.AuthenticateUser("createupload"))
             {
                 Session["SOPMsg"] = "Error:You are not authenticated to create or upload SOP in this department.";
 

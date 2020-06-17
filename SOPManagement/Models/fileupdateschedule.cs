@@ -17,9 +17,6 @@ namespace SOPManagement.Models
         public short scheduleid { get; set; }
         public int fileid { get; set; }
         public Nullable<short> frequencyofrevision { get; set; }
-        public string unitoffrequency { get; set; }
-        public string lastrevisionno { get; set; }
-        public Nullable<System.DateTime> lastpublishdate { get; set; }
         public Nullable<System.DateTime> scheduledatetime { get; set; }
         public Nullable<short> unitcodeupdfreq { get; set; }
         public Nullable<System.DateTime> updatedatetime { get; set; }
