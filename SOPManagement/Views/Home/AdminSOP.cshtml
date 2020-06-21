@@ -269,7 +269,7 @@
 
                 <tr class="no-bottom-border" id="revhrow">
                     <td class="signoffield">
-                        Read Accesss to:
+                        View Access to:
                     </td>
 
                 </tr>
@@ -505,11 +505,20 @@
 
         function confirmsave() {
 
-            //confirmmsg('Test');
 
-           // window.confirm("Are you sure to change all SOP admin data?");
+            var archivechk = document.getElementById("SOPArchived");
 
-            window.confirm("Are you sure to change all SOP admin data?",
+            var confirmmsg = "";
+
+            if (archivechk.checked)
+                confirmmsg = "Are you sure to archive this SOP?";
+            else
+                confirmmsg = "Are you sure you want to make these changes ? Changes to the SOP owner, approver & reviewer will create a new change request. Ensure revision history of the SOP is updated to reflect these changes.";
+
+
+
+           // window.confirm("Are you sure to change all SOP admin data?",
+            window.confirm(confirmmsg,
                 function () {
                     // Do something for yes
 

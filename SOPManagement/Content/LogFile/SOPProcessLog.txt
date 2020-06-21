@@ -589,3 +589,72 @@
 6/16/2020 12:23:07 PM:Publish SOP Action:Successfully updated cover sheet with updated owner, approver etc. and revision history in SOP at local dir
 6/16/2020 12:23:11 PM:Publish SOP Action:Successfully uoloaded updated SOP in SharePoint Online SOP Library
 6/16/2020 12:23:19 PM:Publish SOP Action:Successfully published (approved) SOP in SharePoint Online SOP Library.
+6/17/2020 7:34:45 PM:CreateUpload Action:Started uploading or creating new SOP:IT-09
+6/17/2020 7:34:46 PM:CreateUpload Action:Successfully saved file in local temp directory.
+6/17/2020 7:37:27 PM:UpdateCoverRevhistPage():Application was closed successfully during cover page update:
+6/17/2020 7:37:27 PM:CreateUpload Action:Successfully updated cover sheet in SOP doc file in local temp dir.
+6/17/2020 7:37:31 PM:CreateUpload Action:Successfully uploaded SOP file in SharePoint Online SOP doc library.
+6/17/2020 7:37:33 PM:CreateUpload Action:Successfully updated all SQL server table with owner, approver, reviewer etc.
+6/17/2020 7:37:46 PM:CreateUpload Action:Successfully assigned all permissions with SOP file in SharePoint and completed processing SOP:IT-09
+6/17/2020 7:52:51 PM:UpdateCoverRevhistPage(Publish true):Application was closed successfully during cover page update:
+6/17/2020 8:02:45 PM:UpdateCoverRevhistPage(Publish true):Application was closed successfully during cover page update:
+6/17/2020 8:11:25 PM:UpdateCoverRevhistPage(Publish true):Application was closed successfully during cover page update:
+6/17/2020 8:22:02 PM:UpdateCoverRevhistPage(Publish true):Application was closed successfully during cover page update:
+6/17/2020 8:34:00 PM:UpdateCoverRevhistPage(Publish true):Application was closed successfully during cover page update:
+6/17/2020 9:43:33 PM:CreateUpload Action:Started uploading or creating new SOP:IT-10
+6/17/2020 9:43:34 PM:CreateUpload Action:Successfully saved file in local temp directory.
+6/17/2020 9:47:16 PM:UpdateCoverRevhistPage:Error:Object reference not set to an instance of an object.
+6/17/2020 9:47:21 PM:UpdateCoverRevhistPage():Application was closed successfully during cover page update:
+6/17/2020 9:47:21 PM:CreateUpload Action:Failed uplaoding or creating SOP with error:Object reference not set to an instance of an object.
+6/17/2020 9:53:37 PM:CreateUpload Action:Started uploading or creating new SOP:IT-10
+6/17/2020 9:53:37 PM:CreateUpload Action:Successfully saved file in local temp directory.
+6/17/2020 10:01:14 PM:CreateUpload Action:Started uploading or creating new SOP:IT-10
+6/17/2020 10:01:15 PM:CreateUpload Action:Successfully saved file in local temp directory.
+6/17/2020 10:02:56 PM:UpdateCoverRevhistPage():Application was closed successfully during cover page update:
+6/17/2020 10:02:56 PM:CreateUpload Action:Successfully updated cover sheet in SOP doc file in local temp dir.
+6/17/2020 10:03:01 PM:CreateUpload Action:Successfully uploaded SOP file in SharePoint Online SOP doc library.
+6/17/2020 10:03:03 PM:CreateUpload Action:Successfully updated all SQL server table with owner, approver, reviewer etc.
+6/17/2020 10:03:25 PM:CreateUpload Action:Successfully assigned all permissions with SOP file in SharePoint and completed processing SOP:IT-10
+6/17/2020 10:20:56 PM:UpdateCoverRevhistPage(Publish true):Application was closed successfully during cover page update:
+6/17/2020 10:33:54 PM:UpdateCoverRevhistPage(Publish true):Application was closed successfully during cover page update:
+6/17/2020 10:46:29 PM:UpdateCoverRevhistPage(Publish true):Application was closed successfully during cover page update:
+6/17/2020 11:50:19 PM:UpdateCoverRevhistPage(Publish true):Application was closed successfully during cover page update:
+6/18/2020 12:00:27 AM:UpdateCoverRevhistPage(Publish true):Application was closed successfully during cover page update:
+6/18/2020 12:37:27 AM:UpdateCoverRevhistPage(Publish true):Application was closed successfully during cover page update:
+6/18/2020 12:47:17 AM:UpdateCoverRevhistPage(Publish true):Application was closed successfully during cover page update:
+6/18/2020 12:51:58 AM:Publish SOP Action:Started publishing with File ID:495, change request id:330
+6/18/2020 12:52:52 AM:Publish SOP Action:Successfully validated  SOP for publishing.
+6/18/2020 12:52:53 AM:Publish SOP Action:Successfully downloaded SOP into local dir from SharePoint Online
+6/18/2020 12:59:22 AM:UpdateCoverRevhistPage(Publish true):Application was closed successfully during cover page update:
+6/18/2020 12:59:22 AM:Publish SOP Action:Successfully updated cover sheet with updated owner, approver etc. and revision history in SOP at local dir
+6/18/2020 12:59:25 AM:Publish SOP Action:Successfully uoloaded updated SOP in SharePoint Online SOP Library
+6/18/2020 12:59:33 AM:Publish SOP Action:Successfully published (approved) SOP in SharePoint Online SOP Library.
+6/18/2020 1:16:14 AM:UpdateCoverRevhistPage(Publish true):Application was closed successfully during cover page update:
+6/18/2020 1:22:33 AM:Publish SOP Action:Started publishing with File ID:495, change request id:331
+6/18/2020 1:23:17 AM:Publish SOP Action:Successfully validated  SOP for publishing.
+6/18/2020 1:23:18 AM:Publish SOP Action:Successfully downloaded SOP into local dir from SharePoint Online
+6/18/2020 1:26:54 AM:Publish SOP Action:Started publishing with File ID:495, change request id:331
+6/18/2020 1:27:14 AM:Publish SOP Action:Successfully validated  SOP for publishing.
+6/18/2020 1:27:16 AM:Publish SOP Action:Failed to publish with error:The process cannot access the file 'C:\Users\tshaikh\Documents\Projects\Radiant Canada\SOP\SOPManagement\SOPManagement\Content\DocFiles\Test IT SOP10.docx' because it is being used by another process.
+6/18/2020 1:29:51 AM:Publish SOP Action:Started publishing with File ID:495, change request id:331
+6/18/2020 1:30:53 AM:Publish SOP Action:Successfully validated  SOP for publishing.
+6/18/2020 1:30:54 AM:Publish SOP Action:Successfully downloaded SOP into local dir from SharePoint Online
+6/18/2020 1:32:22 AM:UpdateCoverRevhistPage(Publish true):Application was closed successfully during cover page update:
+6/18/2020 1:32:22 AM:Publish SOP Action:Successfully updated cover sheet with updated owner, approver etc. and revision history in SOP at local dir
+6/18/2020 1:32:25 AM:Publish SOP Action:Successfully uoloaded updated SOP in SharePoint Online SOP Library
+6/18/2020 1:32:34 AM:Publish SOP Action:Successfully published (approved) SOP in SharePoint Online SOP Library.
+6/18/2020 2:55:56 AM:CreateUpload Action:Started uploading or creating new SOP:IT-11
+6/18/2020 2:55:57 AM:CreateUpload Action:Successfully saved file in local temp directory.
+6/18/2020 2:56:51 AM:UpdateCoverRevhistPage():Application was closed successfully during cover page update:
+6/18/2020 2:56:51 AM:CreateUpload Action:Successfully updated cover sheet in SOP doc file in local temp dir.
+6/18/2020 2:56:55 AM:CreateUpload Action:Successfully uploaded SOP file in SharePoint Online SOP doc library.
+6/18/2020 2:56:58 AM:CreateUpload Action:Successfully updated all SQL server table with owner, approver, reviewer etc.
+6/18/2020 2:57:11 AM:CreateUpload Action:Successfully assigned all permissions with SOP file in SharePoint and completed processing SOP:IT-11
+6/18/2020 2:58:35 AM:CreateUpload Action:Started uploading or creating new SOP:IT-12
+6/18/2020 2:58:35 AM:CreateUpload Action:Successfully saved file in local temp directory.
+6/18/2020 2:59:37 AM:UpdateCoverRevhistPage():Application was closed successfully during cover page update:
+6/18/2020 2:59:37 AM:CreateUpload Action:Successfully updated cover sheet in SOP doc file in local temp dir.
+6/18/2020 2:59:39 AM:CreateUpload Action:Successfully uploaded SOP file in SharePoint Online SOP doc library.
+6/18/2020 2:59:41 AM:CreateUpload Action:Successfully updated all SQL server table with owner, approver, reviewer etc.
+6/18/2020 2:59:49 AM:CreateUpload Action:Successfully assigned all permissions with SOP file in SharePoint and completed processing SOP:IT-12
+6/19/2020 3:04:12 PM:UpdateCoverRevhistPage(Publish true):Application was closed successfully during cover page update:

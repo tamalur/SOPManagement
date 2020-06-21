@@ -45,7 +45,7 @@
         <div class="form-group">
 
             @*@HtmlFor.Label(model => model.FileName, htmlAttributes: new { @class = "control-label col-md-2" })*@
-            @Html.Label("New File Name", htmlAttributes: new { @class = "control-label col-md-2" })
+            @Html.Label("New SOP Name", htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
 
                 @Html.EditorFor(model => model.FileName, new { htmlAttributes = new { @class = "form-control" } })
@@ -225,7 +225,7 @@
 
         <div class="form-group">
 
-                @Html.Label("View Access To:", htmlAttributes: new { @class = "control-label col-md-2" })
+                @Html.Label("View Access To (One option only)", htmlAttributes: new { @class = "control-label col-md-2" })
 
 
                 <div class="col-md-10">
@@ -247,7 +247,7 @@
 
                         <tr>
                             <td>
-                                @Html.Label("By Department:")
+                                @Html.Label("Department:")
                             </td>
 
                             <td>
@@ -261,7 +261,7 @@
                         <tr>
 
                             <td>
-                                @Html.Label("By Users:")
+                                @Html.Label("Users:")
 
                             </td>
 

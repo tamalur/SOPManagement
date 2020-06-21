@@ -62,7 +62,7 @@ namespace SOPManagement.Models
         [Display(Name = "SOP Name")]
         public string FileTitle { get; set; }   //title is without sopno
 
-        [Display(Name = "SOP File Name")]
+        [Display(Name = "SOP Name")]
         public string FileName { get; set; }   //with sopno in front SOPNO + " "+ FileTitle
 
         public byte[] FileStream { get; set; }  //with sopno in front SOPNO + " "+ FileTitle
@@ -74,7 +74,7 @@ namespace SOPManagement.Models
         [Display(Name = "Select Sub-department")]
         public string SubFolderName { get; set; }
 
-        [Display(Name = "By Department")]
+        [Display(Name = "Department")]
         public string DepartmentName { get; set; }
         public short? DepartmentCode { get; set; }
 
@@ -117,7 +117,7 @@ namespace SOPManagement.Models
 
         public Employee[] FileReviewers { get; set; }
 
-        [Display(Name = "By Users")]
+        [Display(Name = "Users")]
 
         public Employee[] FileViewers { get; set; }
 
@@ -132,7 +132,7 @@ namespace SOPManagement.Models
         [Display(Name = "SOP Effective Date")]
         public DateTime SOPEffectiveDate { get; set; }
 
-        [Display(Name = "Select File to Upload")]
+        [Display(Name = "Select SOP to Upload")]
         //[System.Web.Mvc.Remote("CheckIfExists", "Home", ErrorMessage = "Duplicate File Found")]
         public HttpPostedFileBase UploadedFile { get; set; }
 
@@ -1826,7 +1826,8 @@ namespace SOPManagement.Models
                     //end updating 3rd table for approver
 
 
-                    //update last table to add new revision data into Revison history table 
+                    //update last table to add new revision data into Revison history table
+                    //it will be first revision while we create/upload file
 
                     Microsoft.Office.Interop.Word.Table tab = wdoc.Tables[totalTables];
                     Microsoft.Office.Interop.Word.Range range = tab.Range;
@@ -1846,71 +1847,70 @@ namespace SOPManagement.Models
 
                     bool lastrowtoupd;
 
-                    // int filevercount = 1;
 
-                    foreach (FileRevision rev in FileRevisions)
+                    if (FileRevisions != null)
                     {
-                        decimal drevno;
-                        drevno = Convert.ToDecimal(rev.RevisionNo);
-
-                        //check whether this revision is already in table. if not then only
-                        // add new revision so we do not replace historical revision description
-
-                        donotaddrow = false;
-                        lastrowtoupd = false;
-
-                        // this loop ensures we do not replace existing revision history 
-                        for (int i = 2; i <= tab.Rows.Count; i++)
+                        foreach (FileRevision rev in FileRevisions)
                         {
-                            if (rev.RevisionNo.Trim() == tab.Rows[i].Cells[1].Range.Text.Replace("\r\a", "").Trim())
+                            decimal drevno;
+                            drevno = Convert.ToDecimal(rev.RevisionNo);
+
+                            //check whether this revision is already in table. if not then only
+                            // add new revision so we do not replace historical revision description
+
+                            donotaddrow = false;
+                            lastrowtoupd = false;
+
+                            // this loop ensures we do not replace existing revision history 
+                            for (int i = 2; i <= tab.Rows.Count; i++)
                             {
-                                donotaddrow = true;
-                                break;
+                                if (rev.RevisionNo.Trim() == tab.Rows[i].Cells[1].Range.Text.Replace("\r\a", "").Trim())
+                                {
+                                    donotaddrow = true;
+                                    break;
+                                }
+
                             }
 
-                        }
+                            //if this is first revision history rev no 1, then do not add row  
+                            if (selectedRow == 2 && tab.Rows[2].Cells[1].Range.Text.Replace("\r\a", "").Trim() == "" && rev.RevisionNo.Trim() == "1")
+                            {
+                                donotaddrow = true;
+                                lastrowtoupd = true;  //ensure new data
+                            }
 
-                        //if this is first revision history rev no 1, then do not add row  
-                        if (selectedRow == 2 && tab.Rows[2].Cells[1].Range.Text.Replace("\r\a", "").Trim() == "" && rev.RevisionNo.Trim() == "1")
-                        {
-                            donotaddrow = true;
-                            lastrowtoupd = true;  //ensure new data
-                        }
+                            if (!donotaddrow)
+                            {
+                                tab.Rows.Add(ref missObj);
+                                lastrowtoupd = true;   //ensure new data
+                            }
 
-                        if (!donotaddrow)
-                        {
-                            tab.Rows.Add(ref missObj);
-                            lastrowtoupd = true;   //ensure new data
-                        }
+                            if (lastrowtoupd) //update last row only if it is new data
+                            {
+                                // Moves the cursor to the first cell of target row.
+                                range.Start = tab.Rows[tab.Rows.Count].Cells[1].Range.Start;
+                                range.End = range.Start;
 
-                        if (lastrowtoupd) //update last row only if it is new data
-                        {
-                            // Moves the cursor to the first cell of target row.
-                            range.Start = tab.Rows[tab.Rows.Count].Cells[1].Range.Start;
-                            range.End = range.Start;
-
-                            // Paste values to target row.
-                            range.Paste();
+                                // Paste values to target row.
+                                range.Paste();
 
 
-                            // Write new vaules to each cell.
+                                // Write new vaules to each cell.
 
-                            tab.Rows[tab.Rows.Count].Cells[1].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
-                            tab.Rows[tab.Rows.Count].Cells[1].Range.Text = rev.RevisionNo;
+                                tab.Rows[tab.Rows.Count].Cells[1].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
+                                tab.Rows[tab.Rows.Count].Cells[1].Range.Text = rev.RevisionNo;
 
-                            tab.Rows[tab.Rows.Count].Cells[2].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
-                            tab.Rows[tab.Rows.Count].Cells[2].Range.Text = rev.RevisionDate.ToString("MMMM dd, yyyy");
+                                tab.Rows[tab.Rows.Count].Cells[2].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
+                                tab.Rows[tab.Rows.Count].Cells[2].Range.Text = rev.RevisionDate.ToString("MMMM dd, yyyy");
 
-                            tab.Rows[tab.Rows.Count].Cells[3].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
-                            tab.Rows[tab.Rows.Count].Cells[3].Range.Text = rev.Description;
+                                tab.Rows[tab.Rows.Count].Cells[3].Range.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
+                                tab.Rows[tab.Rows.Count].Cells[3].Range.Text = rev.Description;
 
 
-                        }
+                            }
 
-                        //     filevercount = filevercount + 1;
-
-                    }  //end for loop of revision history
-
+                        }  //end for loop of revision history
+                    }  //end checking FileRevisions != null
 
 
 
@@ -2317,10 +2317,18 @@ namespace SOPManagement.Models
                     // Write new vaules to each cell.
                     tab1.Rows[1].Cells[2].Range.Text = FileTitle;
                     tab1.Rows[2].Cells[2].Range.Text = SOPNo;
-                    tab1.Rows[2].Cells[4].Range.Text = FileCurrVersion;
 
                     if (pPublishingSOP)     //update effective date only when publishing SOP
+                    {
                         tab1.Rows[3].Cells[2].Range.Text = DateTime.Today.ToString("MMMM dd, yyyy"); //current bcs it will publish now
+
+                        tab1.Rows[2].Cells[4].Range.Text = Math.Ceiling(Convert.ToDecimal(FileCurrDraftVersion)).ToString();  //published version is next to draft
+
+                    }
+
+                    else
+                        tab1.Rows[2].Cells[4].Range.Text = FileCurrVersion;     //+"(Draft Version:"+ FileCurrDraftVersion+")";
+
 
                     tab1.Rows[4].Cells[2].Range.Text =FileOwner.userfullname;
 
@@ -2432,6 +2440,7 @@ namespace SOPManagement.Models
 
                     //end updating 3rd table for approver
 
+
                     //update last table to add new revision data into Revison history table 
 
                     Microsoft.Office.Interop.Word.Table tab = wdoc.Tables[totalTables];
@@ -2440,31 +2449,8 @@ namespace SOPManagement.Models
                     // Select the last row as source row.
                     int selectedRow = tab.Rows.Count;
 
-                    //if no revision history found that means it is new file and history has version 1 
-                    //now update revision date of version 1 with the publish date
 
-                    //if (FileRevisions.Count()==0 && pPublishingSOP)
-                    //{
-
-                    //    for (int i = 2; i <= tab.Rows.Count; i++)
-                    //    {
-                    //        if (tab.Rows[i].Cells[1].Range.Text.Replace("\r\a", "").Trim()=="1")
-                    //        {
-
-                    //            tab.Rows[i].Cells[2].Range.Text = DateTime.Now.ToString("MMMM dd, yyyy");   //if we find revision history no in table, then update the revision date with publish date 
-
-                    //            //donotaddrow = true;
-                    //            break;
-                    //        }
-
-                    //    }
-
-                    //}
-
-                    //end checking new file with version 1
-
-
-                    // Select and copy content of the source row.
+                    // Select and copy content from last row to paste it in new row.
 
                     range.Start = tab.Rows[selectedRow].Cells[1].Range.Start;
                     range.End = tab.Rows[selectedRow].Cells[tab.Rows[selectedRow].Cells.Count].Range.End;
@@ -2475,7 +2461,6 @@ namespace SOPManagement.Models
 
                     bool lastrowtoupd ;
 
-                   // int filevercount = 1;
 
                     foreach (FileRevision rev in FileRevisions)
                     {
@@ -2491,10 +2476,8 @@ namespace SOPManagement.Models
                         // this loop ensures we do not replace existing revision history 
                         for (int i = 2; i <= tab.Rows.Count; i++)
                         {
-                            if (rev.RevisionNo.Trim() == tab.Rows[i].Cells[1].Range.Text.Replace("\r\a", "").Trim() && rev.RevisionID>0)
+                            if (rev.RevisionNo.Trim() == tab.Rows[i].Cells[1].Range.Text.Replace("\r\a", "").Trim())
                             {
-
-                                tab.Rows[i].Cells[2].Range.Text= rev.RevisionDate.ToString("MMMM dd, yyyy");   //if we find revision history no in table, then update the revision date from sharepoint 
 
                                 donotaddrow = true;
                                 break;
@@ -2539,26 +2522,25 @@ namespace SOPManagement.Models
 
                         }
 
-                   //     filevercount = filevercount + 1;
-
                     }  //end for loop of revision history
 
 
-                    //if revision history is not in history in sp update with today's date
-                    bool revfoundinsp = false;
+                    //the following code will run when we call the method from publish to udpate revision date in doc with rev 
+                    //date from sharepoint rev date or current publish date 
 
-                    //if ((FileRevisions.Count() < (selectedRow - 1)) && pPublishingSOP)
+                      bool revfoundinsp = false;
 
                       if (FileRevisions.Count() >0 && pPublishingSOP)
                         {
-                        for (int i = 2; i <= tab.Rows.Count; i++)
+                            for (int i = 2; i <= tab.Rows.Count; i++)
                         {
                             revfoundinsp = false;
                             foreach (FileRevision rev in FileRevisions)
                             {
-                                //if (rev.RevisionNo.Trim() == tab.Rows[i].Cells[1].Range.Text.Replace("\r\a", "").Trim())
+
                                 if (rev.RevisionID>0 && rev.RevisionNo.Trim() == tab.Rows[i].Cells[1].Range.Text.Replace("\r\a", "").Trim())
                                 {
+                                   tab.Rows[i].Cells[2].Range.Text= rev.RevisionDate.ToString("MMMM dd, yyyy");   //if we find rev date in revision history in sharepoint, then update the revision date from sharepoint 
 
                                     revfoundinsp = true;
                                     break;
@@ -2566,7 +2548,7 @@ namespace SOPManagement.Models
                             }
 
 
-                            if (!revfoundinsp)
+                            if (!revfoundinsp)   //if we do not find then update rev date in table with current publish date
                             {
 
                                 tab.Rows[i].Cells[2].Range.Text = DateTime.Today.ToString("MMMM dd, yyyy");   //if we find rev no in sharepoint , then update the revision date with publish date 
@@ -2574,10 +2556,10 @@ namespace SOPManagement.Models
 
                         }  //end looping rev history table
 
-                    }  //end updating revision date with publish date if rev not found in rev history 
+                       }  //end updating revision date with publish date if rev not found in rev history 
 
 
-                }
+                }  //end if totalTables>0
 
 
 
@@ -2851,7 +2833,7 @@ namespace SOPManagement.Models
 
                 if (FileCurrVersion != null && FileCurrVersion != "")
                 {
-                    FileCurrVersion = Math.Round(Math.Ceiling(Convert.ToDecimal(FileCurrVersion))).ToString();
+                    FileCurrVersion = Math.Truncate(Convert.ToDecimal(FileCurrVersion)).ToString();
 
                 }
 

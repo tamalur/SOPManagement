@@ -701,31 +701,25 @@ namespace SOPManagement.Controllers
 
                         oSOPHelper.DownloadFileFromSharePoint(templocaldirpath);
 
-                        //Update revision history with current published revision no and next revision no that signatory will may update in revision history 
+                        //Reset revision history so signatory can add comments with current version in rev history table
+                        //if there is already a history from sharepoint add current version with old versions of sharepoint
+                        //becuase revision history sharepoint does not add current version in revision history
+                        //if there is no history in sharepoint i.e. first version then add the current (version 1) to revision history
 
-                        string nextrevisionno = "";
-                        int totrevisions = oSOPHelper.FileRevisions.Count();
-
-                        //if (oSOPHelper.FileCurrVersion != "" && oSOPHelper.ApprovalStatus.Trim() == "Approved")
-                        //{
-
-                        //    nextrevisionno = (Convert.ToInt32(oSOPHelper.FileCurrVersion) + 1).ToString();
-                        //}
+                        int totrevisions = oSOPHelper.FileRevisions.Count();   //gives actual history from sharepoint 
 
                         int i = 0;
 
+                        FileRevision oRivCurr;  //for adding current version to history  
 
-                        if (totrevisions > 0 && Convert.ToInt32(oSOPHelper.FileRevisions[totrevisions-1].RevisionNo)<Convert.ToInt32(oSOPHelper.FileCurrVersion))
+                        FileRevision[] oRVArr = new FileRevision[totrevisions + 1]; //redim array to add current version
+
+
+                        if (totrevisions > 0)
                         {
-                            FileRevision[] oRVArr = new FileRevision[totrevisions + 1];
-                            FileRevision oRivCurr;
 
                             foreach (FileRevision fr in oSOPHelper.FileRevisions)
-
-
                             {
-                                //oRiv = new FileRevision();
-                                //oRiv = fr;
 
                                 oRVArr[i] = fr;
                                 i = i + 1;
@@ -738,7 +732,6 @@ namespace SOPManagement.Controllers
                                     oRivCurr.RevisionDate = DateTime.Today;
 
                                     oRVArr[i] = oRivCurr;
-
                                     oSOPHelper.FileRevisions = oRVArr;
 
 
@@ -747,25 +740,24 @@ namespace SOPManagement.Controllers
                             }
 
                         }
-                        //else if (totrevisions ==0)   //no history in sharepoint
-                        //{
+                        else   //no history in sharepoint for first version, so add the current one 
+                        {
 
-                        //    oRivCurr = new FileRevision();
+                            oRivCurr = new FileRevision();
 
-                        //    oRivCurr.FileID = oSOPHelper.FileID;
-                        //    oRivCurr.RevisionNo = oSOPHelper.FileCurrVersion;
-                        //    oRivCurr.RevisionDate = DateTime.Today;
+                            oRivCurr.FileID = oSOPHelper.FileID;
+                            oRivCurr.RevisionNo = oSOPHelper.FileCurrVersion;
+                            oRivCurr.RevisionDate = DateTime.Today;
 
-                        //    oRVArr[0] = oRivCurr;
+                            oRVArr[0] = oRivCurr;
 
-
-                        //}
-
-
-                      //  oSOPHelper.FileCurrVersion = nextrevisionno;
+                            oSOPHelper.FileRevisions = oRVArr;
 
 
+                        }
 
+
+                        //now update coversheet with all latest info
 
                         oSOPHelper.UpdateCoverRevhistPage(false);
 
@@ -776,16 +768,6 @@ namespace SOPManagement.Controllers
                         oSOPHelper.UploadDocument();
 
                         oSOPHelper = null;   //thanks bye bye 
-
-                        // sop.FileLocalPath = templocaldirpath + sop.FileName;
-                        //sop.DownloadFileFromSharePoint(templocaldirpath);
-                        // sop.UpdateCoverRevhistPage(true);     
-
-                        //Thread.Sleep(4000);
-
-                        //sop.FileStream = System.IO.File.ReadAllBytes(sop.FileLocalPath);
-
-                        // sop.UploadDocument();
 
 
                     }  //end checking signatory/contributor change
@@ -1577,8 +1559,9 @@ namespace SOPManagement.Controllers
 
             Session["SOPName"] = "N/A";
 
-            return RedirectToAction("SOPMessage");
+            //return RedirectToAction("SOPMessage");
 
+            return Redirect("/Content/UserManuals/SOPDashboardOverview.htm");
 
         }
 
@@ -1591,8 +1574,12 @@ namespace SOPManagement.Controllers
 
             Session["SOPName"] = "N/A";
 
-            return RedirectToAction("SOPMessage");
+            // return RedirectToAction("SOPMessage");
 
+           // return Redirect("https://radiantdelivers.sharepoint.com/:w:/s/Watercooler/ER-HMsgT5LBPr2nEYOoSTs8BVd43JtsTiyg9tWFWXMLzIA?e=bQ6GMg");
+
+            
+            return Redirect("/Content/UserManuals/SOPUploadCreation.htm");
 
         }
 
@@ -1606,8 +1593,13 @@ namespace SOPManagement.Controllers
 
             Session["SOPName"] = "N/A";
 
-            return RedirectToAction("SOPMessage");
+            // return RedirectToAction("SOPMessage");
 
+            //return Redirect("https://radiantdelivers.sharepoint.com/:w:/s/Watercooler/EeEA3lEaBEhNo6J-oBUA0E0B-00pE6GS9sZEKpA88634yQ?e=zsFaz7");
+
+
+            return Redirect("/Content/UserManuals/ChangeRequest.htm");
+            
 
         }
 
@@ -1620,9 +1612,11 @@ namespace SOPManagement.Controllers
 
             Session["SOPName"] = "N/A";
 
-            return RedirectToAction("SOPMessage");
+            // return RedirectToAction("SOPMessage");
 
+            // return Redirect("https://radiantdelivers.sharepoint.com/:w:/s/Watercooler/EYlIqIDmozpOojI_cUt1_gkB588H345GVEUJRVIw6bbH_w?e=YcFfBb");
 
+            return Redirect("/Content/UserManuals/SigningOffPublishingSOP.htm");
         }
 
         public ActionResult AdminMan()
@@ -1634,7 +1628,13 @@ namespace SOPManagement.Controllers
 
             Session["SOPName"] = "N/A";
 
-            return RedirectToAction("SOPMessage");
+            //return RedirectToAction("SOPMessage");
+
+            //return Redirect("https://radiantdelivers.sharepoint.com/:w:/s/Watercooler/EVdSUVu_9gBFlBzP9NRXjJ4BSAEISPfmumv_wRl8lc9PMw?e=dfr5V9");
+
+            return Redirect("/Content/UserManuals/AdminChanges.htm");
+
+                     
 
 
         }
@@ -1648,9 +1648,11 @@ namespace SOPManagement.Controllers
 
             Session["SOPName"] = "N/A";
 
-            return RedirectToAction("SOPMessage");
+            // return RedirectToAction("SOPMessage");
 
+            //return Redirect("https://radiantdelivers.sharepoint.com/:w:/s/Watercooler/EeSl17wI-BZGuVN8kytZR0QBJJN99QEFhCRJoNNDP1vsqA?e=THftfw");
 
+            return Redirect("/Content/UserManuals/Accessing%20SOP%20Archive.htm");
         }
 
         public ActionResult PurposeMan()
@@ -1662,8 +1664,11 @@ namespace SOPManagement.Controllers
 
             Session["SOPName"] = "N/A";
 
-            return RedirectToAction("SOPMessage");
+            //return RedirectToAction("SOPMessage");
 
+            return Redirect("/Content/UserManuals/Purpose.htm");
+
+            
 
         }
 
@@ -1676,9 +1681,12 @@ namespace SOPManagement.Controllers
 
             Session["SOPName"] = "N/A";
 
-            return RedirectToAction("SOPMessage");
+            //return RedirectToAction("SOPMessage");
 
+            //return Redirect("https://radiantdelivers.sharepoint.com/:w:/s/Watercooler/Eat_caxBgKJJs8rHGydQvWEBNRtranmT8E8f9forjj3I7w?e=6Pbeal");
 
+            return Redirect("/Content/UserManuals/SOPIdentificationControl.htm");
+            
         }
 
         public ActionResult SOPFormat()
@@ -1690,8 +1698,11 @@ namespace SOPManagement.Controllers
 
             Session["SOPName"] = "N/A";
 
-            return RedirectToAction("SOPMessage");
+            // return RedirectToAction("SOPMessage");
 
+            //  return Redirect("https://radiantdelivers.sharepoint.com/:w:/s/Watercooler/EeEA3lEaBEhNo6J-oBUA0E0B06n-kQ3xoN-1U7PH5Xf5FA?e=8Ltdxt");
+
+            return Redirect("/Content/UserManuals/SOPFormat.htm");
 
         }
 
@@ -1813,7 +1824,7 @@ namespace SOPManagement.Controllers
 
                 if (oSOP.FileStatuscode == 2)  //not signed
                 {
-                    Session["SOPMsg"] = "Error:Operation failed, document has not be signed by all signatories";
+                    Session["SOPMsg"] = "Error:Operation failed, document has not been signed by all signatories";
 
                     return RedirectToAction("SOPMessage");
 
@@ -2053,31 +2064,25 @@ namespace SOPManagement.Controllers
 
                     oSOP.DownloadFileFromSharePoint(templocaldirpath);
 
-                    //Update revision history with current published revision no and next revision no that signatory will may update in revision history 
+                    //Reset revision history so signatory can add comments with current version in rev history table
+                    //if there is already a history from sharepoint add current version with old versions of sharepoint
+                    //becuase revision history sharepoint does not add current version in revision history
+                    //if there is no history in sharepoint i.e. first version then add the current (version 1) to revision history
 
-                   // string nextrevisionno = "";
-                    int totrevisions= oSOP.FileRevisions.Count();
-
-                    ////if (oSOP.FileCurrVersion!="" && oSOP.ApprovalStatus.Trim()=="Approved")
-                    ////{
-
-                    ////    nextrevisionno = (Convert.ToInt32(oSOP.FileCurrVersion) + 1).ToString();
-                    ////}
+                    int totrevisions = oSOP.FileRevisions.Count();   //gives actual history from sharepoint 
 
                     int i = 0;
 
-                    FileRevision oRivCurr;
-                  //  FileRevision oRivNext;
+                    FileRevision oRivCurr;  //for adding current version to history  
+
+                    FileRevision[] oRVArr = new FileRevision[totrevisions + 1]; //redim array to add current version
+
 
                     if (totrevisions > 0)
                     {
 
-                        FileRevision[] oRVArr = new FileRevision[totrevisions + 1];
-
                         foreach (FileRevision fr in oSOP.FileRevisions)
                         {
-                            //oRiv = new FileRevision();
-                            //oRiv = fr;
 
                             oRVArr[i] = fr;
                             i = i + 1;
@@ -2090,15 +2095,6 @@ namespace SOPManagement.Controllers
                                 oRivCurr.RevisionDate = DateTime.Today;
 
                                 oRVArr[i] = oRivCurr;
-
-                                //oRivNext = new FileRevision();
-
-                                //oRivNext.FileID = oSOP.FileID;
-                                //oRivNext.RevisionNo = nextrevisionno;
-                                //oRivNext.RevisionDate = DateTime.Today;
-
-                                //oRVArr[i+1] = oRivNext;
-
                                 oSOP.FileRevisions = oRVArr;
 
 
@@ -2107,30 +2103,21 @@ namespace SOPManagement.Controllers
                         }
 
                     }
-                    //else   //no history in sharepoint for first version
-                    //{
+                    else   //no history in sharepoint for first version, so add the current one 
+                    {
 
-                    //    oRivCurr = new FileRevision();
+                        oRivCurr = new FileRevision();
 
-                    //    oRivCurr.FileID = oSOP.FileID;
-                    //    oRivCurr.RevisionNo = oSOP.FileCurrVersion;
-                    //    oRivCurr.RevisionDate = DateTime.Today;
+                        oRivCurr.FileID = oSOP.FileID;
+                        oRivCurr.RevisionNo = oSOP.FileCurrVersion;
+                        oRivCurr.RevisionDate = DateTime.Today;
 
-                    //    oRVArr[0] = oRivCurr;
+                        oRVArr[0] = oRivCurr;
 
-                    //    //oRivNext = new FileRevision();
-
-                    //    //oRivNext.FileID = oSOP.FileID;
-                    //    //oRivNext.RevisionNo = nextrevisionno;
-                    //    //oRivNext.RevisionDate = DateTime.Today;
-
-                    //    //oRVArr[1] = oRivNext;
+                        oSOP.FileRevisions = oRVArr;
 
 
-                    //}
-
-
-                    //oSOP.FileCurrVersion = nextrevisionno;
+                    }
 
 
                     //update coversheet with next full version no and add this to revision history so signatory can add description under this version while the change it
@@ -2388,18 +2375,10 @@ namespace SOPManagement.Controllers
                     if (bProcessCompleted)
                     {
 
-                        //oEmp.useremailaddress = loggedinusereml;
-
-                        //oEmp.GetUserByEmail();
-
-                        //oSop.FileChangeRqsterID = oEmp.userid
 
                         oSop.FileChangeRqsterID = Utility.GetLoggedInUserID();
 
                         oSop.DocumentLibName = "SOP";
-
-                        //oSop.DocumentLibName = Utility.GetDocLibraryName();         //"SOP";
-
 
                         oSop.SOPNo = sop.SOPNo;
 
@@ -2514,7 +2493,7 @@ namespace SOPManagement.Controllers
                     oSop.FileLocalPath = tmpfiledirmappath + oSop.FileName;
 
                     //Users need to add current version 1 in revision history so they can add comment under this revision
-                    
+
                     FileRevision[] oRevarr = new FileRevision[1];
 
                     FileRevision rev1 = new FileRevision();

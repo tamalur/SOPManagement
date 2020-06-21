@@ -420,7 +420,7 @@ namespace SOPManagement.Models
                 aprvrnotsgnedactvty = dbctx.fileapproversactivities.Where(o => o.changerequestid == ChangeRequestID && o.approvalstatuscode == 2).Select(o => o.approveractivityid).FirstOrDefault();
                 rvwrnotsgnedactvty = dbctx.filereviewersactivities.Where(o => o.changerequestid == ChangeRequestID && o.approvalstatuscode == 2).Select(o => o.revieweractivityid).FirstOrDefault();
 
-                //if there is not signed that is all are signed then update then update changeactivity table with signed status
+                //if all signed the SOP then update then update changeactivity table with signed status
                 //so approver can publish the SOP
 
                 if (ownrnotsgnedactvty==0 && aprvrnotsgnedactvty==0 && rvwrnotsgnedactvty==0)
